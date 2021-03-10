@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020", "dom"],
+    "allowJs": true,
+    "outDir": "./build",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": false,
+    "experimentalDecorators": true
+  },
+  "exclude": [
+    "./tools/*",
+    "./node_modules",
+    "./build",
+    "./dist"
+  ]
+}

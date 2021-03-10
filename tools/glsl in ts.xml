@@ -1,0 +1,10 @@
+<LanguageInjectionConfiguration>
+  <injection language="GLSL" injector-id="js">
+    <display-name>GLSL in ts decorator</display-name>
+    <place><![CDATA[jsArgument(jsReferenceExpression().withQualifiedName("fragment"), 0)]]></place>
+  </injection>
+  <injection language="GLSL" injector-id="js">
+    <display-name>GLSL in ts decorator</display-name>
+    <place><![CDATA[jsArgument(jsReferenceExpression().withQualifiedName("vertex"), 0)]]></place>
+  </injection>
+</LanguageInjectionConfiguration>
