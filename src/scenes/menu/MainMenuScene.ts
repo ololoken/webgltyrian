@@ -1,9 +1,10 @@
-import {Sprite, Container, filters} from 'pixi.js'
+import {Sprite, Container, filters, Texture} from 'pixi.js'
 import {AbstractScene, IScene} from "../AbstractScene";
-import {getSprite, PCX, pcxSprite, SpriteTableIndex, textContainer} from "../../Resources";
+import {getSprite, PCX, pcxSprite, SpriteTableIndex, textContainer, cache} from "../../Resources";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {SelectEpisode} from "./SelectEpisode";
 import {HelpScene} from "./HelpScene";
+import {PaletteFilter} from "../../filters/PaletteFilter";
 
 export type MenuItem = {
     text: string,
@@ -76,8 +77,13 @@ export class MainMenuScene extends AbstractScene {
                 });
                 return m.btn;
             }));
+            /*
+            let sp = this.addChild(new Sprite(new Texture(cache.sprites[6].texture)));
+            sp.filters = [new PaletteFilter(0)];
+            sp.scale.set(0.65, 0.65);
             resolve(true);
-        })
+             */
+        });
     }
 
 }

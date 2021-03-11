@@ -236,7 +236,6 @@ const initSpritesTable: ResourceInit = (dt) => {
             }
             xOffset += s.width;
         }
-        console.log(xOffset+yOffset*tSize, tSize*tSize)
 
         cache.sprites[idx] = {
             texture: BaseTexture.fromBuffer(textureData, tSize, tSize, {
