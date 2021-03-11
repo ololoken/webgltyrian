@@ -9,10 +9,10 @@ What's ready:
 2. A couple of shader to apply palettes and outlining.
 
 The plan is:
-3. Add World with basic game logic.
-4. Event system.
-5. Mission scene and first playable demo.
-6. Replace original graphics with [remastered by LostGarden's Daniel Cook](https://opengameart.org/content/remastered-tyrian-graphics-0).
+1. Add World with basic game logic.
+2. Event system.
+3. Mission scene and first playable demo.
+4. Replace original graphics with [remastered by LostGarden's Daniel Cook](https://opengameart.org/content/remastered-tyrian-graphics-0).
 
 ..... and so on.
 
