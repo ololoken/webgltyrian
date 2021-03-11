@@ -59,13 +59,6 @@ const spritesTableStruct = new Struct<{count: number, sprites: TySprite[]}>()
     .single('count', UInt16)
     .array('sprites', spriteStruct, la('count'));
 
-type SpriteTable = {
-    shots1: number[],
-    shots2: number[],
-    ship: number[],
-    powerup: number[],
-    coin: number[]
-};
 export enum SpriteTableIndex {
     FONT_LARGE = 0,
     FONT_REGULAR = 1,
@@ -73,17 +66,9 @@ export enum SpriteTableIndex {
 }
 export const cache : {
         palette?: Texture, pcxBaseTexture?: BaseTexture,
-        spriteTables: SpriteTable,
         sprites: {frames: Rectangle[], texture: BaseTexture}[]
     } = {
-    sprites: [],
-    spriteTables: {
-        shots1: [],
-        shots2: [],
-        ship: [],
-        powerup: [],
-        coin: []
-    },
+    sprites: []
 }
 const loadPalettes: ResourceInit = (dt) => {
     const paletteSize = 256;
@@ -145,68 +130,76 @@ const preloadPCX: ResourceInit = (dt) => {
     })
 }
 
+const readCompressedSpritesW12 = (dt: DataView, offset: number, limit: number): TySprite[] => {
+    let spritesOffsets =  new Struct<{first: number, offsets: number[]}>()
+        .single('first', UInt16)
+        .goto(l(offset))
+        .array('offsets', UInt16, ({first}) => first/2)
+        .unpack(dt, offset).offsets;
+    spritesOffsets.push(limit);
+    let tySprites = [];
+    for (let i = 0; i < spritesOffsets.length-1; i++) {
+        let sl = spritesOffsets[i+1]-spritesOffsets[i],
+            data = new Struct<{data: number[]}>()
+                .array('data', Byte, l(sl))
+                .unpack(dt, offset+spritesOffsets[i]).data,
+            unpacked: number[] = [],
+            height = 0;
+        for (let ptr = 0; data[ptr] != 0x0F && ptr < data.length; ++ptr) {
+            for (let i = 0; i < (data[ptr] & 0x0F); i++) unpacked.push(0);//set transparent pixels
+            let count = (data[ptr] & 0xF0) >> 4;
+            for (let i = 0; i < count; i++) unpacked.push(data[++ptr]);//copy N pixels with value following current position
+            height++;
+        }
+        tySprites.push({hasData: unpacked.length, payload: [{width: 12, height: height, size: data.length, data: unpacked}]});
+    }
+    return tySprites;
+}
+
+const readCompressedSprites = (dt: DataView, offset: number): TySprite[] =>
+    spritesTableStruct.unpack(dt, offset).sprites.map(tySprite => {
+        if (tySprite.hasData) {
+            let l = tySprite.payload[0].width * tySprite.payload[0].height;
+            let t = new Array(l).fill(0);//empty transparent sprite
+            for (let ptr = 0, i = 0; i < l;) {
+                switch (tySprite.payload[0].data[ptr]) {
+                    case 0xFF: //transparent pixels; next value tells length
+                        ptr++;
+                        i += tySprite.payload[0].data[ptr];
+                        break;
+                    case 0xFE: //next row
+                        i += (tySprite.payload[0].width - (i % tySprite.payload[0].width))
+                        break;
+                    case 0xFD: //one transparent
+                        i++;
+                        break;
+                    default:
+                        t[i] = tySprite.payload[0].data[ptr];
+                        i++;
+                        break;
+                }
+                ptr++;
+            }
+            tySprite.payload[0].data = t;
+        }
+        return tySprite;
+    });
+
 const initSpritesTable: ResourceInit = (dt) => {
     const unpackedSprites: TySprite[][] = []
     spriteTablesHeaderStruct.unpack(dt).offsets.forEach((offset, idx, offsets) => {
         switch (true) {
+            //misc sprites with W & H
             case idx < 7:// fonts, interface, option sprites
-                unpackedSprites[idx] = spritesTableStruct.unpack(dt, offset).sprites;
-                unpackedSprites[idx].forEach(tySprite => {
-                    if (!tySprite.hasData) return;
-                    let l = tySprite.payload[0].width*tySprite.payload[0].height;
-                    let t = new Array(l).fill(0);//empty transparent sprite
-                    for (let ptr = 0, i = 0; i < l;) {
-                        switch (tySprite.payload[0].data[ptr]) {
-                            case 0xFF: //transparent pixels; next value tells length
-                                ptr++;
-                                i += tySprite.payload[0].data[ptr];
-                                break;
-                            case 0xFE: //next row
-                                i += (tySprite.payload[0].width-(i%tySprite.payload[0].width))
-                                break;
-                            case 0xFD: //one transparent
-                                i++;
-                                break;
-                            default:
-                                t[i] = tySprite.payload[0].data[ptr];
-                                i++;
-                                break;
-                        }
-                        ptr++;
-                    }
-                    tySprite.payload[0].data = t;
-                })
+                unpackedSprites[idx] = readCompressedSprites(dt, offset);
                 break;
-            case idx == 7://who knows?
-                break;
-            //todo: unpack and generate textures as well
-            case idx == 8:// player shot sprites
-                cache.spriteTables.shots1 = new Struct<{shots1: number[]}>()
-                    .array('shots1', Byte, l(offsets[idx+1]-offset))
-                    .unpack(dt, offset).shots1;
-                break;
-            case idx == 9:// player ship sprites
-                cache.spriteTables.ship = new Struct<{ship: number[]}>()
-                    .array('ship', Byte, l(offsets[idx+1]-offset))
-                    .unpack(dt, offset).ship;
-                break;
-            case idx == 10:// power-up sprites
-                cache.spriteTables.powerup = new Struct<{powerup: number[]}>()
-                    .array('powerup', Byte, l(offsets[idx+1]-offset))
-                    .unpack(dt, offset).powerup;
-                break;
-            case idx == 11:// coins, datacubes, etc sprites
-                cache.spriteTables.coin = new Struct<{coin: number[]}>()
-                    .array('coin', Byte, l(offsets[idx+1]-offset))
-                    .unpack(dt, offset).coin;
-                break;
-            case idx == 12:// more player shot sprites
-                cache.spriteTables.shots2 = new Struct<{shots2: number[]}>()
-                    .array('shots2', Byte, l(dt.byteLength-offset))
-                    .unpack(dt, offset).shots2;
+            //here goes "compressed" sprite
+            default:
+                unpackedSprites[idx] = readCompressedSpritesW12(dt, offset, offsets[idx+1]-offset);
                 break;
         }
     });
+
     const tSize = 512;
     unpackedSprites.forEach((sprites, idx) => {
         //size ascending sort: naive way to reduce required texture size, but it works.
