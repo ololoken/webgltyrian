@@ -2,6 +2,7 @@ import {Filter} from "pixi.js";
 import {fragment} from "./PaletteFilter";
 
 export class OutlineFilter extends Filter {
+    //todo: add uniforms to change outline color and width
     @fragment(`
 precision mediump float;
 
@@ -10,8 +11,7 @@ varying vec2 vTextureCoord;
 uniform sampler2D uSampler;
 void main () {
     vec4 col = texture2D(uSampler, vTextureCoord);
-
-//    else {
+    
         float a = texture2D(uSampler, vec2(vTextureCoord.x + offset, vTextureCoord.y)).a +
                   texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y - offset)).a +
                   texture2D(uSampler, vec2(vTextureCoord.x - offset, vTextureCoord.y)).a +
@@ -22,7 +22,6 @@ void main () {
         else {
             gl_FragColor = col;
         }
-//   }
 }
     `)
     static fragmentShader: string;
