@@ -1,6 +1,6 @@
 import {Application} from 'pixi.js';
 import Stats from 'stats.js'
-import {init} from "./Resources";
+import {initBasicResources} from "./Resources";
 import {SceneManager} from "./scenes/SceneManager";
 import {IntroScene} from "./scenes/menu/IntroScene";
 
@@ -16,7 +16,7 @@ import {IntroScene} from "./scenes/menu/IntroScene";
 
     app.stage.scale.set(2, 2);
 
-    await init();
+    await initBasicResources();
 
     new SceneManager(app.stage, app.ticker, stats)
         .play(new IntroScene());

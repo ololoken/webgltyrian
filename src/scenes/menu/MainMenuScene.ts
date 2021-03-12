@@ -1,6 +1,15 @@
 import {Sprite, Container, filters, Texture} from 'pixi.js'
 import {AbstractScene, IScene} from "../AbstractScene";
-import {getSprite, PCX, pcxSprite, SpriteTableIndex, textContainer, cache} from "../../Resources";
+import {
+    getSprite,
+    PCX,
+    pcxSprite,
+    SpriteTableIndex,
+    textContainer,
+    cache,
+    getEpisodeData,
+    generateTexturesFromMapShapes
+} from "../../Resources";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {SelectEpisode} from "./SelectEpisode";
 import {HelpScene} from "./HelpScene";
@@ -20,9 +29,9 @@ export class MainMenuScene extends AbstractScene {
 
     private menu: MenuItem[];
 
-    private active?: number = undefined;
+    private active: number;
 
-    public constructor(active?: number) {
+    public constructor(active: number = -1) {
         super();
         this.menu = [
             {text: 'Start New Game', target: new SelectEpisode()},
@@ -42,7 +51,7 @@ export class MainMenuScene extends AbstractScene {
             }
         }
         this.menu.forEach(({cm}) => cm?.brightness(0.7, false));
-        if (this.active != undefined && this.active in this.menu) {
+        if (this.active in this.menu) {
             this.menu[this.active].cm?.brightness(1.0, false);
         }
     }
@@ -54,7 +63,7 @@ export class MainMenuScene extends AbstractScene {
     }
 
     load (): Promise<boolean> {
-        return new Promise<boolean>(resolve => {
+        return new Promise<boolean>(async resolve => {
             this.addChild(pcxSprite(PCX.MENU_BG));
 
             this.logo = getSprite(3, 146, 8);
@@ -77,12 +86,15 @@ export class MainMenuScene extends AbstractScene {
                 });
                 return m.btn;
             }));
-            /*
-            let sp = this.addChild(new Sprite(new Texture(cache.sprites[6].texture)));
+
+            let sp = this.addChild(new Sprite(new Texture((await generateTexturesFromMapShapes(90)).texture)));
             sp.filters = [new PaletteFilter(0)];
             sp.scale.set(0.65, 0.65);
+
+            console.log(await getEpisodeData(1));
+            //console.log()
+
             resolve(true);
-             */
         });
     }
 

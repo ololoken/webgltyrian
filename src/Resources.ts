@@ -1,27 +1,17 @@
-import {l, la, Primitive, Struct} from "@ololoken/struct";
 import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, Sprite, Container} from "pixi.js";
 import {PaletteFilter} from "./filters/PaletteFilter";
-
-const [UInt16, Int16, Byte, Char, UInt32, Int32] =
-      [Primitive.UInt16LE(), Primitive.Int16LE(), Primitive.UInt8(), Primitive.Int8(), Primitive.UInt32LE(), Primitive.Int32LE()];
+import {
+    CompressedShapesOffsets,
+    PalettesStruct, PCXImage,
+    PCXOffsetsStruct, ReadBytes,
+    ShapesTableStruct,
+    ShapeTablesHeaderStruct,
+    EpisodeMapsFileHeaderStruct, ItemsStruct, TyItems, EpisodeMapStruct, LevelScriptStruct, MapShapesStruct, TyShape,
+} from "./Structs";
+import {PaletteDecoder, TyShapeDecoder, TyShapeW12Decoder} from "./Decoders";
 
 type ResourceInit = (dt: DataView) => void;
-type Resource = {[code: string]: {path: string, data: DataView|null, init: ResourceInit}};
-
-export const init = async () => Promise.all(Object.entries(files).map(([code, {path}]) =>
-    fetch(`/assets/data/${path}`).then(r => r.arrayBuffer())
-        .then(b => files[code].data = new DataView(b))
-        .then(dt => files[code].init(dt))
-));
-
-type rgb = {r: number, g: number, b: number};
-type palette = {colors: rgb[]};
-const palettesStruct = new Struct<{palettes: palette[]}>()//palette.dat
-    .array('palettes', new Struct<palette>()
-        .array('colors', new Struct<rgb>()
-            .single('r', Byte)
-            .single('g', Byte)
-            .single('b', Byte), l(256)), Struct.all);
+type Resource = {[code: string]: {path: string, init: ResourceInit}};
 
 export enum PCX {
     NAME_1 = 0,
@@ -38,225 +28,8 @@ export enum PCX {
     INTRO_LOGO2 = 11,
     INTRO_LOGO2_ = 12,
 }
-export const PCX_PAL_INDEX = [0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5];
-const pcxOffsetsStruct = new Struct<{imagesLength: number, offsets: number[]}>()//tyrian.pic
-    .single('imagesLength', UInt16)
-    .array('offsets', Int32, la('imagesLength'));
-
-type TySpritePayload = {width: number, height: number, size: number, data: number[]}
-type TySprite = {hasData: number, payload: TySpritePayload[]};
-const spriteTablesHeaderStruct = new Struct<{tablesCount: number, offsets: number[]}>()
-    .single('tablesCount', UInt16)
-    .array('offsets', UInt32, la('tablesCount'))
-const spriteStruct = new Struct<TySprite>()
-    .single('hasData', Byte)
-    .array('payload', new Struct<TySpritePayload>()
-        .single('width', UInt16)
-        .single('height', UInt16)
-        .single('size', UInt16)
-        .array('data', Byte, la('size')), ({hasData}) => hasData)
-const spritesTableStruct = new Struct<{count: number, sprites: TySprite[]}>()
-    .single('count', UInt16)
-    .array('sprites', spriteStruct, la('count'));
-
-export enum SpriteTableIndex {
-    FONT_LARGE = 0,
-    FONT_REGULAR = 1,
-    FONT_SMALL = 2
-}
-export const cache : {
-        palette?: Texture, pcxBaseTexture?: BaseTexture,
-        sprites: {frames: Rectangle[], texture: BaseTexture}[]
-    } = {
-    sprites: []
-}
-const loadPalettes: ResourceInit = (dt) => {
-    const paletteSize = 256;
-    const table = palettesStruct.unpack(dt).palettes.reduce((table: number[][][], {colors}) => {
-        // The VGA hardware palette used only 6 bits per component, so the values need to be rescaled to
-        // 8 bits. The naive way to do this is to simply do (c << 2), padding it with 0's, however this
-        // makes the maximum value 252 instead of the proper 255. A trick to fix this is to use the upper 2
-        // bits of the original value instead. This ensures that the value goes to 255 as the original goes
-        // to 63.
-        // And I'm too lazy to move it to the PaletteShader
-        // todo: move to PaletteShader
-        table.push(colors.map(color => [((color.r << 2) | (color.r >> 4)),
-                                        ((color.g << 2) | (color.g >> 4)),
-                                        ((color.b << 2) | (color.b >> 4))]));
-        return table;
-    }, []);
-
-    cache.palette = new Texture(BaseTexture.fromBuffer(Uint8Array.from(table.flat(2)), paletteSize, table.length, {
-        width: paletteSize,
-        height: table.length,
-        format: FORMATS.RGB,
-        type: TYPES.UNSIGNED_BYTE,
-        target: TARGETS.TEXTURE_2D,
-        mipmap: MIPMAP_MODES.OFF
-    }))
-}
-
-const preloadPCX: ResourceInit = (dt) => {
-    const offsets = [...pcxOffsetsStruct.unpack(dt).offsets, dt.byteLength];
-    const count = offsets.length-1;
-    const width = 320, height = 200;
-    const imgSize = width*height;
-    const images: Uint8Array = new Uint8Array(imgSize*count).fill(0);
-    for (let i = 0; i < count; i++) {
-        const {img}: {img: number[]} = new Struct<{img: number[]}>()
-            .goto(() => offsets[i])
-            .array('img', Byte, l(offsets[i+1]-offsets[i])).unpack(files.pcx.data!);
-        for (let offset = 0, dPtr = 0, sPtr = 0; offset < imgSize;) {
-            if ((img[sPtr] & 0xC0) == 0xC0) {
-                for (let y = 0; y < (img[sPtr] & 0x3F); y++) {
-                    images[i*imgSize+dPtr+y] = img[sPtr+1];
-                }
-                offset += (img[sPtr] & 0x3F);
-                dPtr += (img[sPtr] & 0x3F);
-                sPtr += 2;
-            }
-            else {
-                offset++;
-                images[i*imgSize+dPtr++] = img[sPtr++];
-            }
-        }
-    }
-    cache.pcxBaseTexture = BaseTexture.fromBuffer(images, width, count*height, {
-        width: width,
-        height: count*height,
-        format: FORMATS.ALPHA,
-        type: TYPES.UNSIGNED_BYTE,
-        target: TARGETS.TEXTURE_2D
-    })
-}
-
-const readCompressedSpritesW12 = (dt: DataView, offset: number, limit: number): TySprite[] => {
-    let spritesOffsets =  new Struct<{first: number, offsets: number[]}>()
-        .single('first', UInt16)
-        .goto(l(offset))
-        .array('offsets', UInt16, ({first}) => first/2)
-        .unpack(dt, offset).offsets;
-    spritesOffsets.push(limit);
-    let tySprites = [];
-    for (let i = 0; i < spritesOffsets.length-1; i++) {
-        let sl = spritesOffsets[i+1]-spritesOffsets[i],
-            data = new Struct<{data: number[]}>()
-                .array('data', Byte, l(sl))
-                .unpack(dt, offset+spritesOffsets[i]).data,
-            unpacked: number[] = [],
-            height = 0;
-        for (let ptr = 0; data[ptr] != 0x0F && ptr < data.length; ++ptr) {
-            for (let i = 0; i < (data[ptr] & 0x0F); i++) unpacked.push(0);//set transparent pixels
-            let count = (data[ptr] & 0xF0) >> 4;
-            for (let i = 0; i < count; i++) unpacked.push(data[++ptr]);//copy N pixels with value following current position
-            height++;
-        }
-        tySprites.push({hasData: unpacked.length, payload: [{width: 12, height: height, size: data.length, data: unpacked}]});
-    }
-    return tySprites;
-}
-
-const readCompressedSprites = (dt: DataView, offset: number): TySprite[] =>
-    spritesTableStruct.unpack(dt, offset).sprites.map(tySprite => {
-        if (tySprite.hasData) {
-            let l = tySprite.payload[0].width * tySprite.payload[0].height;
-            let t = new Array(l).fill(0);//empty transparent sprite
-            for (let ptr = 0, i = 0; i < l;) {
-                switch (tySprite.payload[0].data[ptr]) {
-                    case 0xFF: //transparent pixels; next value tells length
-                        ptr++;
-                        i += tySprite.payload[0].data[ptr];
-                        break;
-                    case 0xFE: //next row
-                        i += (tySprite.payload[0].width - (i % tySprite.payload[0].width))
-                        break;
-                    case 0xFD: //one transparent
-                        i++;
-                        break;
-                    default:
-                        t[i] = tySprite.payload[0].data[ptr];
-                        i++;
-                        break;
-                }
-                ptr++;
-            }
-            tySprite.payload[0].data = t;
-        }
-        return tySprite;
-    });
-
-const initSpritesTable: ResourceInit = (dt) => {
-    const unpackedSprites: TySprite[][] = []
-    spriteTablesHeaderStruct.unpack(dt).offsets.forEach((offset, idx, offsets) => {
-        switch (true) {
-            //misc sprites with W & H
-            case idx < 7:// fonts, interface, option sprites
-                unpackedSprites[idx] = readCompressedSprites(dt, offset);
-                break;
-            //here goes "compressed" sprite
-            default:
-                unpackedSprites[idx] = readCompressedSpritesW12(dt, offset, offsets[idx+1]-offset);
-                break;
-        }
-    });
-
-    const tSize = 512;
-    unpackedSprites.forEach((sprites, idx) => {
-        //size ascending sort: naive way to reduce required texture size, but it works.
-        const sortedBySize = sprites.map((sp, idx) => ({idx, sp}))
-            .sort((a, b) => {
-               if (a.sp.hasData && b.sp.hasData)
-                   return a.sp.payload[0].height*a.sp.payload[0].width-b.sp.payload[0].height*b.sp.payload[0].width
-                else if (!a.sp.hasData)
-                    return 1;
-                else if (!b.sp.hasData)
-                    return -1;
-                return 0
-            });
-
-        let textureData = new Uint8Array(tSize*tSize);
-        let rowHeight = 0, xOffset = 0, yOffset = 0;
-        let frames: Rectangle[] = [];
-        for (let i = 0; i < sortedBySize.length; i++) {
-            if (!sortedBySize[i].sp.hasData) {continue}
-            let [s] = sortedBySize[i].sp.payload;
-            if (xOffset + s.width > tSize) {
-                xOffset = 0;
-                yOffset += rowHeight;
-                rowHeight = 0;
-            }
-            frames[sortedBySize[i].idx] = new Rectangle(xOffset, yOffset, s.width, s.height);
-            rowHeight = rowHeight < s.height ? s.height : rowHeight;
-            for (let y = 0; y < s.height; y++) {
-                for (let x = 0; x < s.width; x++) {
-                    let tX = xOffset+x;
-                    let tY = (yOffset+y)*tSize
-                    textureData[tY+tX] = s.data[y*s.width+x];
-                }
-            }
-            xOffset += s.width;
-        }
-
-        cache.sprites[idx] = {
-            texture: BaseTexture.fromBuffer(textureData, tSize, tSize, {
-                width: tSize,
-                height: tSize,
-                format: FORMATS.ALPHA,
-                type: TYPES.UNSIGNED_BYTE,
-                target: TARGETS.TEXTURE_2D
-            }),
-            frames
-        }
-    })
-}
-
-const files: Resource = {
-    pal: {path: 'palette.dat', data: null, init: loadPalettes},
-    pcx: {path: 'tyrian.pic', data: null, init: preloadPCX},
-    shp: {path: 'tyrian.shp', data: null, init: initSpritesTable}
-}
-
-export const FontSprite: number[] = [
+const PCX_PAL_INDEX = [0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5];
+const FontSprite: number[] = [
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
     -1,  26,  33,  60,  61,  62,  -1,  32,  64,  65,  63,  84,  29,  83,  28,  80, //  !"#$%&'()*+,-./
@@ -266,15 +39,141 @@ export const FontSprite: number[] = [
     -1,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,  48, // `abcdefghijklmno
     49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  66,  81,  67,  -1,  -1, // pqrstuvwxyz{|}~⌂
 
-     86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, // ÇüéâäàåçêëèïîìÄÅ
+    86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, // ÇüéâäàåçêëèïîìÄÅ
     102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, // ÉæÆôöòûùÿÖÜ¢£¥₧ƒ
     118, 119, 120, 121, 122, 123, 124, 125, 126,  -1,  -1,  -1,  -1,  -1,  -1,  -1, // áíóúñÑªº¿
-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
 ];
+
+export enum SpriteTableIndex {
+    FONT_LARGE = 0,
+    FONT_REGULAR = 1,
+    FONT_SMALL = 2
+}
+export const cache : {
+        palette?: Texture, pcxBaseTexture?: BaseTexture,
+        shapeTextures: {frames: Rectangle[], texture: BaseTexture}[],
+        episodes: {}[]
+    } = {shapeTextures: [], episodes: []}
+
+const generatePaletteTexture: ResourceInit = (dt) => {
+    const paletteSize = 256;
+    const data = PaletteDecoder(PalettesStruct.unpack(dt).palettes);
+    cache.palette = new Texture(BaseTexture.fromBuffer(Uint8Array.from(data), paletteSize, data.length/(paletteSize*3), {
+        width: paletteSize/(paletteSize*3),
+        height: data.length,
+        format: FORMATS.RGB,
+        type: TYPES.UNSIGNED_BYTE,
+        target: TARGETS.TEXTURE_2D,
+        mipmap: MIPMAP_MODES.OFF
+    }))
+}
+
+const generatePCXTexture: ResourceInit = (dt) => {
+    const offsets = [...PCXOffsetsStruct.unpack(dt).offsets, dt.byteLength];
+    const count = offsets.length-1;
+    const width = 320, height = 200;
+    const imgSize = width*height;
+    const imageBuffer: Uint8Array = new Uint8Array(imgSize*count).fill(0);
+    for (let i = 0; i < count; i++) {
+        const {img} = PCXImage(offsets[i], offsets[i+1]-offsets[i]).unpack(dt);
+        for (let offset = 0, dPtr = 0, sPtr = 0; offset < imgSize;) {
+            if ((img[sPtr] & 0xC0) == 0xC0) {
+                for (let y = 0; y < (img[sPtr] & 0x3F); y++) {
+                    imageBuffer[i*imgSize+dPtr+y] = img[sPtr+1];
+                }
+                offset += (img[sPtr] & 0x3F);
+                dPtr += (img[sPtr] & 0x3F);
+                sPtr += 2;
+            }
+            else {
+                offset++;
+                imageBuffer[i*imgSize+dPtr++] = img[sPtr++];
+            }
+        }
+    }
+    cache.pcxBaseTexture = BaseTexture.fromBuffer(imageBuffer, width, count*height, {
+        width: width,
+        height: count*height,
+        format: FORMATS.ALPHA,
+        type: TYPES.UNSIGNED_BYTE,
+        target: TARGETS.TEXTURE_2D
+    })
+}
+
+const generateTexturesFromShapes: ResourceInit = (dt) => ShapeTablesHeaderStruct.unpack(dt).offsets
+    .map((offset, idx, offsets) => {
+        switch (true) {
+            //misc sprites with W & H
+            case idx < 7:// fonts, interface, option sprites
+                return ShapesTableStruct.unpack(dt, offset).shapes.map(TyShapeDecoder);
+            default:
+                return CompressedShapesOffsets(offset).unpack(dt, offset).offsets
+                    .reduce((shapes: number[][], shapeOffset, i, shapesOffsets) => {
+                        let nextShapeOffset = i < shapesOffsets.length ? shapesOffsets[i+1] : offsets[idx+1]-offset;
+                        let {data} = ReadBytes(nextShapeOffset-shapeOffset).unpack(dt, offset+shapeOffset);
+                        shapes.push(data);
+                        return shapes;
+                    }, [])
+                    .map(TyShapeW12Decoder);
+        }
+    })
+    .forEach((shapes, idx) => {
+        cache.shapeTextures[idx] = shapesToTexture(shapes);
+    });
+
+const shapesToTexture = (shapes: TyShape[], tSize = 512) => {
+    const sortedBySize = shapes.map((sp, idx) => ({idx, sp}))
+        .sort((a, b) => {
+            if (a.sp.hasData && b.sp.hasData)
+                return a.sp.payload[0].height*a.sp.payload[0].width-b.sp.payload[0].height*b.sp.payload[0].width
+            else if (!a.sp.hasData)
+                return 1;
+            else if (!b.sp.hasData)
+                return -1;
+            return 0
+        });
+
+    let textureData = new Uint8Array(tSize*tSize);
+    let rowHeight = 0, xOffset = 0, yOffset = 0;
+    let frames: Rectangle[] = [];
+    //create sprite sheet: copy shapes to texture and save frame information
+    for (let i = 0; i < sortedBySize.length; i++) {
+        if (!sortedBySize[i].sp.hasData) {continue}
+        let [s] = sortedBySize[i].sp.payload;
+        if (xOffset + s.width > tSize) {
+            xOffset = 0;
+            yOffset += rowHeight;
+            rowHeight = 0;
+        }
+        frames[sortedBySize[i].idx] = new Rectangle(xOffset, yOffset, s.width, s.height);
+        rowHeight = rowHeight < s.height ? s.height : rowHeight;
+        for (let y = 0; y < s.height; y++) {
+            for (let x = 0; x < s.width; x++) {
+                let tX = xOffset+x;
+                let tY = (yOffset+y)*tSize
+                textureData[tY+tX] = s.data[y*s.width+x];
+            }
+        }
+        xOffset += s.width;
+    }
+    let lastFrame = frames[frames.length-1];
+    if (tSize < lastFrame.x+lastFrame.width || tSize < lastFrame.y+lastFrame.height) {
+        console.warn(`shapes doesn't fit texture size`);
+    }
+
+    return {frames, texture: BaseTexture.fromBuffer(textureData, tSize, tSize, {
+            width: tSize,
+            height: tSize,
+            format: FORMATS.ALPHA,
+            type: TYPES.UNSIGNED_BYTE,
+            target: TARGETS.TEXTURE_2D
+        })}
+}
 
 export const pcxSprite = (pcx: PCX): Sprite => Object.assign(
     new Sprite(new Texture(cache.pcxBaseTexture!, new Rectangle(0, 200*pcx, 320, 200))),
@@ -282,7 +181,7 @@ export const pcxSprite = (pcx: PCX): Sprite => Object.assign(
 )
 
 export const getSprite = (table: number, index: number, palette?: number) => Object.assign(
-    new Sprite(new Texture(cache.sprites[table].texture, cache.sprites[table].frames[index])),
+    new Sprite(new Texture(cache.shapeTextures[table].texture, cache.shapeTextures[table].frames[index])),
     {filters: palette && palette >= 0 ? [new PaletteFilter(palette)] : []});
 
 export const textContainer = (text: string, font: SpriteTableIndex, palette: number): Container =>
@@ -303,3 +202,52 @@ export const textContainer = (text: string, font: SpriteTableIndex, palette: num
             }
             return {container, x};
         }, {container: Object.assign(new Container(), {filters: palette >= 0 ? [new PaletteFilter(palette)] : []}), x: 0}).container;
+
+
+const basicResources: Resource = {
+    pal: {path: 'palette.dat', init: generatePaletteTexture},
+    pcx: {path: 'tyrian.pic', init: generatePCXTexture},
+    shp: {path: 'tyrian.shp', init: generateTexturesFromShapes}
+}
+
+const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)
+    .then(r => r.arrayBuffer())
+    .then(b => new DataView(b));
+
+export const initBasicResources = async () => Promise.all(Object.values(basicResources)
+    .map((res) => getFileDataView(res.path).then(dt => res.init(dt))));
+
+export const getEpisodeData = async (episode: number) => {
+    if (episode in cache.episodes) return cache.episodes[episode];
+    let levelData = await getFileDataView(`tyrian${episode}.lvl`);
+    const mapsFileHeader = EpisodeMapsFileHeaderStruct.unpack(levelData);
+
+    let items: TyItems;
+    if (episode < 4) {
+        items = await getFileDataView(`tyrian.hdt`).then(data => {
+            let itemsOffset = data.getInt32(0, true);
+            return ItemsStruct.unpack(data, itemsOffset);
+        });
+    }
+    else {//episode 4 items data is stored in level file
+        items = ItemsStruct.unpack(levelData, [...mapsFileHeader.offsets].pop());
+    }
+
+    let maps = mapsFileHeader.offsets.filter((offset, idx) => 0 === idx%2 && idx < mapsFileHeader.length-2)
+        .map(offset => EpisodeMapStruct.unpack(levelData, offset));
+
+    let script = await getFileDataView(`levels${episode}.dat`).then(scriptData =>
+        LevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
+    return cache.episodes[episode] = {episode, script, maps, items}
+}
+
+export const generateTexturesFromMapShapes = async (mapShapesFile: number) =>
+    getFileDataView(`shapes${String.fromCharCode(mapShapesFile).toLowerCase()}.dat`)
+        .then(shapesData => MapShapesStruct.unpack(shapesData))
+        .then(({shapes}) => shapesToTexture(shapes.map(s => {
+            if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
+                s.payload[0].width = 24;
+                s.payload[0].height = 28;
+            }
+            return s;
+        })));
