@@ -1,21 +1,21 @@
 import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, Sprite, Container} from "pixi.js";
 import {PaletteFilter} from "./filters/PaletteFilter";
 import {
-    CompressedShapesOffsets,
-    PalettesStruct,
-    PCXImage,
-    PCXOffsetsStruct,
+    TyCompressedShapesOffsets,
+    TyPalettesStruct,
+    TyPCXImage,
+    TyPCXOffsetsStruct,
     ReadBytes,
-    ShapesTableStruct,
-    ShapeTablesHeaderStruct,
-    EpisodeMapsFileHeaderStruct,
-    ItemsStruct,
+    TyShapesTableStruct,
+    TyShapeTablesHeaderStruct,
+    TyEpisodeMapsFileHeaderStruct,
+    TyItemsStruct,
     TyItems,
-    EpisodeMapStruct,
-    LevelScriptStruct,
-    MapShapesStruct,
+    TyEpisodeMapStruct,
+    TyLevelScriptStruct,
+    TyMapShapesStruct,
     TyShape,
-    TILE_WIDTH, TILE_HEIGHT, MAIN_WIDTH, MAIN_HEIGHT, PALETTE_SIZE, EpisodeMap,
+    TILE_WIDTH, TILE_HEIGHT, MAIN_WIDTH, MAIN_HEIGHT, PALETTE_SIZE, TyEpisodeMap,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeW12Decoder} from "./Decoders";
 
@@ -64,18 +64,18 @@ export enum SpriteTableIndex {
     FONT_SMALL = 2
 }
 
-type EpisodeData = {
-    episode: number, script: string, maps: EpisodeMap[], items: TyItems
+type TyEpisodeData = {
+    episode: number, script: string, maps: TyEpisodeMap[], items: TyItems
 }
 
 export const cache : {
         palette?: Texture, pcxBaseTexture?: BaseTexture,
         shapeTextures: {frames: Rectangle[], texture: BaseTexture}[],
-        episodes: EpisodeData[]
+        episodes: TyEpisodeData[]
     } = {shapeTextures: [], episodes: []}
 
 const generatePaletteTexture: ResourceInit = (dt) => {
-    const data = PaletteDecoder(PalettesStruct.unpack(dt).palettes);
+    const data = PaletteDecoder(TyPalettesStruct.unpack(dt).palettes);
     for (let i = 0; i < data.length/(PALETTE_SIZE*4); i++) {
         data[PALETTE_SIZE * 4 * i + 3] = 0;//zero alpha for colors at 0 index in palette;
     }
@@ -90,12 +90,12 @@ const generatePaletteTexture: ResourceInit = (dt) => {
 }
 
 const generatePCXTexture: ResourceInit = (dt) => {
-    const offsets = [...PCXOffsetsStruct.unpack(dt).offsets, dt.byteLength];
+    const offsets = [...TyPCXOffsetsStruct.unpack(dt).offsets, dt.byteLength];
     const count = offsets.length-1;
     const imgSize = MAIN_WIDTH*MAIN_HEIGHT;
     const imageBuffer: Uint8Array = new Uint8Array(imgSize*count).fill(0);
     for (let i = 0; i < count; i++) {
-        const {img} = PCXImage(offsets[i], offsets[i+1]-offsets[i]).unpack(dt);
+        const {img} = TyPCXImage(offsets[i], offsets[i+1]-offsets[i]).unpack(dt);
         for (let offset = 0, dPtr = 0, sPtr = 0; offset < imgSize;) {
             if ((img[sPtr] & 0xC0) == 0xC0) {
                 for (let y = 0; y < (img[sPtr] & 0x3F); y++) {
@@ -120,14 +120,14 @@ const generatePCXTexture: ResourceInit = (dt) => {
     })
 }
 
-const generateTexturesFromShapes: ResourceInit = (dt) => ShapeTablesHeaderStruct.unpack(dt).offsets
+const generateTexturesFromShapes: ResourceInit = (dt) => TyShapeTablesHeaderStruct.unpack(dt).offsets
     .map((offset, idx, offsets) => {
         switch (true) {
             //misc sprites with W & H
             case idx < 7:// fonts, interface, option sprites
-                return ShapesTableStruct.unpack(dt, offset).shapes.map(TyShapeDecoder);
+                return TyShapesTableStruct.unpack(dt, offset).shapes.map(TyShapeDecoder);
             default:
-                return CompressedShapesOffsets(offset).unpack(dt, offset).offsets
+                return TyCompressedShapesOffsets(offset).unpack(dt, offset).offsets
                     .reduce((shapes: number[][], shapeOffset, i, shapesOffsets) => {
                         let nextShapeOffset = i < shapesOffsets.length ? shapesOffsets[i+1] : offsets[idx+1]-offset;
                         let {data} = ReadBytes(nextShapeOffset-shapeOffset).unpack(dt, offset+shapeOffset);
@@ -228,33 +228,33 @@ const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)
 export const initBasicResources = async () => Promise.all(Object.values(basicResources)
     .map((res) => getFileDataView(res.path).then(dt => res.init(dt))));
 
-export const getEpisodeData = async (episode: number): EpisodeData => {
+export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> => {
     if (episode in cache.episodes) return cache.episodes[episode];
     let levelData = await getFileDataView(`tyrian${episode}.lvl`);
-    const mapsFileHeader = EpisodeMapsFileHeaderStruct.unpack(levelData);
+    const mapsFileHeader = TyEpisodeMapsFileHeaderStruct.unpack(levelData);
 
     let items: TyItems;
     if (episode < 4) {
         items = await getFileDataView(`tyrian.hdt`).then(data => {
             let itemsOffset = data.getInt32(0, true);
-            return ItemsStruct.unpack(data, itemsOffset);
+            return TyItemsStruct.unpack(data, itemsOffset);
         });
     }
     else {//episode 4 items data is stored in level file
-        items = ItemsStruct.unpack(levelData, [...mapsFileHeader.offsets].pop());
+        items = TyItemsStruct.unpack(levelData, [...mapsFileHeader.offsets].pop());
     }
 
     let maps = mapsFileHeader.offsets.filter((offset, idx) => 0 === idx%2 && idx < mapsFileHeader.length-2)
-        .map(offset => EpisodeMapStruct.unpack(levelData, offset));
+        .map(offset => TyEpisodeMapStruct.unpack(levelData, offset));
 
     let script = await getFileDataView(`levels${episode}.dat`).then(scriptData =>
-        LevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
+        TyLevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
     return cache.episodes[episode] = {episode, script, maps, items}
 }
 
 export const generateTexturesFromMapShapes = async (mapShapesFile: number) =>
     getFileDataView(`shapes${String.fromCharCode(mapShapesFile).toLowerCase()}.dat`)
-        .then(shapesData => MapShapesStruct.unpack(shapesData))
+        .then(shapesData => TyMapShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
             if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
                 s.payload[0].width = TILE_WIDTH;

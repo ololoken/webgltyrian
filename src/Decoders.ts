@@ -1,5 +1,5 @@
 import {ItemsFormatter, StringFormatter} from "@ololoken/struct";
-import {Palette, TyShape} from "./Structs";
+import {TyPalette, TyShape} from "./Structs";
 
 export const PascalDecryptFormatter = (key: number[]) : ItemsFormatter<number, string> => (data) => {
     for (let i = data.length-1, l = key.length; i >= 0; --i) {
@@ -9,7 +9,7 @@ export const PascalDecryptFormatter = (key: number[]) : ItemsFormatter<number, s
     return StringFormatter({encoding: 'ascii'})(data);
 }
 
-export const PaletteDecoder = (pals: Palette[]) => pals.reduce((table: number[][][], {colors}) => {
+export const PaletteDecoder = (pals: TyPalette[]) => pals.reduce((table: number[][][], {colors}) => {
     // The VGA hardware palette used only 6 bits per component, so the values need to be rescaled to
     // 8 bits. The naive way to do this is to simply do (c << 2), padding it with 0's, however this
     // makes the maximum value 252 instead of the proper 255. A trick to fix this is to use the upper 2
