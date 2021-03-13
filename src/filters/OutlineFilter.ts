@@ -1,5 +1,5 @@
 import {Filter} from "pixi.js";
-import {fragment} from "./PaletteFilter";
+import {fragment} from "./ShaderDecorators";
 
 export class OutlineFilter extends Filter {
     //todo: add uniforms to change outline color and width

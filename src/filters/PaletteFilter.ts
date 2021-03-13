@@ -1,27 +1,6 @@
 import {Filter} from "pixi.js";
 import {cache} from "../Resources";
-
-/**
- * Just to enable glsl highlighting using via idea's language injection
- * @param shaderSrc
- */
-export function fragment (shaderSrc: string) {
-    return (
-        target: {fragmentShader: string},
-        propertyKey: string,
-    ): void => {
-        target.fragmentShader = shaderSrc;
-    };
-}
-
-export function vertex (shaderSrc: string) {
-    return (
-        target: {vertexShader: string},
-        propertyKey: string,
-    ): void => {
-        target.vertexShader = shaderSrc;
-    };
-}
+import {fragment} from "./ShaderDecorators";
 
 export class PaletteFilter extends Filter {
     @fragment(`
@@ -33,7 +12,6 @@ uniform float uPaletteSize;
 
 void main() {
     float index = texture2D(uSampler, vTextureCoord).a;
-    if (index == 0.0) return;
     vec4 texel = texture2D(uPalette, vec2(index, 1.0/uPaletteSize*uPaletteIndex));
     gl_FragColor = texel;
 }

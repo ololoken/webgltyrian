@@ -87,11 +87,15 @@ export class MainMenuScene extends AbstractScene {
                 return m.btn;
             }));
 
+            getEpisodeData(4).then(data => {
+
+            })
+
             let sp = this.addChild(new Sprite(new Texture((await generateTexturesFromMapShapes(90)).texture)));
             sp.filters = [new PaletteFilter(0)];
-            sp.scale.set(0.65, 0.65);
+            sp.scale.set(200/512, 200/512);
 
-            console.log(await getEpisodeData(1));
+            //console.log(await );
             //console.log()
 
             resolve(true);

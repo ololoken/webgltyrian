@@ -2,11 +2,20 @@ import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, 
 import {PaletteFilter} from "./filters/PaletteFilter";
 import {
     CompressedShapesOffsets,
-    PalettesStruct, PCXImage,
-    PCXOffsetsStruct, ReadBytes,
+    PalettesStruct,
+    PCXImage,
+    PCXOffsetsStruct,
+    ReadBytes,
     ShapesTableStruct,
     ShapeTablesHeaderStruct,
-    EpisodeMapsFileHeaderStruct, ItemsStruct, TyItems, EpisodeMapStruct, LevelScriptStruct, MapShapesStruct, TyShape,
+    EpisodeMapsFileHeaderStruct,
+    ItemsStruct,
+    TyItems,
+    EpisodeMapStruct,
+    LevelScriptStruct,
+    MapShapesStruct,
+    TyShape,
+    TILE_WIDTH, TILE_HEIGHT, MAIN_WIDTH, MAIN_HEIGHT, PALETTE_SIZE, EpisodeMap,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeW12Decoder} from "./Decoders";
 
@@ -54,19 +63,26 @@ export enum SpriteTableIndex {
     FONT_REGULAR = 1,
     FONT_SMALL = 2
 }
+
+type EpisodeData = {
+    episode: number, script: string, maps: EpisodeMap[], items: TyItems
+}
+
 export const cache : {
         palette?: Texture, pcxBaseTexture?: BaseTexture,
         shapeTextures: {frames: Rectangle[], texture: BaseTexture}[],
-        episodes: {}[]
+        episodes: EpisodeData[]
     } = {shapeTextures: [], episodes: []}
 
 const generatePaletteTexture: ResourceInit = (dt) => {
-    const paletteSize = 256;
     const data = PaletteDecoder(PalettesStruct.unpack(dt).palettes);
-    cache.palette = new Texture(BaseTexture.fromBuffer(Uint8Array.from(data), paletteSize, data.length/(paletteSize*3), {
-        width: paletteSize/(paletteSize*3),
-        height: data.length,
-        format: FORMATS.RGB,
+    for (let i = 0; i < data.length/(PALETTE_SIZE*4); i++) {
+        data[PALETTE_SIZE * 4 * i + 3] = 0;//zero alpha for colors at 0 index in palette;
+    }
+    cache.palette = new Texture(BaseTexture.fromBuffer(Uint8Array.from(data), PALETTE_SIZE, data.length/(PALETTE_SIZE*4), {
+        width: PALETTE_SIZE,
+        height: data.length/(PALETTE_SIZE*4),
+        format: FORMATS.RGBA,
         type: TYPES.UNSIGNED_BYTE,
         target: TARGETS.TEXTURE_2D,
         mipmap: MIPMAP_MODES.OFF
@@ -76,8 +92,7 @@ const generatePaletteTexture: ResourceInit = (dt) => {
 const generatePCXTexture: ResourceInit = (dt) => {
     const offsets = [...PCXOffsetsStruct.unpack(dt).offsets, dt.byteLength];
     const count = offsets.length-1;
-    const width = 320, height = 200;
-    const imgSize = width*height;
+    const imgSize = MAIN_WIDTH*MAIN_HEIGHT;
     const imageBuffer: Uint8Array = new Uint8Array(imgSize*count).fill(0);
     for (let i = 0; i < count; i++) {
         const {img} = PCXImage(offsets[i], offsets[i+1]-offsets[i]).unpack(dt);
@@ -96,9 +111,9 @@ const generatePCXTexture: ResourceInit = (dt) => {
             }
         }
     }
-    cache.pcxBaseTexture = BaseTexture.fromBuffer(imageBuffer, width, count*height, {
-        width: width,
-        height: count*height,
+    cache.pcxBaseTexture = BaseTexture.fromBuffer(imageBuffer, MAIN_WIDTH, count*MAIN_HEIGHT, {
+        width: MAIN_WIDTH,
+        height: count*MAIN_HEIGHT,
         format: FORMATS.ALPHA,
         type: TYPES.UNSIGNED_BYTE,
         target: TARGETS.TEXTURE_2D
@@ -129,13 +144,9 @@ const generateTexturesFromShapes: ResourceInit = (dt) => ShapeTablesHeaderStruct
 const shapesToTexture = (shapes: TyShape[], tSize = 512) => {
     const sortedBySize = shapes.map((sp, idx) => ({idx, sp}))
         .sort((a, b) => {
-            if (a.sp.hasData && b.sp.hasData)
-                return a.sp.payload[0].height*a.sp.payload[0].width-b.sp.payload[0].height*b.sp.payload[0].width
-            else if (!a.sp.hasData)
-                return 1;
-            else if (!b.sp.hasData)
-                return -1;
-            return 0
+            let aD = a.sp.hasData ? a.sp.payload[0].height * a.sp.payload[0].width : 0,
+                bD = b.sp.hasData ? b.sp.payload[0].height * b.sp.payload[0].width : 0;
+            return aD-bD == 0 ? b.idx-a.idx : aD-bD;
         });
 
     let textureData = new Uint8Array(tSize*tSize);
@@ -176,7 +187,7 @@ const shapesToTexture = (shapes: TyShape[], tSize = 512) => {
 }
 
 export const pcxSprite = (pcx: PCX): Sprite => Object.assign(
-    new Sprite(new Texture(cache.pcxBaseTexture!, new Rectangle(0, 200*pcx, 320, 200))),
+    new Sprite(new Texture(cache.pcxBaseTexture!, new Rectangle(0, MAIN_HEIGHT*pcx, MAIN_WIDTH, MAIN_HEIGHT))),
     {filters: [new PaletteFilter(PCX_PAL_INDEX[pcx])]}
 )
 
@@ -217,7 +228,7 @@ const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)
 export const initBasicResources = async () => Promise.all(Object.values(basicResources)
     .map((res) => getFileDataView(res.path).then(dt => res.init(dt))));
 
-export const getEpisodeData = async (episode: number) => {
+export const getEpisodeData = async (episode: number): EpisodeData => {
     if (episode in cache.episodes) return cache.episodes[episode];
     let levelData = await getFileDataView(`tyrian${episode}.lvl`);
     const mapsFileHeader = EpisodeMapsFileHeaderStruct.unpack(levelData);
@@ -246,8 +257,8 @@ export const generateTexturesFromMapShapes = async (mapShapesFile: number) =>
         .then(shapesData => MapShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
             if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
-                s.payload[0].width = 24;
-                s.payload[0].height = 28;
+                s.payload[0].width = TILE_WIDTH;
+                s.payload[0].height = TILE_HEIGHT;
             }
             return s;
         })));

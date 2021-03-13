@@ -9,6 +9,15 @@ import {
 } from "@ololoken/struct";
 import {PascalDecryptFormatter} from "./Decoders";
 
+export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
+             PALETTE_SIZE = 256,
+             TILE_MAX_INDEX = 600,
+             TILE_WIDTH = 24, TILE_HEIGHT = 28,
+             MAP_TO_SHAPE_MAX_INDEX = 128,
+             MAP_1_WIDTH = 14, MAP_1_HEIGHT = 300,
+             MAP_2_WIDTH = 14, MAP_2_HEIGHT = 600,
+             MAP_3_WIDTH = 15, MAP_3_HEIGHT = 600;
+
 const [UInt16, Int16, Byte, Char, UInt32, Int32] =
     [Primitive.UInt16LE(), Primitive.Int16LE(), Primitive.UInt8(), Primitive.Int8(), Primitive.UInt32LE(), Primitive.Int32LE()];
 const asAsciiString = StringFormatter({encoding: 'ascii'});
@@ -251,7 +260,7 @@ export const PalettesStruct = new Struct<{palettes: Palette[]}>()//palette.dat
         .array('colors', new Struct<rgb>()
             .single('r', Byte)
             .single('g', Byte)
-            .single('b', Byte), l(256)), Struct.all);
+            .single('b', Byte), l(PALETTE_SIZE)), Struct.all);
 
 export const PCXOffsetsStruct = new Struct<{imagesLength: number, offsets: number[]}>()//tyrian.pic
     .single('imagesLength', UInt16)
@@ -287,19 +296,19 @@ type MapData = {
 }
 
 const EpisodeMapDataStruct = new Struct<MapData>()
-    .array('shapeMap1', UInt16, l(128), USwap16Formatter)
-    .array('shapeMap2', UInt16, l(128), USwap16Formatter)
-    .array('shapeMap3', UInt16, l(128), USwap16Formatter)
-    .array('map1', Byte, l(14*300))
-    .array('map2', Byte, l(14*600))
-    .array('map3', Byte, l(15*600));
+    .array('shapeMap1', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('shapeMap2', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('shapeMap3', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('map1', Byte, l(MAP_1_WIDTH*MAP_1_HEIGHT))
+    .array('map2', Byte, l(MAP_2_WIDTH*MAP_2_HEIGHT))
+    .array('map3', Byte, l(MAP_3_WIDTH*MAP_3_HEIGHT));
 
-type EpisodeMap = {
+export type EpisodeMap = {
     mapFile: number,
     shapesFile: number,
-    mapX1: number,
-    mapX2: number,
-    mapX3: number,
+    map1x: number,
+    map2x: number,
+    map3x: number,
     enemiesCount: number,
     enemies: number[],
     eventsCount: number,
@@ -310,9 +319,9 @@ type EpisodeMap = {
 export const EpisodeMapStruct = new Struct<EpisodeMap>()
     .single('mapFile', Byte)
     .single('shapesFile', Byte)
-    .single('mapX1', UInt16)
-    .single('mapX2', UInt16)
-    .single('mapX3', UInt16)
+    .single('map1x', UInt16)
+    .single('map2x', UInt16)
+    .single('map3x', UInt16)
     .single('enemiesCount', UInt16)
     .array('enemies', UInt16, la('enemiesCount'))
     .single('eventsCount', UInt16)
@@ -339,8 +348,8 @@ export const MapShapesStruct = new Struct<{shapes: TyShape[], trailingData: numb
     .array('shapes', new Struct<TyShape>()
         .single('hasData', Byte, ([isEmpty]) => Boolean(isEmpty) ? 0 : 1)
         .array('payload', new Struct<TyShapePayload>()
-            .array('data', Byte, l(28*24)), la('hasData')),
-        l(600))
+            .array('data', Byte, l(TILE_WIDTH*TILE_HEIGHT)), la('hasData')),
+        l(TILE_MAX_INDEX))
     //no idea what's stored here
     .array('trailingData', Byte, l(Number.MAX_SAFE_INTEGER));
 

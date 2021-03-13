@@ -19,7 +19,8 @@ export const PaletteDecoder = (pals: Palette[]) => pals.reduce((table: number[][
     // todo: move to PaletteShader
     table.push(colors.map(color => [((color.r << 2) | (color.r >> 4)),
                                     ((color.g << 2) | (color.g >> 4)),
-                                    ((color.b << 2) | (color.b >> 4))]));
+                                    ((color.b << 2) | (color.b >> 4)),
+                                    255]));
     return table;
 }, []).flat(2);
 

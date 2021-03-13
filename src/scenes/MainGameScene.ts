@@ -1,4 +1,4 @@
-import {AbstractScene} from "../AbstractScene";
+import {AbstractScene} from "./AbstractScene";
 
 export class MainGameScene extends AbstractScene {
 
