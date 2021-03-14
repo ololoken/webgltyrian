@@ -5,7 +5,7 @@ import {OutlineFilter} from "../../filters/OutlineFilter";
 import {filters} from "pixi.js";
 
 
-export class SelectEpisode extends AbstractScene {
+export class SelectEpisode extends AbstractScene<void> {
 
     private menu: MenuItem[] = [];
 

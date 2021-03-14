@@ -1,14 +1,6 @@
 import {BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES, Rectangle, Point} from "pixi.js";
 import {fragment, vertex} from "./ShaderDecorators";
-import {
-    MAP_1_HEIGHT,
-    MAP_1_WIDTH,
-    MAP_2_HEIGHT,
-    MAP_2_WIDTH,
-    MAP_3_HEIGHT,
-    MAP_3_WIDTH, MAP_TO_SHAPE_MAX_INDEX, TILE_HEIGHT,
-    TILE_MAX_INDEX, TILE_WIDTH, TyEpisodeMap
-} from "../Structs";
+import {TILE_HEIGHT, TILE_WIDTH} from "../Structs";
 import {MapTextureAtlas} from "../Resources";
 
 export class TileMapFilter extends Filter {
@@ -59,7 +51,7 @@ uniform vec2 uMapPos;//absolute map position
 
 void main() {
     vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
-    vec2 screenTile = uv*(uOutSize/uTileSize)+uMapPos;
+    vec2 screenTile = uv*(uOutSize/uTileSize)+floor(uMapPos*128.0)/128.0;
 
     ivec2 tileIdx = ivec2(floor(screenTile));
     vec2 tileInnerCoord = fract(screenTile)*uTileSize/uAtlasSize;
@@ -85,7 +77,8 @@ void main() {
         return this._mapPos;
     }
 
-    public constructor (map: number[], shapeMap: number[], atlas: MapTextureAtlas, width: number, height: number) {
+    public constructor (map: number[], shapeMap: number[], atlas: MapTextureAtlas, width: number, height: number,
+                        mapWidth: number, mapHeight: number) {
         super(TileMapFilter.vertexShader, TileMapFilter.fragmentShader);
 
         this.uniforms.uAtlas = atlas.texture;
@@ -95,7 +88,7 @@ void main() {
 
         this.uniforms.uMap = this.toTexture(map, shapeMap, atlas.frames);
         this.uniforms.uMapTextureSize = [this.mapTextureSize, this.mapTextureSize];
-        this.uniforms.mapSize = [MAP_1_WIDTH, MAP_1_HEIGHT];
+        this.uniforms.mapSize = [mapWidth, mapHeight];
         this.uniforms.uMapPos = this._mapPos;
 
         this.autoFit = false;

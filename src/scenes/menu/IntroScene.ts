@@ -2,9 +2,8 @@ import {AbstractScene} from "../AbstractScene";
 import {PCX, pcxSprite} from "../../Resources";
 import {MainMenuScene} from "./MainMenuScene";
 
-export class IntroScene extends AbstractScene {
+export class IntroScene extends AbstractScene<number> {
     private readonly duration = 180;
-    private state = 0;
     private elapsed = 0;
 
     public update (delta: number): void {

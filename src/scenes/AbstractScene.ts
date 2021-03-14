@@ -8,19 +8,23 @@ export interface IScene extends Container {
     load (params?: any): Promise<boolean>;
     play (): Promise<IScene>;
 }
-export abstract class AbstractScene extends Container implements IScene {
+export abstract class AbstractScene<T> extends Container implements IScene {
+
+    protected state: T;
+
     get resolve () {
         return this._resolve!;
     }
 
     private _resolve?: (next: IScene) => void;
 
-    public constructor () {
+    public constructor (state: T) {
         super();
+        this.state = state;
     }
 
     abstract update (delta: number): void;
-    abstract load (params?: any): Promise<boolean>;
+    abstract load (): Promise<boolean>;
 
     unload (): Promise<void> {
         this.removeChildren();

@@ -23,5 +23,5 @@ const SCALE = 3;
     await initBasicResources();
 
     new SceneManager(app.stage, app.ticker, stats)
-        .play(new IntroScene());
+        .play(new IntroScene(0));
 })()
