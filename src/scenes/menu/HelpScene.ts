@@ -27,7 +27,7 @@ export class HelpScene extends AbstractScene<number> {
 
     load (): Promise<boolean> {
         return new Promise<boolean>(resolve => {
-            this.addChild(pcxSprite(PCX.SELECT_EPISODE));
+            this.addChild(pcxSprite(PCX.SUB_SELECT));
             let m: MenuItem = {
                 text: '',
                 btn: textContainer('Return to main menu', SpriteTableIndex.FONT_REGULAR, 0),

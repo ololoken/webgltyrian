@@ -24,11 +24,11 @@ type Resource = {[code: string]: {path: string, init: ResourceInit}};
 
 export enum PCX {
     NAME_1 = 0,
-    SELECT_EPISODE = 1,
-    NAME_3 = 2,
+    SUB_SELECT = 1,
+    HUD_ONE = 2,
     MENU_BG = 3,
     NAME_5 = 4,
-    NAME_6 = 5,
+    HUD_TWO = 5,
     NAME_7 = 6,
     NAME_8 = 7,
     NAME_9 = 8,

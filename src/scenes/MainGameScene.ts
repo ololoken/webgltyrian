@@ -1,5 +1,5 @@
 import {AbstractScene} from "./AbstractScene";
-import {generateTexturesFromMapShapes, getEpisodeData} from "../Resources";
+import {generateTexturesFromMapShapes, getEpisodeData, PCX, pcxSprite} from "../Resources";
 import {Sprite, Texture} from "pixi.js";
 import {TileMapFilter} from "../filters/TileMapFilter";
 import {PaletteFilter} from "../filters/PaletteFilter";
@@ -31,6 +31,9 @@ export class MainGameScene extends AbstractScene<DemoParams> {
                     this.map1Renderer.mapPosition.set(1, 300-8);
                     this.map1Sprite.filters = [this.map1Renderer, new PaletteFilter(0)];
                     this.addChild(this.map1Sprite);
+
+                    this.addChild(pcxSprite(PCX.HUD_ONE));
+
                     resolve(true);
                 });
             })
