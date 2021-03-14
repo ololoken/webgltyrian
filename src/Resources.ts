@@ -159,7 +159,10 @@ const shapesToTexture = (shapes: TyShape[], tSize = 512): MapTextureAtlas => {
     let frames: Rectangle[] = [];
     //create sprite sheet: copy shapes to texture and save frame information
     for (let i = 0; i < sortedBySize.length; i++) {
-        if (!sortedBySize[i].sp.hasData) {continue}
+        if (!sortedBySize[i].sp.hasData) {
+            frames[sortedBySize[i].idx] = new Rectangle(tSize, tSize, 0, 0);
+            continue;
+        }
         let [s] = sortedBySize[i].sp.payload;
         if (xOffset + s.width > tSize) {
             xOffset = 0;

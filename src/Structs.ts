@@ -303,7 +303,7 @@ const TyEpisodeMapEventStruct = new Struct<TyEpisodeMapEvent>()
 
 type TyMapData = {
     shapeMap1: number[], shapeMap2: number[], shapeMap3: number[],
-    map1: number[], map2: number[], map3: number[]
+    map1: number[],      map2: number[],      map3: number[]
 }
 
 const TyEpisodeMapDataStruct = new Struct<TyMapData>()

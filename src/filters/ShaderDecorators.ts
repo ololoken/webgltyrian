@@ -1,5 +1,5 @@
 /**
- * Just to enable glsl highlighting using via idea's language injection
+ * Just to enable glsl highlighting using idea's language injection
  * @param shaderSrc
  */
 export function fragment (shaderSrc: string) {
@@ -11,6 +11,10 @@ export function fragment (shaderSrc: string) {
     };
 }
 
+/**
+ * Just to enable glsl highlighting using idea's language injection
+ * @param shaderSrc
+ */
 export function vertex (shaderSrc: string) {
     return (
         target: {vertexShader: string},

@@ -31,6 +31,8 @@ export class MainMenuScene extends AbstractScene {
 
     private active: number;
 
+    private tmpf?: TileMapFilter;
+
     public constructor(active: number = -1) {
         super();
         this.menu = [
@@ -53,6 +55,9 @@ export class MainMenuScene extends AbstractScene {
         this.menu.forEach(({cm}) => cm?.brightness(0.7, false));
         if (this.active in this.menu) {
             this.menu[this.active].cm?.brightness(1.0, false);
+        }
+        if (this.tmpf && this.tmpf.mapPosition.y > 0) {
+            this.tmpf.mapPosition.y -= 0.01*delta;
         }
     }
 
@@ -88,13 +93,15 @@ export class MainMenuScene extends AbstractScene {
             }));
 
             getEpisodeData(1).then(({maps}) => {
-                let map = maps[0];
+                let map = maps[8];
                 generateTexturesFromMapShapes(map.shapesFile).then(atlas => {
                     let sp = new Sprite(Texture.EMPTY);
                     sp.width = 160; sp.height = 200;
-
+                    //console.log(atlas.shapes[map.map.shapeMap1[map.map.map1[14*280+9]]-1])
                     //sp.filterArea = new Rectangle(0, 0, 160, 200);
-                    let tmf = new TileMapFilter(map, atlas, 160, 200);
+                    let tmf = new TileMapFilter(map.map.map1, map.map.shapeMap1, atlas, sp.width, sp.height);
+                    this.tmpf = tmf;
+                    tmf.mapPosition.set(1, 300-8);
                     sp.filters = [tmf, new PaletteFilter(0)];
                     this.addChild(sp);
                     let sp1 = new Sprite(new Texture(atlas.texture));
