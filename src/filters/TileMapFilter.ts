@@ -1,4 +1,4 @@
-import {Filter, Texture} from "pixi.js";
+import {BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES} from "pixi.js";
 import {fragment, vertex} from "./ShaderDecorators";
 import {
     MAP_1_HEIGHT,
@@ -6,12 +6,14 @@ import {
     MAP_2_HEIGHT,
     MAP_2_WIDTH,
     MAP_3_HEIGHT,
-    MAP_3_WIDTH, TILE_HEIGHT,
-    TILE_MAX_INDEX, TILE_WIDTH
+    MAP_3_WIDTH, MAP_TO_SHAPE_MAX_INDEX, TILE_HEIGHT,
+    TILE_MAX_INDEX, TILE_WIDTH, TyEpisodeMap
 } from "../Structs";
+import {MapTextureAtlas} from "../Resources";
 
 export class TileMapFilter extends Filter {
     @vertex(`
+precision mediump float;
 attribute vec2 aVertexPosition;
 
 uniform mat3 projectionMatrix;
@@ -40,57 +42,78 @@ void main (void) {
 
 
     @fragment(`
+precision mediump float;
 varying vec2 vTextureCoord;
-uniform sampler2D uSampler;
+uniform vec4 outputFrame;
+uniform vec4 inputSize;
+uniform vec4 filterArea;
+
 uniform sampler2D uAtlas;
 uniform vec2 uTileSize;
-uniform vec4 outputFrame;
-const int TILE_MAX_INDEX = ${TILE_MAX_INDEX};
-const int MAP_1_WIDTH = ${MAP_1_WIDTH};
-const int MAP_1_HEIGHT = ${MAP_1_HEIGHT};
-const int MAP_2_WIDTH = ${MAP_2_WIDTH};
-const int MAP_2_HEIGHT = ${MAP_2_HEIGHT};
-const int MAP_3_WIDTH = ${MAP_3_WIDTH};
-const int MAP_3_HEIGHT = ${MAP_3_HEIGHT};
-uniform vec2[TILE_MAX_INDEX] uTileCoords;
-uniform int[MAP_1_WIDTH*MAP_1_HEIGHT] uMap1;
-uniform int uMap1x;
-uniform int[MAP_2_WIDTH*MAP_2_HEIGHT] uMap2;
-uniform int uMap2x;
-uniform int[MAP_3_WIDTH*MAP_3_HEIGHT] uMap3;
-uniform int uMap3x;
-uniform float uMap0x;
-uniform float uMap0y;
+uniform vec2 uOutSize;
+
+uniform ivec2 map1size;
+
+uniform sampler2D uMap1;
+uniform vec2 uMapPos;
 
 void main() {
-    int tile1x = int(floor((uMap0x+outputFrame.x+outputFrame.w*vTextureCoord.x)/float(MAP_1_WIDTH)));
-    int tile1y = int(floor((uMap0y+outputFrame.y+outputFrame.z*vTextureCoord.y)/float(MAP_1_HEIGHT)));
-    vec2 tile1SubCoords = vec2(vTextureCoord.x-float(tile1x)*uTileSize.x, vTextureCoord.y-float(tile1y)*uTileSize.y);
-    vec2 tile1At = uTileCoords[MAP_1_WIDTH*tile1y+tile1x];
-    vec4 texel = texture2D(uAtlas, tile1At/outputFrame.zw+tile1SubCoords);
-    
-    gl_FragColor = texel;
+    vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
+    vec2 screenTile1 = uv*(uOutSize/uTileSize);
+    ivec2 tileIdx1 = ivec2(floor(screenTile1+uMapPos));
+    vec2 tileCoord1 = fract(screenTile1)*uTileSize/512.0;
+    float p1 = float(tileIdx1.y*map1size.y+tileIdx1.x);
+    float ly1 = floor(p1/128.);
+    float lx1 = p1-ly1*128.;
+    vec2 lookup1 = vec2(ly1, lx1)/128.;
+    vec4 mapShapeIdx1 = texture2D(uMap1, lookup1);
+    vec2 subLookup1 = vec2(mapShapeIdx1.r+mapShapeIdx1.g, 
+                           mapShapeIdx1.b+mapShapeIdx1.a)*256.0/512.0;
+    vec4 tileColor = texture2D(uAtlas, subLookup1+tileCoord1);
+    gl_FragColor = 
+        //vec4(subLookup1, 0., 1.);
+        tileColor;
 }
     `)
     static fragmentShader: string;
 
-    public constructor (map: number[], atlas: {texture: Texture, coors: {x: number, y: number}[]}, maps: {
-        map1x: number, map2x: number, map3x: number,
-        map1: number[], map2: number[], map3: number[]
-    }) {
+    public constructor (map: TyEpisodeMap, atlas: MapTextureAtlas, width: number, height: number) {
         super(TileMapFilter.vertexShader, TileMapFilter.fragmentShader);
         this.uniforms.uAtlas = atlas.texture;
-        this.uniforms.uTileCoords = atlas.coors;
-        this.uniforms.uTileSize = {x: TILE_WIDTH, y: TILE_HEIGHT};
-        this.uniforms.uMap1 = maps.map1;
-        this.uniforms.uMap2 = maps.map2;
-        this.uniforms.uMap3 = maps.map3;
-        this.uniforms.uMap1x = maps.map1x;
-        this.uniforms.uMap2x = maps.map2x;
-        this.uniforms.uMap3x = maps.map3x;
-        this.uniforms.uMap0x = 0.0;
-        this.uniforms.uMap0y = 0.0;
+        this.uniforms.uTileSize = [TILE_WIDTH, TILE_HEIGHT];
+        this.uniforms.uMap1 = this.toTexture(map.map.map1, map.map.shapeMap1, atlas.frames.map(r => [r.x, r.y]));
+        this.uniforms.map1size = [MAP_1_WIDTH, MAP_1_HEIGHT];
+        this.uniforms.uMap1x = map.map1x;
+        this.uniforms.uMap2x = map.map2x;
+        this.uniforms.uMap3x = map.map3x;
+        this.uniforms.uMapPos = [5.0, 100.0];
+        this.uniforms.uOutSize = [width, height];
         this.autoFit = false;
+    }
+
+    private toTexture (map: number[], shapeMap: number[], frames: number[][]): Texture {
+        let buffer = new Uint8Array(128*128*4);console.log(map.map(m => shapeMap[m]-1));
+        map.map(m => shapeMap[m]-1).map(s => frames[s] || [-1, -1])
+            .forEach(([x, y], idx) => {
+                if (x == -1 && y == -1) {
+                    buffer[4 * idx + 0] =
+                    buffer[4 * idx + 1] =
+                    buffer[4 * idx + 2] =
+                    buffer[4 * idx + 3] = 255;
+                }
+                else {
+                    buffer[4 * idx + 0] = Math.min(x, 255);
+                    buffer[4 * idx + 1] = Math.max(x - 255, 0);
+                    buffer[4 * idx + 2] = Math.min(y, 255);
+                    buffer[4 * idx + 3] = Math.max(y - 255, 0);
+                }
+            });
+        return new Texture(BaseTexture.fromBuffer(buffer, 128, 128, {
+            width: 128, height: 128,
+            format: FORMATS.RGBA,
+            type: TYPES.UNSIGNED_BYTE,
+            target: TARGETS.TEXTURE_2D
+        }));
     }
 }
 

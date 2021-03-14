@@ -1,4 +1,4 @@
-import {Sprite, Container, filters, Texture} from 'pixi.js'
+import {Sprite, Container, filters, Texture, BaseTexture, Rectangle} from 'pixi.js'
 import {AbstractScene, IScene} from "../AbstractScene";
 import {
     getSprite,
@@ -6,13 +6,13 @@ import {
     pcxSprite,
     SpriteTableIndex,
     textContainer,
-    cache,
     getEpisodeData,
     generateTexturesFromMapShapes
 } from "../../Resources";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {SelectEpisode} from "./SelectEpisode";
 import {HelpScene} from "./HelpScene";
+import {TileMapFilter} from "../../filters/TileMapFilter";
 import {PaletteFilter} from "../../filters/PaletteFilter";
 
 export type MenuItem = {
@@ -87,13 +87,25 @@ export class MainMenuScene extends AbstractScene {
                 return m.btn;
             }));
 
-            getEpisodeData(4).then(data => {
+            getEpisodeData(1).then(({maps}) => {
+                let map = maps[0];
+                generateTexturesFromMapShapes(map.shapesFile).then(atlas => {
+                    let sp = new Sprite(Texture.EMPTY);
+                    sp.width = 160; sp.height = 200;
 
+                    //sp.filterArea = new Rectangle(0, 0, 160, 200);
+                    let tmf = new TileMapFilter(map, atlas, 160, 200);
+                    sp.filters = [tmf, new PaletteFilter(0)];
+                    this.addChild(sp);
+                    let sp1 = new Sprite(new Texture(atlas.texture));
+                    sp1.filters = [new PaletteFilter(0)];
+                    this.addChild(sp1).position.set(160, 0);
+                });
             })
 
-            let sp = this.addChild(new Sprite(new Texture((await generateTexturesFromMapShapes(90)).texture)));
-            sp.filters = [new PaletteFilter(0)];
-            sp.scale.set(200/512, 200/512);
+            //let sp = this.addChild(new Sprite(new Texture((await generateTexturesFromMapShapes(90)).texture)));
+            //sp.filters = [new PaletteFilter(0)];
+            //sp.scale.set(200/512, 200/512);
 
             //console.log(await );
             //console.log()

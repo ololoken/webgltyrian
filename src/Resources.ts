@@ -1,4 +1,4 @@
-import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, Sprite, Container} from "pixi.js";
+import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, Sprite, Container, BufferResource} from "pixi.js";
 import {PaletteFilter} from "./filters/PaletteFilter";
 import {
     TyCompressedShapesOffsets,
@@ -141,7 +141,12 @@ const generateTexturesFromShapes: ResourceInit = (dt) => TyShapeTablesHeaderStru
         cache.shapeTextures[idx] = shapesToTexture(shapes);
     });
 
-const shapesToTexture = (shapes: TyShape[], tSize = 512) => {
+export type MapTextureAtlas = {
+    frames: Rectangle[],
+    texture: BaseTexture<BufferResource>
+}
+
+const shapesToTexture = (shapes: TyShape[], tSize = 512): MapTextureAtlas => {
     const sortedBySize = shapes.map((sp, idx) => ({idx, sp}))
         .sort((a, b) => {
             let aD = a.sp.hasData ? a.sp.payload[0].height * a.sp.payload[0].width : 0,
@@ -251,8 +256,7 @@ export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> =>
         TyLevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
     return cache.episodes[episode] = {episode, script, maps, items}
 }
-
-export const generateTexturesFromMapShapes = async (mapShapesFile: number) =>
+export const generateTexturesFromMapShapes = async (mapShapesFile: number): Promise<MapTextureAtlas> =>
     getFileDataView(`shapes${String.fromCharCode(mapShapesFile).toLowerCase()}.dat`)
         .then(shapesData => TyMapShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
