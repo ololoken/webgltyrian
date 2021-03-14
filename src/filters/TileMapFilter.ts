@@ -43,31 +43,35 @@ void main (void) {
 
     @fragment(`
 precision mediump float;
-varying vec2 vTextureCoord;
+varying vec2 vTextureCoord;//standard pixi uniforms
 uniform vec4 outputFrame;
 uniform vec4 inputSize;
 
-uniform sampler2D uAtlas;
+uniform sampler2D uAtlas;//texture with tiles
 uniform vec2 uAtlasSize;
 uniform vec2 uTileSize;
-uniform vec2 uOutSize;
-uniform float uMapTextureSize;
+uniform vec2 uOutSize;//"css" output size
 
-uniform sampler2D uMap;
-uniform ivec2 mapSize;
-uniform vec2 uMapPos;
+uniform sampler2D uMap;//zw - tile coords in atlas
+uniform vec2 uMapTextureSize;//uMap size
+uniform ivec2 mapSize;//game map size
+uniform vec2 uMapPos;//absolute map position
 
 void main() {
     vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
     vec2 screenTile = uv*(uOutSize/uTileSize)+uMapPos;
+
     ivec2 tileIdx = ivec2(floor(screenTile));
     vec2 tileInnerCoord = fract(screenTile)*uTileSize/uAtlasSize;
+
     float mapTextureIndex = float(tileIdx.y*mapSize.x+tileIdx.x);
-    float mapTextureY = floor(mapTextureIndex/uMapTextureSize);
-    float mapTextureX = mapTextureIndex-mapTextureY*uMapTextureSize;
+    float mapTextureY = floor(mapTextureIndex/uMapTextureSize.x);
+    float mapTextureX = mapTextureIndex-mapTextureY*uMapTextureSize.x;
     vec2 shapeCoord = vec2(mapTextureX, mapTextureY)/uMapTextureSize;
+
     vec2 mapShapeIdx = texture2D(uMap, shapeCoord).zw;
     vec2 tileAtlasOffset = mapShapeIdx*uTileSize*255.0/uAtlasSize;
+
     vec4 tileColor = texture2D(uAtlas, tileAtlasOffset+tileInnerCoord);
     gl_FragColor = tileColor;
 }
@@ -88,9 +92,9 @@ void main() {
         this.uniforms.uAtlasSize = [atlas.texture.width, atlas.texture.height];
         this.uniforms.uTileSize = [TILE_WIDTH, TILE_HEIGHT];
         this.uniforms.uOutSize = [width, height];
-        this.uniforms.uMapTextureSize = this.mapTextureSize;
 
         this.uniforms.uMap = this.toTexture(map, shapeMap, atlas.frames);
+        this.uniforms.uMapTextureSize = [this.mapTextureSize, this.mapTextureSize];
         this.uniforms.mapSize = [MAP_1_WIDTH, MAP_1_HEIGHT];
         this.uniforms.uMapPos = this._mapPos;
 
