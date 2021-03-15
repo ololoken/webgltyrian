@@ -7,6 +7,7 @@ What's ready:
 0. Basic menu scenes and scene manager implementation.
 1. Content loading of original game.
 2. A couple of shader to apply palettes and outlining.
+3. Shader for game map rendering. 
 
 The plan is:
 1. Add World with basic game logic.
