@@ -3,9 +3,9 @@ import Stats from 'stats.js'
 import {initBasicResources} from "./Resources";
 import {SceneManager} from "./scenes/SceneManager";
 import {IntroScene} from "./scenes/menu/IntroScene";
-import {MAIN_HEIGHT, MAIN_WIDTH} from "./Structs";
 
-const SCALE = 3;
+export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
+             SCALE = 3, FPS = 40;
 
 (async () => {
     const app = new Application({width: SCALE*MAIN_WIDTH, height: SCALE*MAIN_HEIGHT, backgroundColor: 0x000000,
@@ -22,6 +22,7 @@ const SCALE = 3;
 
     await initBasicResources();
 
+    app.ticker.maxFPS = FPS;
     new SceneManager(app.stage, app.ticker, stats)
         .play(new IntroScene(0));
 })()

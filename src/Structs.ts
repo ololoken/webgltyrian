@@ -9,17 +9,17 @@ import {
 } from "@ololoken/struct";
 import {PascalDecryptFormatter} from "./Decoders";
 
-export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
-             PALETTE_SIZE = 256,
+export const PALETTE_SIZE = 256,
              TILE_MAX_INDEX = 600,
              TILE_WIDTH = 24, TILE_HEIGHT = 28,
-             MAP_TO_SHAPE_MAX_INDEX = 128,
-             MAP_1_WIDTH = 14, MAP_1_HEIGHT = 300,
-             MAP_2_WIDTH = 14, MAP_2_HEIGHT = 600,
-             MAP_3_WIDTH = 15, MAP_3_HEIGHT = 600;
+             BACK_TO_SHAPE_MAX_INDEX = 128,
+             BACK_1_WIDTH = 14, BACK_1_HEIGHT = 300,
+             BACK_2_WIDTH = 14, BACK_2_HEIGHT = 600,
+             BACK_3_WIDTH = 15, BACK_3_HEIGHT = 600;
 
-const [UInt16, Int16, Byte, Char, UInt32, Int32] =
-    [Primitive.UInt16LE(), Primitive.Int16LE(), Primitive.UInt8(), Primitive.Int8(), Primitive.UInt32LE(), Primitive.Int32LE()];
+const [UInt16, Int16] = [Primitive.UInt16LE(), Primitive.Int16LE()],
+      [Byte, Char] = [Primitive.UInt8(), Primitive.Int8()],
+      [UInt32, Int32] = [Primitive.UInt32LE(), Primitive.Int32LE()];
 const asAsciiString = StringFormatter({encoding: 'ascii'});
 
 type TyWeapon = {
@@ -54,7 +54,7 @@ type TyPort = {
     powerConsumption: number
 }
 
-type Special = {
+type TySpecial = {
     nameLength: number,
     name: string,
     graphic: number,
@@ -139,7 +139,7 @@ type TyEnemy = {
 export type TyItems = {
     weaponsCount: number, weapons: TyWeapon[],
     portsCount: number, ports: TyPort[],
-    specials: Special[],
+    specials: TySpecial[],
     powersCount: number, powers: TyPower[],
     shipsCount: number, ships: TyShip[],
     optionsCount: number, options: TyOption[],
@@ -182,7 +182,7 @@ export const TyItemsStruct = new Struct<TyItems>()
         .single('price', UInt16)
         .single('graphic', UInt16)
         .single('powerConsumption', UInt16), items => items.portsCount+1)
-    .array('specials', new Struct<Special>()
+    .array('specials', new Struct<TySpecial>()
         .single("nameLength", Byte)
         .array("name", Char, la('nameLength'), asAsciiString)
         .single("graphic", UInt16)
@@ -280,7 +280,7 @@ export const TyEpisodeMapsFileHeaderStruct = new Struct<{ length: number, offset
     .single('length', UInt16)
     .array('offsets', UInt32, la('length'))
 
-type TyEpisodeMapEvent = {
+export type TyEpisodeMapEvent = {
     eventtime: number,
     eventtype: number,
     eventdat1: number,
@@ -301,43 +301,47 @@ const TyEpisodeMapEventStruct = new Struct<TyEpisodeMapEvent>()
     .single('eventdat6', Char)
     .single('eventdat4', Byte);
 
-type TyMapData = {
-    shapeMap1: number[], shapeMap2: number[], shapeMap3: number[],
-    map1: number[],      map2: number[],      map3: number[]
+type TyBackgroundData = {
+    shapesMapping1: number[],
+    shapesMapping2: number[],
+    shapesMapping3: number[],
+    background1: number[],
+    background2: number[],
+    background3: number[]
 }
 
-const TyEpisodeMapDataStruct = new Struct<TyMapData>()
-    .array('shapeMap1', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
-    .array('shapeMap2', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
-    .array('shapeMap3', UInt16, l(MAP_TO_SHAPE_MAX_INDEX), USwap16Formatter)
-    .array('map1', Byte, l(MAP_1_WIDTH*MAP_1_HEIGHT))
-    .array('map2', Byte, l(MAP_2_WIDTH*MAP_2_HEIGHT))
-    .array('map3', Byte, l(MAP_3_WIDTH*MAP_3_HEIGHT));
+const TyEpisodeMapBackgroundStruct = new Struct<TyBackgroundData>()
+    .array('shapesMapping1', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('shapesMapping2', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('shapesMapping3', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('background1', Byte, l(BACK_1_WIDTH*BACK_1_HEIGHT))
+    .array('background2', Byte, l(BACK_2_WIDTH*BACK_2_HEIGHT))
+    .array('background3', Byte, l(BACK_3_WIDTH*BACK_3_HEIGHT));
 
 export type TyEpisodeMap = {
     mapFile: number,
     shapesFile: number,
-    map1x: number,
-    map2x: number,
-    map3x: number,
-    enemiesCount: number,
-    enemies: number[],
+    background1x: number,
+    background2x: number,
+    background3x: number,
+    enemiesMappingsCount: number,
+    enemiesMapping: number[],
     eventsCount: number,
-    events: number[],
-    map: TyMapData
+    events: TyEpisodeMapEvent[],
+    background: TyBackgroundData
 }
 
 export const TyEpisodeMapStruct = new Struct<TyEpisodeMap>()
     .single('mapFile', Byte)
     .single('shapesFile', Byte)
-    .single('map1x', UInt16)
-    .single('map2x', UInt16)
-    .single('map3x', UInt16)
-    .single('enemiesCount', UInt16)
-    .array('enemies', UInt16, la('enemiesCount'))
+    .single('background1x', UInt16)
+    .single('background2x', UInt16)
+    .single('background3x', UInt16)
+    .single('enemiesMappingsCount', UInt16)
+    .array('enemiesMapping', UInt16, la('enemiesMappingsCount'))
     .single('eventsCount', UInt16)
     .array('events', TyEpisodeMapEventStruct, la('eventsCount'))
-    .single('map', TyEpisodeMapDataStruct);
+    .single('background', TyEpisodeMapBackgroundStruct);
 
 type TyShapePayload = {width: number, height: number, size: number, data: number[]}
 export type TyShape = {hasData: number, payload: TyShapePayload[]};
@@ -355,7 +359,7 @@ export const TyShapesTableStruct = new Struct<{count: number, shapes: TyShape[]}
     .single('count', UInt16)
     .array('shapes', TyShapeStruct, la('count'));
 
-export const TyMapShapesStruct = new Struct<{shapes: TyShape[], trailingData: number[]}>()
+export const TyMapBackgroundShapesStruct = new Struct<{shapes: TyShape[], trailingData: number[]}>()
     .array('shapes', new Struct<TyShape>()
         .single('hasData', Byte, ([isEmpty]) => Boolean(isEmpty) ? 0 : 1)
         .array('payload', new Struct<TyShapePayload>()

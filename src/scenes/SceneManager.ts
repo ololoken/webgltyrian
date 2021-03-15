@@ -11,8 +11,6 @@ export class SceneManager {
         this.root = root;
         this.ticker = ticker;
         this.stats = stats;
-
-        this.ticker.maxFPS = 40;
     }
 
     public play (scene: IScene): void {

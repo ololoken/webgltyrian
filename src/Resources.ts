@@ -13,11 +13,12 @@ import {
     TyItems,
     TyEpisodeMapStruct,
     TyLevelScriptStruct,
-    TyMapShapesStruct,
+    TyMapBackgroundShapesStruct,
     TyShape,
-    TILE_WIDTH, TILE_HEIGHT, MAIN_WIDTH, MAIN_HEIGHT, PALETTE_SIZE, TyEpisodeMap,
+    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeW12Decoder} from "./Decoders";
+import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
 
 type ResourceInit = (dt: DataView) => void;
 type Resource = {[code: string]: {path: string, init: ResourceInit}};
@@ -141,12 +142,12 @@ const generateTexturesFromShapes: ResourceInit = (dt) => TyShapeTablesHeaderStru
         cache.shapeTextures[idx] = shapesToTexture(shapes);
     });
 
-export type MapTextureAtlas = {
+export type BackgroundTextureAtlas = {
     frames: Rectangle[],
     texture: BaseTexture<BufferResource>
 }
 
-const shapesToTexture = (shapes: TyShape[], tSize = 512): MapTextureAtlas => {
+const shapesToTexture = (shapes: TyShape[], tSize = 512): BackgroundTextureAtlas => {
     const sortedBySize = shapes.map((sp, idx) => ({idx, sp}))
         .sort((a, b) => {
             let aD = a.sp.hasData ? a.sp.payload[0].height * a.sp.payload[0].width : 0,
@@ -259,9 +260,9 @@ export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> =>
         TyLevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
     return cache.episodes[episode] = {episode, script, maps, items}
 }
-export const generateTexturesFromMapShapes = async (mapShapesFile: number): Promise<MapTextureAtlas> =>
-    getFileDataView(`shapes${String.fromCharCode(mapShapesFile).toLowerCase()}.dat`)
-        .then(shapesData => TyMapShapesStruct.unpack(shapesData))
+export const generateTexturesFromMapShapes = async (mapBackgroundShapesFile: number): Promise<BackgroundTextureAtlas> =>
+    getFileDataView(`shapes${String.fromCharCode(mapBackgroundShapesFile).toLowerCase()}.dat`)
+        .then(shapesData => TyMapBackgroundShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
             if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
                 s.payload[0].width = TILE_WIDTH;

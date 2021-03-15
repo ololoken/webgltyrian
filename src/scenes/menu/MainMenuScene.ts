@@ -28,7 +28,7 @@ export class MainMenuScene extends AbstractScene<number> {
     public constructor(active: number = -1) {
         super(active);
         this.menu = [
-            {text: 'Start New Game', target: () => new MainGameScene({episode: 1, map: 8})},
+            {text: 'Start New Game', target: () => new MainGameScene({episodeNumber: 1, mapIndex: 8})},
             {text: 'Load Game',},
             {text: 'Demo'},
             {text: 'Instructions', target: () => new HelpScene()},
