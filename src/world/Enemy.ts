@@ -1,63 +1,49 @@
-class Enemy {
-    /*
-struct JE_SingleEnemyType
-{
-    JE_byte     fillbyte;
-    JE_integer  ex, ey;     /* POSITION
-    JE_shortint exc, eyc;   /* CURRENT SPEED
-    JE_shortint exca, eyca; /* RANDOM ACCELERATION
-    JE_shortint excc, eycc; /* FIXED ACCELERATION WAITTIME
-    JE_shortint exccw, eyccw;
-    JE_byte     armorleft;
-    JE_byte     eshotwait[3], eshotmultipos[3]; /* [1..3]
-    JE_byte     enemycycle;
-    JE_byte     ani;
-    JE_word     egr[20]; ///* [1..20]
-    JE_byte     size;
-    JE_byte     linknum;
-    JE_byte     aniactive;
-    JE_byte     animax;
-    JE_byte     aniwhenfire;
-    Sprite2_array *sprite2s;
-    JE_shortint exrev, eyrev;
-    JE_integer  exccadd, eyccadd;
-    JE_byte     exccwmax, eyccwmax;
-    void       *enemydatofs;
-    JE_boolean  edamaged;
-    JE_word     enemytype;
-    JE_byte     animin;
-    JE_word     edgr;
-    JE_shortint edlevel;
-    JE_shortint edani;
-    JE_byte     fill1;
-    JE_byte     filter;
-    JE_integer  evalue;
-    JE_integer  fixedmovey;
-    JE_byte     freq[3]; /* [1..3]
-    JE_byte     launchwait;
-    JE_word     launchtype;
-    JE_byte     launchfreq;
-    JE_byte     xaccel;
-    JE_byte     yaccel;
-    JE_byte     tur[3]; /* [1..3]
-    JE_word     enemydie; /* Enemy created when this one dies
-    JE_boolean  enemyground;
-    JE_byte     explonum;
-    JE_word     mapoffset;
-    JE_boolean  scoreitem;
+type Enemy = {
+    ex: number; ey: number;//pos
+    exc: number; eyc: number;//speed
+    exca: number; eyca: number; //random accel
+    excc: number; eycc: number; //fixed accel
+    exccw: number; eyccw: number; //wait time
+    armor: number;
+    eshotwait: [0, 0, 0];
+    eshotmultipos: [0, 0, 0];
+    enemycycle: number;
+    graphic: number[];
+    size: number,
+    linknum: number,
+    animation: number;
+    animationActive: number,
+    animationMax: number,
+    animationMin: number,
+    animationFire: number,
+    exrev: number, eyrev: number,
+    exccadd: number, eyccadd: number,
+    exccwmax: number, eyccwmax: number,
+    damaged: boolean,
+    type: number,
+    edgr: number,
+    edlevel: number,
+    edani: number,
+    filter: number,
+    evalue: number,
+    fixedmovey: number,
+    freq: [0, 0, 0],
+    launchwait: number,
+    launchtype: number,
+    laumchfreq: number,
+    xaccel: number, yaccel: number,
+    tur: [0, 0, 0],
+    enemydie: number,
+    explosion: number,
+    mapoffset: number,
+    enemyground: boolean;
+    scoreitem: boolean;
+    special: boolean,
+    flagnum: number,
+    setto: boolean,
+    iced: number,
+    lauchspecial: number,
 
-    JE_boolean  special;
-    JE_byte     flagnum;
-    JE_boolean  setto;
-
-    JE_byte     iced; /*Duration
-
-    JE_byte     launchspecial;
-
-    JE_integer  xminbounce;
-    JE_integer  xmaxbounce;
-    JE_integer  yminbounce;
-    JE_integer  ymaxbounce;
-};
-     */
+    xminbounce: number, yminbounce: number,
+    xmaxbounce: number, ymaxbounce: number,
 }
