@@ -281,25 +281,25 @@ export const TyEpisodeMapsFileHeaderStruct = new Struct<{ length: number, offset
     .array('offsets', UInt32, la('length'))
 
 export type TyEpisodeMapEvent = {
-    eventtime: number,
-    eventtype: number,
-    eventdat1: number,
-    eventdat2: number,
-    eventdat3: number,
-    eventdat4: number,
-    eventdat5: number,
-    eventdat6: number,
+    time: number,
+    type: number,
+    data1: number,
+    data2: number,
+    data3: number,
+    data4: number,
+    data5: number,
+    data6: number,
 }
 
 const TyEpisodeMapEventStruct = new Struct<TyEpisodeMapEvent>()
-    .single('eventtime', UInt16)
-    .single('eventtype', Byte)
-    .single('eventdat1', Int16)
-    .single('eventdat2', Int16)
-    .single('eventdat3', Char)
-    .single('eventdat5', Char)
-    .single('eventdat6', Char)
-    .single('eventdat4', Byte);
+    .single('time', UInt16)
+    .single('type', Byte)
+    .single('data1', Int16)
+    .single('data2', Int16)
+    .single('data3', Char)
+    .single('data5', Char)
+    .single('data6', Char)
+    .single('data4', Byte);
 
 type TyBackgroundData = {
     shapesMapping1: number[],

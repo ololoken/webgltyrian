@@ -9,7 +9,7 @@ import {
 } from "../../Resources";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {HelpScene} from "./HelpScene";
-import {MainGameScene} from "../MainGameScene";
+import {MissionGameScene} from "../game/MissionGameScene";
 
 export type MenuItem = {
     text: string,
@@ -28,7 +28,7 @@ export class MainMenuScene extends AbstractScene<number> {
     public constructor(active: number = -1) {
         super(active);
         this.menu = [
-            {text: 'Start New Game', target: () => new MainGameScene({episodeNumber: 1, mapIndex: 8})},
+            {text: 'Start New Game', target: () => new MissionGameScene({episodeNumber: 1, mapIndex: 8})},
             {text: 'Load Game',},
             {text: 'Demo'},
             {text: 'Instructions', target: () => new HelpScene()},

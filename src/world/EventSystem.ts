@@ -1,92 +1,47 @@
 import {TyEpisodeMapEvent} from "../Structs";
+import {utils} from "pixi.js";
+import {
+    CreatedTyEvent,
+    TyEventKey,
+    TyEventKindMap,
+    TyEventType
+} from "./EventMappings";
 
-enum TyEventType {
-    STAR_FIELD_SPEED = 1,
-    BACK_MOVE_1 = 2,
-    EVENT_3 = 3,
-    BACK_STOP = 4,
-    LOAD_ENEMIES = 5, //load enemy shape banks
-    ENEMY_GROUND_1 = 6, //ground enemy
-    ENEMY_AIR_1 = 7,
-    STAR_OFF = 8,
-    STAR_ON = 9,
-    ENEMY_GROUND_2 = 10,
-    LEVEL_END = 11,
-    ENEMY_GROUND_3 = 12, //the big one
-    ENEMIES_OFF = 13,
-    ENEMIES_ON = 14,
-    ENEMY_AIR_2 = 15,
-    SHOW_MESSAGE = 16,
-    ENEMY_GROUND_4 = 17,
-    ENEMY_AIR_3 = 18,
-    ENEMY_GLOBAL_MOVE = 19,
-    ENEMY_GLOBAL_ACCEL = 20,
-    BACK_3_OFF = 21,
-    BACK_3_ON = 22,
-    ENEMY_AIR_4 = 23,
-    ENEMY_GLOBAL_ANIMATE = 24,
-    ENEMY_GLOBAL_DAMAGE = 25,
-    ENEMY_POS = 26,
-    ENEMY_GLOBAL_ACCEL_REV = 27,
-    ENEMY_TOP_OFF = 28,
-    ENEMY_TOP_ON  = 29,
-    BACK_MOVE_2 = 30,
-    ENEMY_FIRE_OVERRIDE = 31,
-    ENEMY = 32,
-    ENEMY_SPAWN = 33,
-    MUSIC_FADE_ = 34,
-    MUSIC_TRACK_ = 35,
-    WTF_READY_TO_END = 36,
-    ENEMY_FREQUENCY = 37,
-    EVENT_JUMP = 38,
-    ENEMY_GLOBAL_LINK_NUM = 39,
-    ENEMY_CONTINUAL_DMG = 40,
-    WTF_ENEMY_RESET = 41,
-    WTF_BACK_3_OFF = 42,
-    WTF_BACK_2_OFF = 43,
-    APPLY_FILTERS = 44,
-    ENEMY_SPAWN_ARCADE = 45,
-    DIFFICULTY_SET = 46,
-    ENEMY_GLOBAL_ACCEL_REV_ = 47,
-    BACK_2_NOT_TRANSPARENT = 48,
-    ENEMY_CREATE_1 = 49,
-    ENEMY_CREATE_2 = 50,
-    ENEMY_CREATE_3 = 51,
-    ENEMY_CREATE_4 = 52,
-    EVENT_FORCED = 53,
-    EVENT_JUMP_1 = 54,
-    ENEMY_GLOBAL_ACCEL_REV__ = 55,
-    ENEMY_GROUND_5 = 56,
-    ENEMY_SUPER_JUMP = 57,
-    //??
-    //??
-    ENEMY_SPECIAL = 60,
-    GLOBAL_FLAG = 61,
-    MUSIC_EFFECT = 62,
-    EVENT_JUMP_SINGLE_PLAYER = 63,
-    SMOOTHIES = 64,
-    BACK_3_X1 = 65,
-    EVENT_JUMP_DIFFICULTY = 66,
-    LEVEL_TIMER = 67,
-    LEVEL_RANDOM_EXPLOSIONS_SWITCH = 68,
-    IMPREVIOUS_SET = 69,
-    EVENT_JUMP_OPTIONAL = 70,
-    EVENT_JUMP_SECRET = 71,
-    BACK_3_X1B = 72,
-    ENEMY_SKY_OVERALL_SWITCH = 73,
-    ENEMY_GLOBAL_BOUNCE_SET = 74,
-    WTF_75 = 75,
-    RETURN_ACTIVE_SET = 76,
-    MAP_JUMP = 77,
-    GALAGA_SHOT_FREQUENCY_INC = 78,
-    BOSS_BAR_LINK_NUM_SET = 79,
-    EVENT_JUMP_MULTIPLAYER = 80,
-    BACK_WRAP_2 = 81,
-    SPECIAL_WEAPON_SET = 82,
 
-}
+export class EventSystem extends utils.EventEmitter<TyEventKey> {
+    private readonly events: TyEpisodeMapEvent[];
+    private lastTime: number;
 
-export class EventSystem {
-    constructor (events: TyEpisodeMapEvent[]) {
+    constructor (events: TyEpisodeMapEvent[], initAt: number) {
+        super();
+        this.events = events;
+        this.lastTime = initAt;
+    }
+
+    public update (time: number): void {
+        this.events.filter(e => e.time > this.lastTime && e.time <= time)
+            .filter(e => {
+                if (e.type in TyEventKindMap) {
+                    return true;
+                }
+                else {
+                    console.log(`unsupported event: ${JSON.stringify(e)}`)
+                    return false;
+                }
+            })
+            .forEach(e => this.emit(<TyEventKey>TyEventType[e.type], this.wrap(e.type, e)));
+        this.lastTime = time;
+    }
+
+    private wrap<K extends keyof typeof TyEventKindMap> (t: K, e: TyEpisodeMapEvent): InstanceType<typeof TyEventKindMap[K]> {
+        return <InstanceType<typeof TyEventKindMap[K]>>new TyEventKindMap[t](e);
+    }
+
+    public emit<K extends TyEventKey> (e: K, ...o: CreatedTyEvent<K>[]): boolean {
+        return super.emit(e, o);
+    }
+
+    public on<K extends TyEventKey> (e: K, fn: (e: CreatedTyEvent<K>) => void, ctx?: any): this {
+        return super.on(e, fn, ctx);
     }
 }
