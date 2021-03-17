@@ -1,4 +1,4 @@
-import {Filter} from "pixi.js";
+import {Filter, Texture} from "pixi.js";
 import {cache} from "../Resources";
 import {fragment} from "./ShaderDecorators";
 
@@ -18,11 +18,11 @@ void main() {
     `)
     static fragmentShader: string;
 
-    public constructor (palette: number) {
+    public constructor (palette: number, texture: Texture) {
         super(undefined, PaletteFilter.fragmentShader);
-        this.uniforms.uPalette = cache.palette;
+        this.uniforms.uPalette = texture;
         this.uniforms.uPaletteIndex = palette;
-        this.uniforms.uPaletteSize = cache.palette!.height;
+        this.uniforms.uPaletteSize = texture.height;
         this.autoFit = false;
     }
 }

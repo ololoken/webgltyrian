@@ -70,24 +70,27 @@ type TyEpisodeData = {
 }
 
 export const cache : {
-        palette?: Texture, pcxBaseTexture?: BaseTexture,
+        pcxBaseTexture?: BaseTexture,
+        palettes: PaletteFilter[],
         shapeTextures: {frames: Rectangle[], texture: BaseTexture}[],
         episodes: TyEpisodeData[]
-    } = {shapeTextures: [], episodes: []}
+    } = {shapeTextures: [], episodes: [], palettes: []}
 
-const generatePaletteTexture: ResourceInit = (dt) => {
+const generatePalettes: ResourceInit = (dt) => {
     const data = PaletteDecoder(TyPalettesStruct.unpack(dt).palettes);
     for (let i = 0; i < data.length/(PALETTE_SIZE*4); i++) {
         data[PALETTE_SIZE * 4 * i + 3] = 0;//zero alpha for colors at 0 index in palette;
     }
-    cache.palette = new Texture(BaseTexture.fromBuffer(Uint8Array.from(data), PALETTE_SIZE, data.length/(PALETTE_SIZE*4), {
+    let paletteTexture = new Texture(BaseTexture.fromBuffer(Uint8Array.from(data), PALETTE_SIZE, data.length/(PALETTE_SIZE*4), {
         width: PALETTE_SIZE,
         height: data.length/(PALETTE_SIZE*4),
         format: FORMATS.RGBA,
         type: TYPES.UNSIGNED_BYTE,
         target: TARGETS.TEXTURE_2D,
         mipmap: MIPMAP_MODES.OFF
-    }))
+    }));
+    cache.palettes = [...new Array(data.length/(PALETTE_SIZE*4)).keys()]
+        .map(index => new PaletteFilter(index, paletteTexture));
 }
 
 const generatePCXTexture: ResourceInit = (dt) => {
@@ -197,12 +200,12 @@ const shapesToTexture = (shapes: TyShape[], tSize = 512): BackgroundTextureAtlas
 
 export const pcxSprite = (pcx: PCX): Sprite => Object.assign(
     new Sprite(new Texture(cache.pcxBaseTexture!, new Rectangle(0, MAIN_HEIGHT*pcx, MAIN_WIDTH, MAIN_HEIGHT))),
-    {filters: [new PaletteFilter(PCX_PAL_INDEX[pcx])]}
+    {filters: [cache.palettes[PCX_PAL_INDEX[pcx]]]}
 )
 
 export const getSprite = (table: number, index: number, palette?: number) => Object.assign(
     new Sprite(new Texture(cache.shapeTextures[table].texture, cache.shapeTextures[table].frames[index])),
-    {filters: palette && palette >= 0 ? [new PaletteFilter(palette)] : []});
+    {filters: palette && palette >= 0 ? [cache.palettes[palette]] : []});
 
 export const textContainer = (text: string, font: SpriteTableIndex, palette: number): Container =>
     text.split('')
@@ -221,11 +224,11 @@ export const textContainer = (text: string, font: SpriteTableIndex, palette: num
                     break;
             }
             return {container, x};
-        }, {container: Object.assign(new Container(), {filters: palette >= 0 ? [new PaletteFilter(palette)] : []}), x: 0}).container;
+        }, {container: Object.assign(new Container(), {filters: palette >= 0 ? [cache.palettes[palette]] : []}), x: 0}).container;
 
 
 const basicResources: Resource = {
-    pal: {path: 'palette.dat', init: generatePaletteTexture},
+    pal: {path: 'palette.dat', init: generatePalettes},
     pcx: {path: 'tyrian.pic', init: generatePCXTexture},
     shp: {path: 'tyrian.shp', init: generateTexturesFromShapes}
 }
