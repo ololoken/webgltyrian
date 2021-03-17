@@ -5,7 +5,8 @@ import {SceneManager} from "./scenes/SceneManager";
 import {IntroScene} from "./scenes/menu/IntroScene";
 
 export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
-             SCALE = 3, FPS = 40;
+             SCALE = 3,
+             FPS = 40, SPF = 1/FPS;
 
 (async () => {
     const app = new Application({width: SCALE*MAIN_WIDTH, height: SCALE*MAIN_HEIGHT, backgroundColor: 0x000000,

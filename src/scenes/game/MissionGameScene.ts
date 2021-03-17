@@ -1,5 +1,12 @@
 import {AbstractScene} from "../AbstractScene";
-import {generateTexturesFromMapShapes, getEpisodeData, PCX, pcxSprite} from "../../Resources";
+import {
+    generateTexturesAtlasFromCompressedShapes,
+    getEpisodeData,
+    PCX,
+    pcxSprite,
+    SHAPE_FILE_CODE,
+    TextureAtlas
+} from "../../Resources";
 import {Sprite} from "pixi.js";
 import {
     BACK_1_HEIGHT, BACK_1_WIDTH,
@@ -7,8 +14,9 @@ import {
     BACK_3_HEIGHT, BACK_3_WIDTH,
 } from "../../Structs";
 import {EventSystem} from "../../world/EventSystem";
-import {FPS} from "../../Tyrian";
+import {SPF} from "../../Tyrian";
 import {Layer} from "./Layer";
+import {TyEventType} from "../../world/EventMappings";
 
 type DemoParams = {episodeNumber: number, mapIndex: number};
 
@@ -31,9 +39,9 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
 
     private timeline: number = 0;
 
-    private readonly SPF = 1/FPS;
+    private readonly backSpeed: BackSpeed = [0, 0, 0];
 
-    private backSpeed: BackSpeed = [1, 2, 2];
+    private readonly shapeBanks: TextureAtlas[] = [];
 
     constructor (params: DemoParams) {
         super(params);
@@ -43,17 +51,17 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
         return new Promise<boolean>( resolve => {
             getEpisodeData(this.state.episodeNumber).then(async ({maps}) => {
                 let map = maps[this.state.mapIndex];
-                let atlas = await generateTexturesFromMapShapes(map.shapesFile);
+                let mapAtlas = await generateTexturesAtlasFromCompressedShapes(map.shapesFile, 'shapes{%c}.dat');
 
-                this.layers = [new Layer(atlas, {
+                this.layers = [new Layer(mapAtlas, {
                     background: map.background.background1,
                     shapesMapping: map.background.shapesMapping1,
                     width: BACK_1_WIDTH, height: BACK_1_HEIGHT
-                }), new Layer(atlas, {
+                }), new Layer(mapAtlas, {
                     background: map.background.background2,
                     shapesMapping: map.background.shapesMapping2,
                     width: BACK_2_WIDTH, height: BACK_2_HEIGHT
-                }), new Layer(atlas, {
+                }), new Layer(mapAtlas, {
                     background: map.background.background3,
                     shapesMapping: map.background.shapesMapping3,
                     width: BACK_3_WIDTH, height: BACK_3_HEIGHT
@@ -65,13 +73,34 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
 
                 this.eventSystem = new EventSystem(map.events, -1);
 
+                //process load content event(s) and then ignore them
+                (await Promise.all(this.eventSystem.getEvents(TyEventType.ENEMIES_LOAD_SHAPES)
+                    .reduce((a, e) => [...a, ...e.shapes], <number[]>[])
+                    .filter(s => s > 0)
+                    .reduce((a, s) => {
+                        a[s] = generateTexturesAtlasFromCompressedShapes(SHAPE_FILE_CODE[s-1], 'newsh{%c}.shp');
+                        return a;
+                    }, <Promise<TextureAtlas>[]>[])))
+                    .forEach((atlas, index) => this.shapeBanks[index] = atlas);
+
+                this.eventSystem.on('BACK_SPEED_SET', (e) => {
+                    this.backSpeed[LayerCode.GND] = e.backSpeed[LayerCode.GND];
+                    this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
+                    this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
+                })
+
                 resolve(true);
             })
         });
     }
 
+    unload(): Promise<void> {
+        this.shapeBanks.length = 0;
+        return super.unload();
+    }
+
     public update (delta: number): void {
-        let d = delta*this.SPF;
+        let d = delta*SPF;
         this.updateBackground(d);
         this.updateEventSystem(d);
     }

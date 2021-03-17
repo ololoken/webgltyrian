@@ -1,7 +1,7 @@
 import {BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES, Rectangle, Point} from "pixi.js";
 import {fragment, vertex} from "./ShaderDecorators";
 import {TILE_HEIGHT, TILE_WIDTH} from "../Structs";
-import {BackgroundTextureAtlas} from "../Resources";
+import {TextureAtlas} from "../Resources";
 
 export class TileMapBackgroundFilter extends Filter {
     @vertex(`
@@ -77,7 +77,7 @@ void main() {
         return this._backOffs;
     }
 
-    public constructor (background: number[], shapesMapping: number[], atlas: BackgroundTextureAtlas,
+    public constructor (background: number[], shapesMapping: number[], atlas: TextureAtlas,
                         outWidth: number, outHeight: number,
                         backgroundWidth: number, backgroundHeight: number) {
         super(TileMapBackgroundFilter.vertexShader, TileMapBackgroundFilter.fragmentShader);

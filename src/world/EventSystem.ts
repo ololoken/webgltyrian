@@ -38,10 +38,14 @@ export class EventSystem extends utils.EventEmitter<TyEventKey> {
     }
 
     public emit<K extends TyEventKey> (e: K, ...o: CreatedTyEvent<K>[]): boolean {
-        return super.emit(e, o);
+        return super.emit(e, ...o);
     }
 
     public on<K extends TyEventKey> (e: K, fn: (e: CreatedTyEvent<K>) => void, ctx?: any): this {
         return super.on(e, fn, ctx);
+    }
+
+    public getEvents<K extends keyof typeof TyEventKindMap> (t: K): InstanceType<typeof TyEventKindMap[K]>[] {
+        return <InstanceType<typeof TyEventKindMap[K]>[]>this.events.filter(e => e.type == t).map(e => this.wrap(e.type, e));
     }
 }

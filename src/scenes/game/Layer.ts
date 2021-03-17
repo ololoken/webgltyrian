@@ -1,6 +1,6 @@
 import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
 import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
-import {BackgroundTextureAtlas, cache} from "../../Resources";
+import {TextureAtlas, cache} from "../../Resources";
 import {TILE_HEIGHT} from "../../Structs";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "../../Tyrian";
 
@@ -12,7 +12,7 @@ export class Layer extends Container {
 
     public readonly backPos: ObservablePoint;
 
-    public constructor(atlas: BackgroundTextureAtlas, opts: LayerBackOptions) {
+    public constructor(atlas: TextureAtlas, opts: LayerBackOptions) {
         super();
         this.backSprite = new Sprite(Texture.EMPTY);
         this.backSprite.width = MAIN_WIDTH;
