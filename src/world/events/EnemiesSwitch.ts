@@ -1,8 +1,9 @@
 import {EventBase} from "../EventBase";
 import {TyEpisodeMapEvent} from "../../Structs";
-import {TyEventType} from "../EventMappings";
+import {EventKey, TyEventType} from "../EventMappings";
 
 export class EnemiesSwitch extends EventBase {
+    key: EventKey = 'EnemiesSwitch';
     public readonly state: boolean;
     public constructor (e: TyEpisodeMapEvent) {
         super(e);

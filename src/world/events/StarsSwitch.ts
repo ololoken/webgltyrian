@@ -1,11 +1,12 @@
 import {EventBase} from "../EventBase";
 import {TyEpisodeMapEvent} from "../../Structs";
-import {TyEventType} from "../EventMappings";
+import {EventKey, TyEventType} from "../EventMappings";
 
-export class StarSwitch extends EventBase {
+export class StarsSwitch extends EventBase {
+    key: EventKey = 'StarsSwitch';
     public readonly state: boolean;
     public constructor(e: TyEpisodeMapEvent) {
         super(e)
-        this.state = e.type == TyEventType.STAR_ON;
+        this.state = e.type == TyEventType.STARS_ON;
     }
 }

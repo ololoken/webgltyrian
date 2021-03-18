@@ -2,7 +2,7 @@ import {BackSpeedSet} from "./events/BackSpeedSet";
 import {BackDelay} from "./events/BackDelay";
 import {EnemiesLoadShapes} from "./events/EnemiesLoadShapes";
 import {Enemy} from "./events/Enemy";
-import {StarSwitch} from "./events/StarSwitch";
+import {StarsSwitch} from "./events/StarsSwitch";
 import {LevelEnd} from "./events/LevelEnd";
 import {EnemiesSwitch} from "./events/EnemiesSwitch";
 import {ShowMessage} from "./events/ShowMessage";
@@ -28,7 +28,9 @@ import {EnemyBossLinkNum} from "./events/EnemyBossLinkNum";
 import {BackWrap} from "./events/BackWrap";
 import {EventBase} from "./EventBase";
 
-class Unsupported extends EventBase {}
+class Unsupported extends EventBase {
+    key: EventKey = 'Unsupported'
+}
 
 export enum TyEventType {
     UNSUPPORTED = 0,
@@ -39,8 +41,8 @@ export enum TyEventType {
     ENEMIES_LOAD_SHAPES = 5,
     ENEMY_GROUND_25 = 6,
     ENEMY_TOP_50 = 7,
-    STAR_OFF = 8,
-    STAR_ON = 9,
+    STARS_OFF = 8,
+    STARS_ON = 9,
     ENEMY_GROUND_75 = 10,
     LEVEL_END = 11,
     ENEMY_GROUND_4x4 = 12, //the big one
@@ -126,8 +128,8 @@ export const TyEventKindMap = {
     [TyEventType.ENEMY_GROUND_25]: Enemy,
     [TyEventType.ENEMY_TOP_50]: Enemy,
     [TyEventType.ENEMY_GROUND_75]: Enemy,
-    [TyEventType.STAR_OFF]: StarSwitch,
-    [TyEventType.STAR_ON]: StarSwitch,
+    [TyEventType.STARS_OFF]: StarsSwitch,
+    [TyEventType.STARS_ON]: StarsSwitch,
     [TyEventType.LEVEL_END]: LevelEnd,
     [TyEventType.ENEMY_GROUND_4x4]: Enemy,
     [TyEventType.ENEMIES_OFF]: EnemiesSwitch,
@@ -187,76 +189,37 @@ export const TyEventKindMap = {
     [TyEventType.BACKGROUND_WRAP]: BackWrap,
 }
 
-export type TyEventTypeMap = {
-    UNSUPPORTED: Unsupported,
-    BACK_SPEED_SET: BackSpeedSet,
-    BACK_DELAY: BackDelay,
-    BACK_DELAY_TYPE: BackDelay,
-    ENEMIES_LOAD_SHAPES: EnemiesLoadShapes,
-    ENEMY_GROUND_25: Enemy,
-    ENEMY_TOP_50: Enemy,
-    ENEMY_GROUND_75: Enemy,
-    STAR_OFF: StarSwitch,
-    STAR_ON: StarSwitch,
-    LEVEL_END: LevelEnd,
-    ENEMY_GROUND_4x4: Enemy,
-    ENEMIES_OFF: EnemiesSwitch,
-    ENEMIES_ON: EnemiesSwitch,
-    ENEMY_SKY_0: Enemy,
-    SHOW_MESSAGE: ShowMessage,
-    ENEMY_GROUND_BOTTOM_25: Enemy,
-    ENEMY_SKY_BOTTOM_0: Enemy,
-    ENEMIES_GLOBAL_MOVE_0: EnemiesGlobalMove,
-    ENEMIES_GLOBAL_MOVE_1: EnemiesGlobalMove,
-    BACK_3_OVER_1: BackOverSwitch,
-    BACK_3_OVER_OFF: BackOverSwitch,
-    ENEMY_SKY_BOTTOM_50: Enemy,
-    ENEMIES_GLOBAL_ANIMATE: EnemiesGlobalAnimate,
-    ENEMIES_GLOBAL_DAMAGE: EnemiesGlobalDamage,
-    ENEMY_SMALL_ADJUST_POS: EnemySmallAdjustPos,
-    ENEMIES_GLOBAL_MOVE_2: EnemiesGlobalMove,
-    ENEMIES_TOP_OVER_ON: EnemiesOverSwitch,
-    ENEMIES_TOP_OVER_OFF: EnemiesOverSwitch,
-    BACK_SPEED_SET_2: BackSpeedSet,
-    ENEMIES_FIRE_OVERRIDE: EnemiesFireOverride,
-    ENEMY_TOP_BOTTOM_50: Enemy,
-    ENEMY_SPAWN: EnemySpawn,
-    LEVEL_READY_TO_END: LevelEnd,
-    LEVEL_ENEMIES_FREQUENCY: LevelEnemiesFrequency,
-    EVENTS_JUMP: EventsJump,
-    ENEMIES_GLOBAL_LINK_NUM: EnemiesGlobalLinkNum,
-    ENEMIES_CONTINUAL_DAMAGE: EnemiesContinualDamage,
-    ENEMIES_RESET: EnemiesReset,
-    BACK_3_OVER_2: BackOverSwitch,
-    BACK_2_OVER: BackOverSwitch,
-    LEVEL_FILTERS: LevelFilters,
-    LEVEL_DIFFICULTY: LevelDifficulty,
-    ENEMIES_GLOBAL_DAMAGE_: EnemiesGlobalDamage,
-    ENEMY_CREATE_0: Enemy,
-    ENEMY_CREATE_1: Enemy,
-    ENEMY_CREATE_2: Enemy,
-    ENEMY_CREATE_3: Enemy,
-    EVENTS_FORCED_FORWARD: EventsForcedForward,
-    EVENTS_JUMP_WITH_RETURN: EventsJump,
-    ENEMIES_GLOBAL_MOVE_3: EnemiesGlobalMove,
-    ENEMY_GROUND_2_BOTTOM: Enemy,
-    EVENTS_JUMP_SUPER_ENEMY: EventsJump,
-    ENEMY_SPECIAL_ASSIGN: EnemySpecialAssign,
-    EVENTS_JUMP_GLOBAL_FLAG: EventsJump,
-    EVENTS_JUMP_SINGLE_PLAYER: EventsJump,
-    EVENTS_JUMP_DIFFICULTY: EventsJump,
-    EVENTS_JUMP_TIMER: EventsJump,
-    EVENTS_JUMP_OPTIONAL: EventsJump,
-    EVENTS_JUMP_SECRET: EventsJump,
-    ENEMIES_SKY_OVER_SWITCH: EnemiesOverSwitch,
-    ENEMIES_GLOBAL_MOVE_4: EnemiesGlobalMove,
-    EVENTS_JUMP_RETURN: EventsJump,
-    BACKGROUND_JUMP: BackJump,
-    BOSS_BAR_LINK_NUM_SET: EnemyBossLinkNum,
-    EVENTS_JUMP_MULTIPLAYER: EventsJump,
-    BACKGROUND_WRAP: BackWrap,
+const EventTypeMap = {
+    Unsupported: Unsupported,
+    BackDelay: BackDelay,
+    BackJump: BackJump,
+    BackOverSwitch: BackOverSwitch,
+    BackSpeedSet: BackSpeedSet,
+    BackWrap: BackWrap,
+    EnemiesContinualDamage: EnemiesContinualDamage,
+    EnemiesFireOverride: EnemiesFireOverride,
+    EnemiesGlobalAnimate: EnemiesGlobalAnimate,
+    EnemiesGlobalDamage: EnemiesGlobalDamage,
+    EnemiesGlobalLinkNum: EnemiesGlobalLinkNum,
+    EnemiesGlobalMove: EnemiesGlobalMove,
+    EnemiesLoadShapes: EnemiesLoadShapes,
+    EnemiesOverSwitch: EnemiesOverSwitch,
+    EnemiesReset: EnemiesReset,
+    EnemiesSwitch: EnemiesSwitch,
+    Enemy: Enemy,
+    EnemyBossLinkNum: EnemyBossLinkNum,
+    EnemySmallAdjustPos: EnemySmallAdjustPos,
+    EnemySpawn: EnemySpawn,
+    EnemySpecialAssign: EnemySpecialAssign,
+    EventsForcedForward: EventsForcedForward,
+    EventsJump: EventsJump,
+    LevelDifficulty: LevelDifficulty,
+    LevelEnd: LevelEnd,
+    LevelEnemiesFrequency: LevelEnemiesFrequency,
+    LevelFilters: LevelFilters,
+    ShowMessage: ShowMessage,
+    StarsSwitch: StarsSwitch
 }
 
-
-export type TyEventKey = keyof typeof TyEventType;
-export type CreatedTyEvent<T extends TyEventKey> = T extends keyof TyEventTypeMap ? TyEventTypeMap[T] : Unsupported;
+export type EventKey = keyof typeof EventTypeMap;
+export type CreatedEvent<T extends EventKey> = T extends keyof typeof EventTypeMap ? InstanceType<typeof EventTypeMap[T]> : Unsupported;

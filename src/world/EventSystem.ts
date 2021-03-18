@@ -1,14 +1,9 @@
 import {TyEpisodeMapEvent} from "../Structs";
 import {utils} from "pixi.js";
-import {
-    CreatedTyEvent,
-    TyEventKey,
-    TyEventKindMap,
-    TyEventType
-} from "./EventMappings";
+import {CreatedEvent, EventKey, TyEventKindMap} from "./EventMappings";
 
 
-export class EventSystem extends utils.EventEmitter<TyEventKey> {
+export class EventSystem extends utils.EventEmitter<EventKey> {
     private readonly events: TyEpisodeMapEvent[];
     private lastTime: number;
 
@@ -25,11 +20,12 @@ export class EventSystem extends utils.EventEmitter<TyEventKey> {
                     return true;
                 }
                 else {
-                    console.log(`unsupported event: ${JSON.stringify(e)}`)
+                    console.log(`skipping event as unsupported: ${JSON.stringify(e)}`)
                     return false;
                 }
             })
-            .forEach(e => this.emit(<TyEventKey>TyEventType[e.type], this.wrap(e.type, e)));
+            .map(e => this.wrap(e.type, e))
+            .map(e => this.emit(e.key, e));
         this.lastTime = time;
     }
 
@@ -37,11 +33,11 @@ export class EventSystem extends utils.EventEmitter<TyEventKey> {
         return <InstanceType<typeof TyEventKindMap[K]>>new TyEventKindMap[t](e);
     }
 
-    public emit<K extends TyEventKey> (e: K, ...o: CreatedTyEvent<K>[]): boolean {
+    public emit<K extends EventKey> (e: K, ...o: CreatedEvent<K>[]): boolean {
         return super.emit(e, ...o);
     }
 
-    public on<K extends TyEventKey> (e: K, fn: (e: CreatedTyEvent<K>) => void, ctx?: any): this {
+    public on<K extends EventKey> (e: K, fn: (e: CreatedEvent<K>) => void, ctx?: any): this {
         return super.on(e, fn, ctx);
     }
 

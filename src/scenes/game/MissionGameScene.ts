@@ -14,7 +14,7 @@ import {
     BACK_3_HEIGHT, BACK_3_WIDTH,
 } from "../../Structs";
 import {EventSystem} from "../../world/EventSystem";
-import {SPF} from "../../Tyrian";
+import {FPS, SPF} from "../../Tyrian";
 import {Layer} from "./Layer";
 import {TyEventType} from "../../world/EventMappings";
 
@@ -83,7 +83,7 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                     }, <Promise<TextureAtlas>[]>[])))
                     .forEach((atlas, index) => this.shapeBanks[index] = atlas);
 
-                this.eventSystem.on('BACK_SPEED_SET', (e) => {
+                this.eventSystem.on('BackSpeedSet', (e) => {
                     this.backSpeed[LayerCode.GND] = e.backSpeed[LayerCode.GND];
                     this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
                     this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
@@ -100,7 +100,7 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
     }
 
     public update (delta: number): void {
-        let d = delta*SPF;
+        let d = delta*SPF;//literally TARGET_FPMS*delta*1/FPS makes resulting "speed" constant on different devices
         this.updateBackground(d);
         this.updateEventSystem(d);
     }

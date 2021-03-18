@@ -1,7 +1,9 @@
 import {TyEpisodeMapEvent} from "../../Structs";
 import {EventBase} from "../EventBase";
+import {EventKey} from "../EventMappings";
 
 export class Enemy extends EventBase {
+    key: EventKey = 'Enemy';
     public readonly ex: number;
     public readonly ey: number;
     public readonly episodeEnemyIndex: number;

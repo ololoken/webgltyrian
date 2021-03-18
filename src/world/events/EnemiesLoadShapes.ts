@@ -1,7 +1,9 @@
 import {TyEpisodeMapEvent} from "../../Structs";
 import {EventBase} from "../EventBase";
+import {EventKey} from "../EventMappings";
 
 export class EnemiesLoadShapes extends EventBase {
+    key: EventKey = 'EnemiesLoadShapes';
     public readonly shapes: number[];
     public constructor(e: TyEpisodeMapEvent) {
         super(e);
