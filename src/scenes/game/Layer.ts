@@ -10,7 +10,7 @@ export class Layer extends Container {
     private readonly backSprite: Sprite;
     private readonly backRenderer: TileMapBackgroundFilter;
 
-    public readonly backPos: ObservablePoint;
+    public readonly backPos: ObservablePoint<Layer>;
 
     public constructor(atlas: TextureAtlas, opts: LayerBackOptions) {
         super();
@@ -24,8 +24,7 @@ export class Layer extends Container {
         this.addChild(this.backSprite);
 
         const yOffset = MAIN_HEIGHT/TILE_HEIGHT;
-        this.backPos = new ObservablePoint(() =>
-            this.backRenderer.backgroundOffset
-                .set(this.backPos.x, opts.height-yOffset-this.backPos.y), null);
+        this.backPos = new ObservablePoint<Layer>(() =>
+            this.backRenderer.backgroundOffset.set(this.backPos.x, opts.height-yOffset-this.backPos.y), this);
     }
 }

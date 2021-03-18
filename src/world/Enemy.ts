@@ -1,4 +1,4 @@
-type Enemy = {
+export type Enemy = {
     ex: number; ey: number;//pos
     exc: number; eyc: number;//speed
     exca: number; eyca: number; //random accel

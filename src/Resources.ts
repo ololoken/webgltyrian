@@ -9,10 +9,10 @@ import {
     TyShapesTableStruct,
     TyShapeTablesHeaderStruct,
     TyEpisodeMapsFileHeaderStruct,
-    TyItemsStruct,
-    TyItems,
+    TyEpisodeItemsStruct,
+    TyEpisodeItems,
     TyEpisodeMapStruct,
-    TyLevelScriptStruct,
+    TyEpisodeScriptStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
     TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap,
@@ -70,7 +70,7 @@ export enum SpriteTableIndex {
 }
 
 type TyEpisodeData = {
-    episode: number, script: string, maps: TyEpisodeMap[], items: TyItems
+    episode: number, script: string, maps: TyEpisodeMap[], items: TyEpisodeItems
 }
 
 export const cache : {
@@ -249,22 +249,22 @@ export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> =>
     let levelData = await getFileDataView(`tyrian${episode}.lvl`);
     const mapsFileHeader = TyEpisodeMapsFileHeaderStruct.unpack(levelData);
 
-    let items: TyItems;
+    let items: TyEpisodeItems;
     if (episode < 4) {
         items = await getFileDataView(`tyrian.hdt`).then(data => {
             let itemsOffset = data.getInt32(0, true);
-            return TyItemsStruct.unpack(data, itemsOffset);
+            return TyEpisodeItemsStruct.unpack(data, itemsOffset);
         });
     }
     else {//episode 4 items data is stored in level file
-        items = TyItemsStruct.unpack(levelData, [...mapsFileHeader.offsets].pop());
+        items = TyEpisodeItemsStruct.unpack(levelData, [...mapsFileHeader.offsets].pop());
     }
 
     let maps = mapsFileHeader.offsets.filter((offset, idx) => 0 === idx%2 && idx < mapsFileHeader.length-2)
         .map(offset => TyEpisodeMapStruct.unpack(levelData, offset));
 
     let script = await getFileDataView(`levels${episode}.dat`).then(scriptData =>
-        TyLevelScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
+        TyEpisodeScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
     return cache.episodes[episode] = {episode, script, maps, items}
 }
 

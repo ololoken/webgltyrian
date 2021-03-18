@@ -136,7 +136,7 @@ type TyEnemy = {
     eEnemyDie: number
 }
 
-export type TyItems = {
+export type TyEpisodeItems = {
     weaponsCount: number, weapons: TyWeapon[],
     portsCount: number, ports: TyPort[],
     specials: TySpecial[],
@@ -147,7 +147,7 @@ export type TyItems = {
     enemiesCount: number, enemies: TyEnemy[]
 }
 
-export const TyItemsStruct = new Struct<TyItems>()
+export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
     .single('weaponsCount', UInt16)
     .single('portsCount',  UInt16)
     .single('powersCount',  UInt16)
@@ -271,7 +271,7 @@ interface LevelScriptChunk {
     data: string
 }
 
-export const TyLevelScriptStruct = new Struct<{strings: LevelScriptChunk[]}>()
+export const TyEpisodeScriptStruct = new Struct<{strings: LevelScriptChunk[]}>()
     .array('strings', new Struct<LevelScriptChunk>()
         .single('length', Byte)
         .array('data', Char, la('length'), PascalDecryptFormatter([204, 129, 63, 255, 71, 19, 25, 62, 1, 99])), l(Number.MAX_SAFE_INTEGER))
@@ -324,8 +324,8 @@ export type TyEpisodeMap = {
     background1x: number,
     background2x: number,
     background3x: number,
-    enemiesMappingsCount: number,
-    enemiesMapping: number[],
+    enemiesRandomCount: number,
+    enemiesRandom: number[],
     eventsCount: number,
     events: TyEpisodeMapEvent[],
     background: TyBackgroundData
@@ -337,8 +337,8 @@ export const TyEpisodeMapStruct = new Struct<TyEpisodeMap>()
     .single('background1x', UInt16)
     .single('background2x', UInt16)
     .single('background3x', UInt16)
-    .single('enemiesMappingsCount', UInt16)
-    .array('enemiesMapping', UInt16, la('enemiesMappingsCount'))
+    .single('enemiesRandomCount', UInt16)
+    .array('enemiesRandom', UInt16, la('enemiesRandomCount'))
     .single('eventsCount', UInt16)
     .array('events', TyEpisodeMapEventStruct, la('eventsCount'))
     .single('background', TyEpisodeMapBackgroundStruct);

@@ -73,7 +73,7 @@ void main() {
     private readonly mappingTextureSize = 128;
 
     private _backOffs: Point = new Point(0, 0);
-    public get backgroundOffset ():Point {
+    public get backgroundOffset (): Point {
         return this._backOffs;
     }
 

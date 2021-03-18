@@ -5,16 +5,15 @@ import {CreatedEvent, EventKey, TyEventKindMap} from "./EventMappings";
 
 export class EventSystem extends utils.EventEmitter<EventKey> {
     private readonly events: TyEpisodeMapEvent[];
-    private lastTime: number;
+    private lastTime: number = -Number.EPSILON;
 
-    constructor (events: TyEpisodeMapEvent[], initAt: number) {
+    constructor (events: TyEpisodeMapEvent[]) {
         super();
         this.events = events;
-        this.lastTime = initAt;
     }
 
-    public update (time: number): void {
-        this.events.filter(e => e.time > this.lastTime && e.time <= time)
+    public update (dt: number): void {
+        this.events.filter(e => e.time > this.lastTime && e.time <= this.lastTime+dt)
             .filter(e => {
                 if (e.type in TyEventKindMap) {
                     return true;
@@ -26,7 +25,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
             })
             .map(e => this.wrap(e.type, e))
             .map(e => this.emit(e.key, e));
-        this.lastTime = time;
+        this.lastTime += dt;
     }
 
     private wrap<K extends keyof typeof TyEventKindMap> (t: K, e: TyEpisodeMapEvent): InstanceType<typeof TyEventKindMap[K]> {
