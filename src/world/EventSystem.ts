@@ -13,7 +13,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
     }
 
     public update (dt: number): void {
-        this.events.filter(e => e.time > this.lastTime && e.time <= this.lastTime+dt)
+        this.events.filter(e => e.time > this.lastTime && e.time <= this.lastTime+dt+Number.EPSILON)
             .filter(e => {
                 if (e.type in TyEventKindMap) {
                     return true;

@@ -31,17 +31,23 @@ export class World {
         this.backPos = backPos;
 
         this.eventSystem = new EventSystem(this.map.events);
+        this.bindBackEvents();
+        this.bindEnemyEvents();
+    }
 
+    private bindBackEvents (): void {
         this.eventSystem.on('BackSpeedSet', (e) => {
             this.backSpeed[LayerCode.GND] = e.backSpeed[LayerCode.GND];
             this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
             this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
         });
+    }
 
+    private bindEnemyEvents (): void {
         this.eventSystem.on('EnemyCreate', (e) => this.createEnemy(e));
     }
 
-    getRequiredShapes (): number[] {
+    public getRequiredShapes (): number[] {
         return this.eventSystem.getEvents(TyEventType.ENEMIES_LOAD_SHAPES)
             .reduce((a, e) => [...a, ...e.shapes], <number[]>[])
             .filter(s => s > 0)
