@@ -17,7 +17,7 @@ type BacksPosition = [ObservablePoint<Layer>, ObservablePoint<Layer>, Observable
 
 export class World {
     private readonly map: TyEpisodeMap;
-    private readonly items: TyEpisodeItems;
+    protected readonly items: TyEpisodeItems;
     private readonly eventSystem: EventSystem;
 
     private readonly backSpeed: BackSpeed = [0, 0, 0];

@@ -27,6 +27,15 @@ import {BackJump} from "./events/BackJump";
 import {EnemyBossLinkNum} from "./events/EnemyBossLinkNum";
 import {BackWrap} from "./events/BackWrap";
 import {EventBase} from "./EventBase";
+import {Back2NotTransparent} from "./events/Back2NotTransparent";
+import {StarsSpeedSet} from "./events/StarsSpeedSet";
+import {Back3EnemyOffset} from "./events/Back3EnemyOffset";
+import {PlayerImprevious} from "./events/PlayerImprevious";
+import {RandomExplosionsSwitch} from "./events/RandomExplosionsSwitch";
+import {GalagaShotFreqInc} from "./events/GalagaShotFreqInc";
+import {PlayerSpecialWeaponSet} from "./events/PlayerSpecialWeaponSet";
+import {EnemiesMoveOverride} from "./events/EnemiesMoveOverride";
+import {LevelSmoothies} from "./events/LevelSmoothies";
 
 class Unsupported extends EventBase {
     key: EventKey = 'Unsupported'
@@ -91,13 +100,13 @@ export enum TyEventType {
     ENEMIES_GLOBAL_MOVE_3 = 55,
     ENEMY_CREATE_GROUND_BOTTOM_75 = 56,
     EVENTS_JUMP_SUPER_ENEMY = 57,
-    WTF_58 = 58,//??
-    WTF_59 = 59,//??
+    WTF_58 = 58,//not used
+    WTF_59 = 59,//not used
     ENEMY_SPECIAL_ASSIGN = 60,
     EVENTS_JUMP_GLOBAL_FLAG = 61,
     MUSIC_EFFECT = 62,
     EVENTS_JUMP_SINGLE_PLAYER = 63,
-    SMOOTHIES = 64,
+    LEVEL_SMOOTHIES = 64,
     BACK_3_X1 = 65,
     EVENTS_JUMP_DIFFICULTY = 66,
     EVENTS_JUMP_TIMER = 67,
@@ -108,7 +117,7 @@ export enum TyEventType {
     BACK_3_X1B = 72,
     ENEMIES_SKY_OVER_SWITCH = 73,
     ENEMIES_GLOBAL_MOVE_4 = 74,
-    WTF_75 = 75,
+    ENEMIES_MOVE_OVERRIDE = 75,
     EVENTS_JUMP_RETURN = 76,
     BACKGROUND_JUMP = 77,
     GALAGA_SHOT_FREQUENCY_INC = 78,
@@ -121,6 +130,7 @@ export enum TyEventType {
 
 export const TyEventKindMap = {
     [TyEventType.UNSUPPORTED]: Unsupported,
+    [TyEventType.STAR_FIELD_SPEED]: StarsSpeedSet,
     [TyEventType.BACK_SPEED_SET]: BackSpeedSet,
     [TyEventType.BACK_DELAY]: BackDelay,
     [TyEventType.BACK_DELAY_TYPE]: BackDelay,
@@ -165,6 +175,7 @@ export const TyEventKindMap = {
     [TyEventType.ENEMY_CREATE_ARCADE]: EnemyCreate,
     [TyEventType.LEVEL_DIFFICULTY]: LevelDifficulty,
     [TyEventType.ENEMIES_GLOBAL_DAMAGE_]: EnemiesGlobalDamage,
+    [TyEventType.BACK_2_NOT_TRANSPARENT]: Back2NotTransparent,
     [TyEventType.ENEMY_CREATE_0]: EnemyCreate,
     [TyEventType.ENEMY_CREATE_1]: EnemyCreate,
     [TyEventType.ENEMY_CREATE_2]: EnemyCreate,
@@ -177,21 +188,31 @@ export const TyEventKindMap = {
     [TyEventType.ENEMY_SPECIAL_ASSIGN]: EnemySpecialAssign,
     [TyEventType.EVENTS_JUMP_GLOBAL_FLAG]: EventsJump,
     [TyEventType.EVENTS_JUMP_SINGLE_PLAYER]: EventsJump,
+    [TyEventType.LEVEL_SMOOTHIES]: LevelSmoothies,
+    [TyEventType.BACK_3_X1]: Back3EnemyOffset,
     [TyEventType.EVENTS_JUMP_DIFFICULTY]: EventsJump,
     [TyEventType.EVENTS_JUMP_TIMER]: EventsJump,
+    [TyEventType.RANDOM_EXPLOSIONS_SWITCH]: RandomExplosionsSwitch,
+    [TyEventType.IMPREVIOUS_TICKS]: PlayerImprevious,
     [TyEventType.EVENTS_JUMP_OPTIONAL]: EventsJump,
     [TyEventType.EVENTS_JUMP_SECRET]: EventsJump,
+    [TyEventType.BACK_3_X1B]: Back3EnemyOffset,
     [TyEventType.ENEMIES_SKY_OVER_SWITCH]: EnemiesOverSwitch,
     [TyEventType.ENEMIES_GLOBAL_MOVE_4]: EnemiesGlobalMove,
+    [TyEventType.ENEMIES_MOVE_OVERRIDE]: EnemiesMoveOverride,
     [TyEventType.EVENTS_JUMP_RETURN]: EventsJump,
     [TyEventType.BACKGROUND_JUMP]: BackJump,
+    [TyEventType.GALAGA_SHOT_FREQUENCY_INC]: GalagaShotFreqInc,
     [TyEventType.BOSS_BAR_LINK_NUM_SET]: EnemyBossLinkNum,
     [TyEventType.EVENTS_JUMP_MULTIPLAYER]: EventsJump,
     [TyEventType.BACKGROUND_WRAP]: BackWrap,
+    [TyEventType.PLAYER_SPECIAL_WEAPON_SET]: PlayerSpecialWeaponSet,
 }
 
 const EventTypeMap = {
     Unsupported: Unsupported,
+    Back2NotTransparent: Back2NotTransparent,
+    Back3EnemyOffset: Back3EnemyOffset,
     BackDelay: BackDelay,
     BackJump: BackJump,
     BackOverSwitch: BackOverSwitch,
@@ -204,6 +225,7 @@ const EventTypeMap = {
     EnemiesGlobalLinkNum: EnemiesGlobalLinkNum,
     EnemiesGlobalMove: EnemiesGlobalMove,
     EnemiesLoadShapes: EnemiesLoadShapes,
+    EnemiesMoveOverride: EnemiesMoveOverride,
     EnemiesOverSwitch: EnemiesOverSwitch,
     EnemiesReset: EnemiesReset,
     EnemiesRandomSwitch: EnemiesRandomSwitch,
@@ -214,12 +236,18 @@ const EventTypeMap = {
     EnemySpecialAssign: EnemySpecialAssign,
     EventsForcedForward: EventsForcedForward,
     EventsJump: EventsJump,
+    GalagaShotFreqInc: GalagaShotFreqInc,
     LevelDifficulty: LevelDifficulty,
     LevelEnd: LevelEnd,
     LevelEnemiesFrequency: LevelEnemiesFrequency,
     LevelFilters: LevelFilters,
+    LevelSmoothies: LevelSmoothies,
+    PlayerImprevious: PlayerImprevious,
+    PlayerSpecialWeaponSet: PlayerSpecialWeaponSet,
+    RandomExplosionsSwitch: RandomExplosionsSwitch,
     ShowMessage: ShowMessage,
-    StarsSwitch: StarsSwitch
+    StarsSwitch: StarsSwitch,
+    StarsSpeedSet: StarsSpeedSet,
 }
 
 export type EventKey = keyof typeof EventTypeMap;
