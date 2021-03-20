@@ -12,7 +12,7 @@
   "author": "roman@turch.in",
   "license": "Zlib",
   "devDependencies": {
-    "@ololoken/struct": "^0.0.2",
+    "@ololoken/struct": "^0.0.4",
     "@types/copy-webpack-plugin": "^6.4.0",
     "@types/node": "^14.14.28",
     "@types/stats": "^0.16.30",

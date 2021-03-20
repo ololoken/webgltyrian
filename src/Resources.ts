@@ -5,7 +5,6 @@ import {
     TyPalettesStruct,
     TyPCXImage,
     TyPCXOffsetsStruct,
-    ReadBytes,
     TyShapesTableStruct,
     TyShapeTablesHeaderStruct,
     TyEpisodeMapsFileHeaderStruct,
@@ -15,9 +14,9 @@ import {
     TyEpisodeScriptStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
-    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap,
+    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapeStruct,
 } from "./Structs";
-import {PaletteDecoder, TyShapeDecoder, TyShapeW12Decoder} from "./Decoders";
+import {PaletteDecoder, TyShapeDecoder, TyShapeCompressedDecoder} from "./Decoders";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
 
 type ResourceInit = (dt: DataView) => void;
@@ -39,10 +38,10 @@ export enum PCX {
     INTRO_LOGO2_ = 12,
 }
 const PCX_PAL_INDEX = [0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5];
-export const SHAPE_FILE_CODE = [
+const SHAPE_FILE_CODE = [
     '2', '4', '7', '8', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
     'O', 'P', 'Q', 'R', 'S', 'T', 'U', '5', '#', 'V', '0', '@', '3', '^', '5', '9'
-].map(c => c.charCodeAt(0));
+];
 const FontSprite: number[] = [
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
@@ -76,9 +75,10 @@ type TyEpisodeData = {
 export const cache : {
         pcxBaseTexture?: BaseTexture,
         palettes: PaletteFilter[],
-        shapeTextures: {frames: Rectangle[], texture: BaseTexture}[],
+        mainShapeBanks: TextureAtlas[],
+        enemyShapeBanks: TextureAtlas[];
         episodes: TyEpisodeData[]
-    } = {shapeTextures: [], episodes: [], palettes: []}
+    } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: []}
 
 const generatePalettes: ResourceInit = (dt) => {
     const data = PaletteDecoder(TyPalettesStruct.unpack(dt).palettes);
@@ -128,25 +128,19 @@ const generatePCXTexture: ResourceInit = (dt) => {
     })
 }
 
-const generateTexturesFromShapes: ResourceInit = (dt) => TyShapeTablesHeaderStruct.unpack(dt).offsets
+const generateMainShapeBanks: ResourceInit = (dt) => TyShapeTablesHeaderStruct.unpack(dt).offsets
     .map((offset, idx, offsets) => {
         switch (true) {
-            //misc sprites with W & H
+            //misc sprites with defined W & H
             case idx < 7:// fonts, interface, option sprites
                 return TyShapesTableStruct.unpack(dt, offset).shapes.map(TyShapeDecoder);
             default:
                 return TyCompressedShapesOffsets(offset).unpack(dt, offset).offsets
-                    .reduce((shapes: number[][], shapeOffset, i, shapesOffsets) => {
-                        let nextShapeOffset = i < shapesOffsets.length ? shapesOffsets[i+1] : offsets[idx+1]-offset;
-                        let {data} = ReadBytes(nextShapeOffset-shapeOffset).unpack(dt, offset+shapeOffset);
-                        shapes.push(data);
-                        return shapes;
-                    }, [])
-                    .map(TyShapeW12Decoder);
+                    .map(shapeOffset => TyShapeCompressedDecoder(TyCompressedShapeStruct(offset+shapeOffset).unpack(dt).data))
         }
     })
     .forEach((shapes, idx) => {
-        cache.shapeTextures[idx] = shapesToTexture(shapes);
+        cache.mainShapeBanks[idx] = shapesToTexture(shapes);
     });
 
 export type TextureAtlas = {
@@ -156,6 +150,7 @@ export type TextureAtlas = {
 
 const shapesToTexture = (shapes: TyShape[], tSize = 512): TextureAtlas => {
     const sortedBySize = shapes.map((sp, idx) => ({idx, sp}))
+        .filter(({idx, sp}) => !!sp)//skip empty data in case of "wide" indexes
         .sort((a, b) => {
             let aD = a.sp.hasData ? a.sp.payload[0].height * a.sp.payload[0].width : 0,
                 bD = b.sp.hasData ? b.sp.payload[0].height * b.sp.payload[0].width : 0;
@@ -208,7 +203,7 @@ export const pcxSprite = (pcx: PCX): Sprite => Object.assign(
 )
 
 export const getSprite = (table: number, index: number, palette?: number) => Object.assign(
-    new Sprite(new Texture(cache.shapeTextures[table].texture, cache.shapeTextures[table].frames[index])),
+    new Sprite(new Texture(cache.mainShapeBanks[table].texture, cache.mainShapeBanks[table].frames[index])),
     {filters: palette && palette >= 0 ? [cache.palettes[palette]] : []});
 
 export const textContainer = (text: string, font: SpriteTableIndex, palette: number): Container =>
@@ -234,7 +229,7 @@ export const textContainer = (text: string, font: SpriteTableIndex, palette: num
 const basicResources: Resource = {
     pal: {path: 'palette.dat', init: generatePalettes},
     pcx: {path: 'tyrian.pic', init: generatePCXTexture},
-    shp: {path: 'tyrian.shp', init: generateTexturesFromShapes}
+    shp: {path: 'tyrian.shp', init: generateMainShapeBanks}
 }
 
 const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)
@@ -268,8 +263,8 @@ export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> =>
     return cache.episodes[episode] = {episode, script, maps, items}
 }
 
-export const generateTexturesAtlasFromCompressedShapes = async (shapesFile: number, mask: 'shapes{%c}.dat' | 'newsh{%c}.shp'): Promise<TextureAtlas> =>
-    getFileDataView(mask.replace('{%c}', String.fromCharCode(shapesFile).toLowerCase()))
+export const generateBackgroundTexturesAtlas = async (shapesFile: number): Promise<TextureAtlas> =>
+    getFileDataView(`shapes${String.fromCharCode(shapesFile).toLowerCase()}.dat`)
         .then(shapesData => TyMapBackgroundShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
             if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
@@ -278,3 +273,9 @@ export const generateTexturesAtlasFromCompressedShapes = async (shapesFile: numb
             }
             return s;
         })));
+
+export const generateEnemyShapeBankTextureAtlas = async (id: number): Promise<TextureAtlas> =>
+    getFileDataView(`newsh${SHAPE_FILE_CODE[id-1].toLowerCase()}.shp`)
+        .then(shapesData => TyCompressedShapesOffsets(0).unpack(shapesData, 0).offsets
+            .map(shapeOffset => TyShapeCompressedDecoder(TyCompressedShapeStruct(shapeOffset).unpack(shapesData).data))
+        ).then(shapes => shapesToTexture(shapes))

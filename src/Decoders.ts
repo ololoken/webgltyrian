@@ -54,14 +54,20 @@ export const TyShapeDecoder: (tyShape: TyShape) => TyShape = tyShape => {
     return tyShape;
 }
 
-export const TyShapeW12Decoder: (data: number[]) => TyShape = data => {
-    let unpacked: number[] = [],
-        height = 0;
-    for (let ptr = 0; data[ptr] != 0x0F && ptr < data.length; ++ptr) {
-        for (let i = 0; i < (data[ptr] & 0x0F); i++) unpacked.push(0);//set transparent pixels
-        let count = (data[ptr] & 0xF0) >> 4;
-        for (let i = 0; i < count; i++) unpacked.push(data[++ptr]);//copy N pixels with value following current position
-        height++;
+export const TyShapeCompressedDecoder: (compressed: number[]) => TyShape = compressed => {
+    let data: number[] = [],
+        height = 0, width = 0, tmp_width = 0;
+    for (let ptr = 0; compressed[ptr] != 0x0F && ptr < compressed.length; ++ptr) {
+        let transparentCount = (compressed[ptr] & 0x0F);
+        for (let i = 0; i < transparentCount; i++) data.push(0);//set transparent pixels
+        let dataCount = (compressed[ptr] & 0xF0) >> 4;
+        for (let i = 0; i < dataCount; i++) data.push(compressed[++ptr]);//copy N pixels with value following current position
+        tmp_width += transparentCount+dataCount;
+        if (dataCount == 0) {
+            height++;
+            width = Math.max(tmp_width, width);
+            tmp_width = 0;
+        }
     }
-    return {hasData: unpacked.length, payload: [{width: 12, height: height, size: data.length, data: unpacked}]};
+    return {hasData: data.length, payload: [{width, height, size: 0, data}]};
 }

@@ -19,7 +19,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
                     return true;
                 }
                 else {
-                    console.log(`skipping event as unsupported: ${JSON.stringify(e)}`)
+                    console.info(`skipping event as unsupported: ${JSON.stringify(e)}`)
                     return false;
                 }
             })

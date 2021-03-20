@@ -47,11 +47,11 @@ uniform vec2 uOutSize;//"css" output size
 uniform sampler2D uMapping;//zw - tile coords in atlas
 uniform vec2 uMappingSize;//uBackground size
 uniform ivec2 uBackgroundSize;//background size in tiles
-uniform vec2 uBackgroundOffset;//offset in tiles
+uniform vec2 uBackgroundOffset;//background offset in pixels
 
 void main() {
     vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
-    vec2 fitPixelOutSize = floor(uOutSize*(uBackgroundOffset+0.5))/uOutSize;
+    vec2 fitPixelOutSize = floor(uOutSize*(uBackgroundOffset/uTileSize+0.5))/uOutSize;
     vec2 screenTile = uv*(uOutSize/uTileSize)+fitPixelOutSize;
 
     ivec2 tileCoord = ivec2(floor(screenTile));

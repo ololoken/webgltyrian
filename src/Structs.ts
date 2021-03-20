@@ -368,14 +368,15 @@ export const TyMapBackgroundShapesStruct = new Struct<{shapes: TyShape[], traili
     //no idea what's stored here
     .array('trailingData', Byte, l(Number.MAX_SAFE_INTEGER));
 
-
 export const TyCompressedShapesOffsets = (offset: number) => new Struct<{first: number, offsets: number[]}>()
     .single('first', UInt16)
     .goto(l(offset))
-    .array('offsets', UInt16, ({first}) => first/2);
+    .array('offsets', UInt16, ({first}) => first/UInt16.size);
 
-export const ReadBytes = (size: number) => new Struct<{data: number[]}>()
-    .array('data', Byte, l(size));
+export const TyCompressedShapeStruct = (offset: number) => new Struct<{eos: number, data: number[]}>()
+    .goto(l(offset))
+    .offsetOf('eos', Byte, (c) => c == 0x0F)
+    .array('data', Byte, ({eos}) => eos+1)
 
 export const TyPCXImage = (offset: number, length: number) =>  new Struct<{img: number[]}>()
     .goto(l(offset))

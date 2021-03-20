@@ -1,8 +1,7 @@
 import {TILE_HEIGHT, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
-import {ObservablePoint} from "pixi.js";
 import {Layer} from "../scenes/game/Layer";
-import {createEnemy} from "./WorldCreateEnemy";
+import {createEnemy, updateEnemies} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 
 type BackSpeed = [number, number, number];
@@ -13,7 +12,7 @@ export enum LayerCode {
     TOP = 2
 }
 
-type BacksPosition = [ObservablePoint<Layer>, ObservablePoint<Layer>, ObservablePoint<Layer>];
+type Layers = [Layer, Layer, Layer];
 
 export class World {
     private readonly map: TyEpisodeMap;
@@ -21,14 +20,15 @@ export class World {
     private readonly eventSystem: EventSystem;
 
     private readonly backSpeed: BackSpeed = [0, 0, 0];
-    private readonly backPos: BacksPosition;
+    protected readonly layers: Layers;
 
     private createEnemy = createEnemy;
+    private updateEnemies = updateEnemies;
 
-    constructor(map: TyEpisodeMap, items: TyEpisodeItems, backPos: BacksPosition) {
+    constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers) {
         this.map = map;
         this.items = items;
-        this.backPos = backPos;
+        this.layers = layers;
 
         this.eventSystem = new EventSystem(this.map.events);
         this.bindBackEvents();
@@ -54,19 +54,16 @@ export class World {
     }
 
     public update (d: number): void {
-        this.updateEventSystem(d);
+        this.eventSystem.update(d*this.backSpeed[LayerCode.GND]*TILE_HEIGHT);
         this.updateBackground(d);
+        this.updateEnemies(d);
     }
 
     private updateBackground (d: number) {
         //todo: add parallax effect here when player will be ready
-        this.backPos[LayerCode.GND].y += d*this.backSpeed[LayerCode.GND];
-        this.backPos[LayerCode.SKY].y += d*this.backSpeed[LayerCode.SKY];
-        this.backPos[LayerCode.TOP].y += d*this.backSpeed[LayerCode.TOP];
-    }
-
-    private updateEventSystem (d: number) {
-        this.eventSystem.update(d*this.backSpeed[LayerCode.GND]*TILE_HEIGHT);
+        this.layers[LayerCode.GND].backPos.y += d*this.backSpeed[LayerCode.GND]*TILE_HEIGHT;
+        this.layers[LayerCode.SKY].backPos.y += d*this.backSpeed[LayerCode.SKY]*TILE_HEIGHT;
+        this.layers[LayerCode.TOP].backPos.y += d*this.backSpeed[LayerCode.TOP]*TILE_HEIGHT;
     }
 
 }

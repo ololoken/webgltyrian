@@ -1,16 +1,19 @@
-export type Enemy = {
+export type EnemyGraphic = {
     shapeBank: number,
-    ex: number; ey: number;//pos
+    graphic: [number, number, number, number, number,
+              number, number, number, number, number,
+              number, number, number, number, number,
+              number, number, number, number, number],
+    animationCycle: number,
+    position: {x: number; y: number;}//pos
+}
+
+export type Enemy = EnemyGraphic & {
     exc: number; eyc: number;//speed
     exca: number; eyca: number; //random accel
     excc: number; eycc: number; //fixed accel
     exccw: number; eyccw: number; //wait time
     armor: number;
-    enemycycle: number;
-    graphic: [number, number, number, number, number,
-              number, number, number, number, number,
-              number, number, number, number, number,
-              number, number, number, number, number];
     size: number,
     linknum: number,
     animation: number;

@@ -3,6 +3,7 @@ import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {TILE_HEIGHT} from "../../Structs";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "../../Tyrian";
+import {EnemyGraphic} from "../../world/Enemy";
 
 type LayerBackOptions = {background: number[], shapesMapping: number[], width: number, height: number};
 
@@ -23,8 +24,15 @@ export class Layer extends Container {
         this.backSprite.filters = [this.backRenderer, cache.palettes[0]];
         this.addChild(this.backSprite);
 
-        const yOffset = MAIN_HEIGHT/TILE_HEIGHT;
         this.backPos = new ObservablePoint<Layer>(() =>
-            this.backRenderer.backgroundOffset.set(this.backPos.x, opts.height-yOffset-this.backPos.y), this);
+            //while "world" moves forward background is rewinding back
+            this.backRenderer.backgroundOffset.set(this.backPos.x, opts.height*TILE_HEIGHT-MAIN_HEIGHT-this.backPos.y), this, 0, 0);
+    }
+
+    public registerEnemy (enemy: EnemyGraphic): ObservablePoint {
+        let atlas = cache.enemyShapeBanks[enemy.shapeBank];
+        let e = new Sprite(new Texture(atlas.texture, atlas.frames[enemy.graphic[enemy.animationCycle]]));
+        e.position.set(enemy.position.x, enemy.position.y);
+        return this.addChild(e).position;
     }
 }
