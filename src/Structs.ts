@@ -112,7 +112,7 @@ type TyShield = {
 }
 
 type TyEnemy = {
-    animation: number,
+    shapes: number,
     tur: number[],
     freq: number[],
     xMove: number, yMove: number,
@@ -124,7 +124,7 @@ type TyEnemy = {
     eSize: number,
     eGraphic: number[],
     explosionType: number,
-    animate: number,
+    animationType: number,
     shapeBank: number,
     xRev: number, yRev: number,
     dgr: number,
@@ -230,7 +230,7 @@ export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
         .single('graphic', UInt16)
         .single('price', UInt16),items => items.shieldsCount+1)
     .array('enemies', new Struct<TyEnemy>()
-        .single('animation', Byte)
+        .single('shapes', Byte)
         .array('tur', Byte, l(3))
         .array('freq', Byte, l(3))
         .single('xMove', Char).single('yMove', Char)
@@ -242,7 +242,7 @@ export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
         .single('eSize', Byte)
         .array('eGraphic', UInt16, l(20))
         .single('explosionType', Byte)
-        .single('animate', Byte)
+        .single('animationType', Byte)
         .single('shapeBank', Byte)
         .single('xRev', Char).single('yRev', Char)
         .single('dgr', UInt16)
@@ -321,9 +321,7 @@ const TyEpisodeMapBackgroundStruct = new Struct<TyBackgroundData>()
 export type TyEpisodeMap = {
     mapFile: number,
     shapesFile: number,
-    background1x: number,
-    background2x: number,
-    background3x: number,
+    backX: number[],
     enemiesRandomCount: number,
     enemiesRandom: number[],
     eventsCount: number,
@@ -334,9 +332,7 @@ export type TyEpisodeMap = {
 export const TyEpisodeMapStruct = new Struct<TyEpisodeMap>()
     .single('mapFile', Byte)
     .single('shapesFile', Byte)
-    .single('background1x', UInt16)
-    .single('background2x', UInt16)
-    .single('background3x', UInt16)
+    .array('backX', UInt16, l(3))
     .single('enemiesRandomCount', UInt16)
     .array('enemiesRandom', UInt16, la('enemiesRandomCount'))
     .single('eventsCount', UInt16)

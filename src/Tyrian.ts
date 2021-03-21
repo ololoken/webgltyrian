@@ -9,9 +9,6 @@ export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
              FPS = 40, SPF = 1/FPS;
 
 (async () => {
-    //pixi's ticker "delta" is delta*TARGET_FPMS, so we need to set it manually
-    settings.TARGET_FPMS = FPS/1000;
-
     const app = new Application({width: SCALE*MAIN_WIDTH, height: SCALE*MAIN_HEIGHT, backgroundColor: 0x000000,
                                  autoStart: false, antialias: false});
     const stats = new Stats();
@@ -26,6 +23,8 @@ export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
 
     await initBasicResources();
 
+    //pixi's ticker "delta" is delta*TARGET_FPMS, so we need to set it manually
+    settings.TARGET_FPMS = FPS/1000;
     app.ticker.maxFPS = FPS;
     new SceneManager(app.stage, app.ticker, stats)
         .play(new IntroScene(0));

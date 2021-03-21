@@ -5,15 +5,18 @@ import {CreatedEvent, EventKey, TyEventKindMap} from "./EventMappings";
 
 export class EventSystem extends utils.EventEmitter<EventKey> {
     private readonly events: TyEpisodeMapEvent[];
-    private lastTime: number = -Number.EPSILON;
+    private lastOffset: number = -Number.EPSILON;
 
     constructor (events: TyEpisodeMapEvent[]) {
         super();
         this.events = events;
     }
 
-    public update (dt: number): void {
-        this.events.filter(e => e.time > this.lastTime && e.time <= this.lastTime+dt+Number.EPSILON)
+    /**
+     * @param BTPPS number of pixel rows scrolled by ground layer
+     */
+    public update (BTPPS: number): void {
+        this.events.filter(e => e.time > this.lastOffset && e.time <= this.lastOffset+BTPPS+Number.EPSILON)
             .filter(e => {
                 if (e.type in TyEventKindMap) {
                     return true;
@@ -25,7 +28,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
             })
             .map(e => this.wrap(e.type, e))
             .map(e => this.emit(e.key, e));
-        this.lastTime += dt;
+        this.lastOffset += BTPPS;
     }
 
     private wrap<K extends keyof typeof TyEventKindMap> (t: K, e: TyEpisodeMapEvent): InstanceType<typeof TyEventKindMap[K]> {

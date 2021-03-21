@@ -4,7 +4,7 @@ import {TyEventType} from "./EventMappings";
 import {Enemy} from "./Enemy";
 import {ObservablePoint} from "pixi.js";
 
-const enemies: {pos: ObservablePoint, enemy: Enemy}[] = [];
+const enemies: {pos: ObservablePoint, enemy: Enemy, layer: LayerCode, id: string}[] = [];
 
 export function createEnemy (this: World, e: EnemyCreate): void {
     let typeOffset = 0;
@@ -12,14 +12,14 @@ export function createEnemy (this: World, e: EnemyCreate): void {
     const index = e.e.data1+typeOffset;
     const eDesc = this.items.enemies[index];
     const aniTypes = [
-        {enemycycle: 1, aniactive: 0, animax: 0, aniwhenfire: 0},
-        {enemycycle: 0, aniactive: 1, animax: 0, aniwhenfire: 0},
-        {enemycycle: 1, aniactive: 2, animax: eDesc.animation, aniwhenfire: 2},
+        {cycle: 1, active: 0, max: 0, fire: 0},
+        {cycle: 1, active: 1, max: 0, fire: 0},
+        {cycle: 1, active: 2, max: eDesc.shapes, fire: 2},
     ]
 
     let enemy: Enemy = {
         type: index,
-        animation: eDesc.animation,
+        shapes: eDesc.shapes,
         animationMin: 1,
         shapeBank: eDesc.shapeBank,
         enemyground: 0 == (eDesc.explosionType & 1),
@@ -35,10 +35,10 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         xmaxbounce: 100000,
         ymaxbounce: 100000,
         tur: [eDesc.tur[0], eDesc.tur[1], eDesc.tur[2]],
-        animationCycle: aniTypes[eDesc.animate].enemycycle,
-        animationActive: aniTypes[eDesc.animate].aniactive,
-        animationMax: aniTypes[eDesc.animate].animax,
-        animationFire: aniTypes[eDesc.animate].aniwhenfire,
+        animationActive: aniTypes[eDesc.animationType].active,
+        animationCycle: aniTypes[eDesc.animationType].cycle,
+        animationMax: aniTypes[eDesc.animationType].max,
+        animationFire: aniTypes[eDesc.animationType].fire,
         position: {
             x: eDesc.xStart + (Math.random() * eDesc.xcStart >> 0) + e.e.data2,
             y: eDesc.yStart + (Math.random() * eDesc.ycStart >> 0) + e.e.data5,
@@ -63,26 +63,45 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         edani: eDesc.dAnimation,
         edgr: eDesc.dgr,
         edlevel: eDesc.dLevel,
-        fixedmovey: e.e.data6,
+        fixedMoveY: e.e.data6,
         filter: 0x00,
         evalue: eDesc.value,
         armor: eDesc.armor,
         scoreitem: eDesc.armor <= 0,
 
-        exca: 0, eyca: 0, //random accel
-        exccw: 0, eyccw: 0, //wait time
+        exccw: Math.abs(eDesc.xcAccel), eyccw: Math.abs(eDesc.ycAccel), //wait time
+        exccwmax: Math.abs(eDesc.xcAccel), eyccwmax: Math.abs(eDesc.ycAccel), //wait time
+    }
+
+    switch (enemy.exrev) {
+        case -99: enemy.exrev = 0; break;
+        case 0: enemy.exrev = 100; break;
+    }
+
+    switch (enemy.eyrev) {
+        case -99: enemy.eyrev = 0; break;
+        case 0: enemy.eyrev = 100; break;
     }
 
     switch (e.e.type) {
         case TyEventType.ENEMY_CREATE_TOP_50: break;
         case TyEventType.ENEMY_CREATE_GROUND_25:
-            console.log('enemy added');
-            enemies.push({pos: this.layers[LayerCode.GND].registerEnemy(enemy), enemy});
+            /*enemies.push({
+                enemy,
+                pos: this.layers[LayerCode.GND].registerEnemy(enemy).position,
+            });*/
             break;
         case TyEventType.ENEMY_CREATE_GROUND_75: break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25: break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75: break;
+        case TyEventType.ENEMY_CREATE_SKY_0:
+            enemies.push({
+                enemy,
+                layer: LayerCode.SKY,
+                ...this.layers[LayerCode.SKY].registerEnemy(enemy),
+            });
+            break;
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0: break;
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_50: break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -91,41 +110,82 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_2: break;
         case TyEventType.ENEMY_CREATE_3: break;
     }
-/*
-{
-    "eventtime": 970,
-    "eventtype": 6,
-    "eventdat1": 13,
-    "eventdat2": 180,
-    "eventdat3": 1,
-    "eventdat5": -16,
-    "eventdat6": 0,
-    "eventdat4": 2
-  },
-  {
-    "eventtime": 970,
-    "eventtype": 6,
-    "eventdat1": 14,
-    "eventdat2": 204,
-    "eventdat3": 1,
-    "eventdat5": -16,
-    "eventdat6": 0,
-    "eventdat4": 2
-  },
- */
 
 }
 
 export function updateEnemies (this: World, d: number): void {
-    enemies
-        .map(e => {
-            //todo: update speed/acceleration/graphic/linked etc.
-            e.enemy.position.x += d*e.enemy.exc;
-            e.enemy.position.y += d*e.enemy.eyc;
-            return e;
-        })
-        //finally update position
-        .forEach(({enemy, pos}, idx) => {
-            pos.set(enemy.position.x, enemy.position.y);
-        })
+    for (let i = 0, l = enemies.length; i < l; i++) {
+        let {enemy, layer, id, pos} = enemies[i];
+        //todo: update speed/acceleration/graphic/linked etc.
+
+        updateSpeed(enemy, d);
+        updateGraphic(enemy, d);
+
+        enemy.position.x += d*enemy.exc;
+        enemy.position.y += d*enemy.eyc;
+
+        enemy.position.y += d*enemy.fixedMoveY;
+
+        let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
+            || enemy.graphic[Math.floor(enemy.animationCycle) - 1] == 999;
+
+        if (readyToGC) {
+            enemies.splice(i--, 1);
+            l--;
+            this.layers[layer].unregisterEnemy(id);
+            continue;
+        }
+
+        /*X bounce*/
+        if (enemy.position.x <= enemy.xminbounce || enemy.position.x >= enemy.xmaxbounce)
+            enemy.exc = -enemy.exc;
+
+        /*Y bounce*/
+        if (enemy.position.y <= enemy.yminbounce || enemy.position.x >= enemy.ymaxbounce)
+            enemy.eyc = -enemy.eyc;
+
+
+        //skip invisible enemies
+        if (!this.actionRect.contains(enemy.position.x, enemy.position.y)) {
+            continue;
+        }
+
+        this.layers[layer].updateEnemy(id, enemy);
+        pos.copyFrom(enemy.position);
+    }
+}
+
+function updateGraphic(enemy: Enemy, d: number) {
+    if (enemy.animationActive) {
+        enemy.animationCycle += d;
+
+        if (Math.floor(enemy.animationCycle) == enemy.animationMax) {
+            enemy.animationActive = enemy.animationFire;
+        }
+        else if (enemy.animationCycle > enemy.shapes) {
+            enemy.animationCycle = enemy.animationMin;
+        }
+    }
+}
+
+function updateSpeed (enemy: Enemy, d: number) {
+    if (enemy.excc) {
+        enemy.exccw -= d;
+        if (enemy.exccw <= 0) {
+            enemy.exc += d*enemy.excc;
+            if (Math.abs(enemy.exc) >= Math.abs(enemy.exrev)) {
+                enemy.excc = -enemy.excc;
+            }
+        }
+    }
+
+    if (enemy.eycc) {
+        enemy.eyccw -= d;
+        if (enemy.eyccw <= 0) {
+            enemy.eyc += d*enemy.eycc;
+            if (Math.abs(enemy.eyc) >= Math.abs(enemy.eyrev)) {
+                enemy.eycc = -enemy.eycc;
+            }
+        }
+    }
 }

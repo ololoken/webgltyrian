@@ -1,5 +1,4 @@
 import {Filter, Texture} from "pixi.js";
-import {cache} from "../Resources";
 import {fragment} from "./ShaderDecorators";
 
 export class PaletteFilter extends Filter {

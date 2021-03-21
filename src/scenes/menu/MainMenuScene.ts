@@ -38,7 +38,7 @@ export class MainMenuScene extends AbstractScene<number> {
 
     public update (delta: number): void {
         if (this.logo!.position.y > 4) {
-            this.logo!.position.y -= 0.8*delta;
+            this.logo!.position.y -= delta;
             if (this.logo!.position.y > 4) {
                 this.state = 0;
             }

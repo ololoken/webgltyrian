@@ -16,6 +16,7 @@ import {
 import {SPF} from "../../Tyrian";
 import {Layer} from "./Layer";
 import {World} from "../../world/World";
+import {MainMenuScene} from "../menu/MainMenuScene";
 
 type DemoParams = {episodeNumber: number, mapIndex: number};
 
@@ -34,11 +35,11 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
     }
 
     load (): Promise<boolean> {
-        return new Promise<boolean>( resolve => {
+        return new Promise<boolean>( loaded => {
             getEpisodeData(this.state.episodeNumber).then(async ({maps, items}) => {
                 let map = maps[this.state.mapIndex];
                 let backAtlas = await generateBackgroundTexturesAtlas(map.shapesFile);
-
+                console.log(map);
                 this.layers = [new Layer(backAtlas, {
                     background: map.background.background1,
                     shapesMapping: map.background.shapesMapping1,
@@ -66,7 +67,7 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                         return a;
                     }, <Promise<TextureAtlas>[]>[])))
                     .forEach((atlas, id) => cache.enemyShapeBanks[id] = atlas);
-
+/*
                 generateEnemyShapeBankTextureAtlas(1).then(atlas => {
 
 
@@ -107,9 +108,11 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                             this.addChild(esp);
                         })
                 })
+*/
 
+                this.world.on('MissionEnd', () => this.resolve(new MainMenuScene(0)));
 
-                resolve(true);
+                loaded(true);
             })
         });
     }
@@ -120,8 +123,9 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
         return super.unload();
     }
 
-    public update (delta: number): void {
-        let d = delta*SPF;//literally TARGET_FPMS*delta*1/FPS makes resulting "speed" constant on different real fps
-        this.world.update(d);
+    public update (d: number): void {
+        //delta literally TARGET_FPMS*delta makes resulting "speed" constant (approx 1) on different real fps
+        //so lets pass in world real seconds between frames
+        this.world.update(d*SPF);
     }
 }

@@ -6,17 +6,18 @@ export type EnemyGraphic = {
               number, number, number, number, number],
     animationCycle: number,
     position: {x: number; y: number;}//pos
+    size: number,
+    filter: number,
 }
 
 export type Enemy = EnemyGraphic & {
     exc: number; eyc: number;//speed
-    exca: number; eyca: number; //random accel
     excc: number; eycc: number; //fixed accel
     exccw: number; eyccw: number; //wait time
+    exccwmax: number; eyccwmax: number;
     armor: number;
-    size: number,
     linknum: number,
-    animation: number;
+    shapes: number;
     animationActive: number,
     animationMax: number,
     animationMin: number,
@@ -27,9 +28,8 @@ export type Enemy = EnemyGraphic & {
     edlevel: number,
     edani: number,
     edgr: number,
-    filter: number,
     evalue: number,
-    fixedmovey: number,
+    fixedMoveY: number,
     freq: [number, number, number],
     launchwait: number,
     launchtype: number,
