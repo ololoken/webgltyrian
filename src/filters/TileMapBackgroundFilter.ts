@@ -98,7 +98,7 @@ void main() {
     private toTexture (background: number[], shapesMapping: number[], frames: Rectangle[]): Texture {
         return new Texture(BaseTexture.fromBuffer(background.reduce((buffer, shapeId, idx) => {
                 //pascal specific -1
-                let rect = frames[shapesMapping[shapeId]-1];
+                let rect = frames[shapesMapping[shapeId]];
                 buffer[4 * idx + 0] = 0;
                 buffer[4 * idx + 1] = 0;
                 buffer[4 * idx + 2] = rect.x/TILE_WIDTH;

@@ -1,27 +1,17 @@
 import {TILE_HEIGHT, TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
-import {Layer} from "../scenes/game/Layer";
 import {createEnemy, updateEnemies} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
-
-type BackSpeed = [number, number, number];
-
-export enum LayerCode {
-    GND = 0,
-    SKY = 1,
-    TOP = 2
-}
-
-type Layers = [Layer, Layer, Layer];
+import {BackSpeed, LayerCode, Layers} from "./Types";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
     protected readonly items: TyEpisodeItems;
     private readonly eventSystem: EventSystem;
 
-    private readonly backSpeed: BackSpeed = [0, 0, 0];
+    protected readonly backSpeed: BackSpeed = [0, 0, 0];
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(20, 20);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -112, 420, 302)

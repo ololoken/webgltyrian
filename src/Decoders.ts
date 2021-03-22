@@ -1,5 +1,5 @@
 import {ItemsFormatter, StringFormatter} from "@ololoken/struct";
-import {TyPalette, TyShape} from "./Structs";
+import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyPalette, TyShape} from "./Structs";
 
 export const PascalDecryptFormatter = (key: number[]) : ItemsFormatter<number, string> => (data) => {
     for (let i = data.length-1, l = key.length; i >= 0; --i) {
@@ -53,21 +53,25 @@ export const TyShapeDecoder: (tyShape: TyShape) => TyShape = tyShape => {
     }
     return tyShape;
 }
-
+//todo: fixme
 export const TyShapeCompressedDecoder: (compressed: number[]) => TyShape = compressed => {
-    let data: number[] = [],
-        height = 0, width = 0, tmp_width = 0;
-    for (let ptr = 0; compressed[ptr] != 0x0F && ptr < compressed.length; ++ptr) {
+    let unpacked: number[] = [],
+        width = COMP_TILE_WIDTH, height = COMP_TILE_HEIGHT;
+    for (let ptr = 0; compressed[ptr] != 0x0F && ptr < width*height; ++ptr) {
         let transparentCount = (compressed[ptr] & 0x0F);
-        for (let i = 0; i < transparentCount; i++) data.push(0);//set transparent pixels
+        for (let i = 0; i < transparentCount; i++) unpacked.push(0);//set transparent pixels
         let dataCount = (compressed[ptr] & 0xF0) >> 4;
-        for (let i = 0; i < dataCount; i++) data.push(compressed[++ptr]);//copy N pixels with value following current position
-        tmp_width += transparentCount+dataCount;
-        if (dataCount == 0) {
-            height++;
-            width = Math.max(tmp_width, width);
-            tmp_width = 0;
-        }
+        for (let i = 0; i < dataCount; i++) unpacked.push(compressed[++ptr]);//copy N pixels with value following current position
     }
-    return {hasData: data.length, payload: [{width, height, size: 0, data}]};
+
+    if (unpacked.length == width*height) {
+        console.log(compressed);
+    }
+
+    let data = new Array(width*height).fill(0);
+    for (let i = 0, l = unpacked.length; i < l; i++) {
+        data[i] = unpacked[i];
+    }
+
+    return {hasData: unpacked.length, payload: [{width, height, size: 0, data}]};
 }

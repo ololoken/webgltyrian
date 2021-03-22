@@ -1,75 +1,80 @@
 import {EnemyCreate} from "./events/EnemyCreate";
-import {LayerCode, World} from "./World";
+import {World} from "./World";
 import {TyEventType} from "./EventMappings";
-import {Enemy} from "./Enemy";
-import {ObservablePoint} from "pixi.js";
+import {TyEnemy} from "../Structs";
+import {Enemy, LayerCode, WorldObject} from "./Types";
 
-const enemies: {pos: ObservablePoint, enemy: Enemy, layer: LayerCode, id: string}[] = [];
+const animationTypes = [
+    {cycle: 0, active: 0, fire: 0},
+    {cycle: 0, active: 1, fire: 0},
+    {cycle: 0, active: 2, fire: 1},
+]
+const enemies: (WorldObject & {enemy: Enemy, layer: LayerCode})[] = [];
 
-export function createEnemy (this: World, e: EnemyCreate): void {
-    let typeOffset = 0;
+const EventTypeToLayerMapping = {
+    [TyEventType.ENEMY_CREATE_TOP_50]: LayerCode.TOP,
+    [TyEventType.ENEMY_CREATE_GROUND_25]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_GROUND_75]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_GROUND_4x4]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_SKY_0]: LayerCode.SKY,
+    [TyEventType.ENEMY_CREATE_SKY_BOTTOM_0]: LayerCode.SKY,
+    [TyEventType.ENEMY_CREATE_SKY_BOTTOM_50]: LayerCode.SKY,
+    [TyEventType.ENEMY_CREATE_0]: LayerCode.GND,
+    [TyEventType.ENEMY_CREATE_1]: LayerCode.SKY,
+    [TyEventType.ENEMY_CREATE_2]: LayerCode.TOP,
+    [TyEventType.ENEMY_CREATE_3]: LayerCode.GND
+}
 
-    const index = e.e.data1+typeOffset;
-    const eDesc = this.items.enemies[index];
-    const aniTypes = [
-        {cycle: 1, active: 0, max: 0, fire: 0},
-        {cycle: 1, active: 1, max: 0, fire: 0},
-        {cycle: 1, active: 2, max: eDesc.shapes, fire: 2},
-    ]
+function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: number, data6: number}, eDesc: TyEnemy): Enemy {
 
     let enemy: Enemy = {
-        type: index,
-        shapes: eDesc.shapes,
-        animationMin: 1,
+        shapesLength: eDesc.shapesLength,
         shapeBank: eDesc.shapeBank,
-        enemyground: 0 == (eDesc.explosionType & 1),
-        explosion: eDesc.explosionType >> 1,
-        laumchfreq: eDesc.eLaunchFreq,
-        launchwait: eDesc.eLaunchFreq,
-        launchtype: eDesc.eLaunchType % 1000,
-        lauchspecial: eDesc.eLaunchType / 1000,
-        xaccel: eDesc.xAccel,
-        yaccel: eDesc.yAccel,
-        xminbounce: -100000,
-        yminbounce: -100000,
-        xmaxbounce: 100000,
-        ymaxbounce: 100000,
+        explosionType: eDesc.explosionType,
+        launchFreq: eDesc.eLaunchFreq,
+        launchWait: eDesc.eLaunchFreq,
+        launchType: eDesc.eLaunchType % 1000,
+        launchSpecial: eDesc.eLaunchType / 1000,
+        xAccel: eDesc.xAccel,
+        yAccel: eDesc.yAccel,
+        xMinBounce: -100000,
+        yMinBounce: -100000,
+        xMaxBounce: 100000,
+        yMaxBounce: 100000,
         tur: [eDesc.tur[0], eDesc.tur[1], eDesc.tur[2]],
-        animationActive: aniTypes[eDesc.animationType].active,
-        animationCycle: aniTypes[eDesc.animationType].cycle,
-        animationMax: aniTypes[eDesc.animationType].max,
-        animationFire: aniTypes[eDesc.animationType].fire,
+        animationActive: animationTypes[eDesc.animationType].active,
+        animationCycle: animationTypes[eDesc.animationType].cycle,
+        animationFire: animationTypes[eDesc.animationType].fire,
         position: {
-            x: eDesc.xStart + (Math.random() * eDesc.xcStart >> 0) + e.e.data2,
-            y: eDesc.yStart + (Math.random() * eDesc.ycStart >> 0) + e.e.data5,
+            x: eDesc.xStart + (Math.random() * eDesc.xcStart >> 0) + e.data2,
+            y: eDesc.yStart + (Math.random() * eDesc.ycStart >> 0) + e.data5,
         },
         exc: eDesc.xMove,
-        eyc: eDesc.yMove + e.e.data3,
+        eyc: eDesc.yMove + e.data3,
         excc: eDesc.xcAccel,
         eycc: eDesc.ycAccel,
         special: false,
         iced: 0,
         exrev: eDesc.xRev,
         eyrev: eDesc.yRev,
-        graphic: [eDesc.eGraphic[0],  eDesc.eGraphic[1],  eDesc.eGraphic[2],  eDesc.eGraphic[3],  eDesc.eGraphic[4],
-                  eDesc.eGraphic[5],  eDesc.eGraphic[6],  eDesc.eGraphic[7],  eDesc.eGraphic[8],  eDesc.eGraphic[9],
-                  eDesc.eGraphic[10], eDesc.eGraphic[11], eDesc.eGraphic[12], eDesc.eGraphic[13], eDesc.eGraphic[14],
-                  eDesc.eGraphic[15], eDesc.eGraphic[16], eDesc.eGraphic[17], eDesc.eGraphic[18], eDesc.eGraphic[19]],
+        graphic: eDesc.eGraphic,
         size: eDesc.eSize,
-        linknum: e.e.data4,
+        linknum: e.data4,
         damaged: eDesc.dAnimation < 0,
         enemydie: eDesc.eEnemyDie,
         freq: [eDesc.freq[0], eDesc.freq[1], eDesc.freq[2]],
         edani: eDesc.dAnimation,
         edgr: eDesc.dgr,
         edlevel: eDesc.dLevel,
-        fixedMoveY: e.e.data6,
+        fixedMoveY: e.data6,
         filter: 0x00,
         evalue: eDesc.value,
         armor: eDesc.armor,
-        scoreitem: eDesc.armor <= 0,
+        isScoreItem: eDesc.armor <= 0,
 
-        exccw: Math.abs(eDesc.xcAccel), eyccw: Math.abs(eDesc.ycAccel), //wait time
+        exccw: Math.abs(eDesc.xcAccel), eyccw: Math.abs(eDesc.ycAccel), //acceleration change wait time current value
         exccwmax: Math.abs(eDesc.xcAccel), eyccwmax: Math.abs(eDesc.ycAccel), //wait time
     }
 
@@ -83,96 +88,116 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         case 0: enemy.eyrev = 100; break;
     }
 
+    return enemy;
+}
+
+export function createEnemy (this: World, e: EnemyCreate): void {
     switch (e.e.type) {
-        case TyEventType.ENEMY_CREATE_TOP_50: break;
+        case TyEventType.ENEMY_CREATE_TOP_50:
         case TyEventType.ENEMY_CREATE_GROUND_25:
-            /*enemies.push({
-                enemy,
-                pos: this.layers[LayerCode.GND].registerEnemy(enemy).position,
-            });*/
-            break;
-        case TyEventType.ENEMY_CREATE_GROUND_75: break;
+        case TyEventType.ENEMY_CREATE_GROUND_75:
+        case TyEventType.ENEMY_CREATE_SKY_0: {
+            let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
+            let layer = EventTypeToLayerMapping[e.e.type];
+            enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+        } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: break;
-        case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25: break;
-        case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75: break;
-        case TyEventType.ENEMY_CREATE_SKY_0:
+        case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25:
+        case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75:
+        case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0:
+        case TyEventType.ENEMY_CREATE_SKY_BOTTOM_50: {
+            let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
+            let layer = EventTypeToLayerMapping[e.e.type];
+            enemy.position.y = 190 + e.e.data5;
             enemies.push({
-                enemy,
-                layer: LayerCode.SKY,
-                ...this.layers[LayerCode.SKY].registerEnemy(enemy),
-            });
-            break;
-        case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0: break;
-        case TyEventType.ENEMY_CREATE_SKY_BOTTOM_50: break;
+                enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+        } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
-        case TyEventType.ENEMY_CREATE_0: break;
-        case TyEventType.ENEMY_CREATE_1: break;
-        case TyEventType.ENEMY_CREATE_2: break;
-        case TyEventType.ENEMY_CREATE_3: break;
+        case TyEventType.ENEMY_CREATE_0:
+        case TyEventType.ENEMY_CREATE_1:
+        case TyEventType.ENEMY_CREATE_2:
+        case TyEventType.ENEMY_CREATE_3: {
+            let enemy = fillEnemyData({...e.e, data3: 0, data6: 0}, this.items.enemies[e.e.data3]);
+            let layer = EventTypeToLayerMapping[e.e.type];
+            enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+        } break;
     }
 
 }
 
-export function updateEnemies (this: World, d: number): void {
+export function updateEnemies (this: World, BTPS: number): void {
     for (let i = 0, l = enemies.length; i < l; i++) {
-        let {enemy, layer, id, pos} = enemies[i];
-        //todo: update speed/acceleration/graphic/linked etc.
+        let {enemy, layer, name, position, cycle} = enemies[i];
 
-        updateSpeed(enemy, d);
-        updateGraphic(enemy, d);
+        updateSpeed(enemy, BTPS);
+        updateAnimationCycle(enemy, BTPS);
 
-        enemy.position.x += d*enemy.exc;
-        enemy.position.y += d*enemy.eyc;
+        //position
+        enemy.position.x += BTPS*enemy.exc;
+        enemy.position.y += BTPS*enemy.eyc;
 
-        enemy.position.y += d*enemy.fixedMoveY;
+        enemy.position.y += BTPS*enemy.fixedMoveY;
 
+        if (layer == LayerCode.GND || layer == LayerCode.TOP) {
+            enemy.position.y += BTPS*this.backSpeed[layer];
+        }
+
+        //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
-            || enemy.graphic[Math.floor(enemy.animationCycle) - 1] == 999;
+            || enemy.graphic[Math.floor(enemy.animationCycle)] == 999;
 
         if (readyToGC) {
             enemies.splice(i--, 1);
             l--;
-            this.layers[layer].unregisterEnemy(id);
+            this.layers[layer].unregisterEnemy(name);
             continue;
         }
 
-        /*X bounce*/
-        if (enemy.position.x <= enemy.xminbounce || enemy.position.x >= enemy.xmaxbounce)
+        //bounces
+        if (enemy.position.x <= enemy.xMinBounce || enemy.position.x >= enemy.xMaxBounce) {
             enemy.exc = -enemy.exc;
+        }
 
-        /*Y bounce*/
-        if (enemy.position.y <= enemy.yminbounce || enemy.position.x >= enemy.ymaxbounce)
+        if (enemy.position.y <= enemy.yMinBounce || enemy.position.x >= enemy.yMaxBounce) {
             enemy.eyc = -enemy.eyc;
+        }
 
+        //keep score item
+        if (enemy.isScoreItem) {
+            if (enemy.position.x < -5) {
+                enemy.position.x++;
+            }
+            if (enemy.position.x > 245) {
+                enemy.position.x--;
+            }
+        }
 
         //skip invisible enemies
         if (!this.actionRect.contains(enemy.position.x, enemy.position.y)) {
             continue;
         }
 
-        this.layers[layer].updateEnemy(id, enemy);
-        pos.copyFrom(enemy.position);
+        position.copyFrom(enemy.position);
+        cycle.set(Math.floor(enemy.animationCycle), 0)
     }
 }
 
-function updateGraphic(enemy: Enemy, d: number) {
+function updateAnimationCycle(enemy: Enemy, BTPS: number) {
     if (enemy.animationActive) {
-        enemy.animationCycle += d;
+        enemy.animationCycle += BTPS;
 
-        if (Math.floor(enemy.animationCycle) == enemy.animationMax) {
-            enemy.animationActive = enemy.animationFire;
-        }
-        else if (enemy.animationCycle > enemy.shapes) {
-            enemy.animationCycle = enemy.animationMin;
+        if (enemy.animationCycle > enemy.shapesLength-1) {
+            enemy.animationCycle = enemy.animationFire;
         }
     }
 }
 
-function updateSpeed (enemy: Enemy, d: number) {
+function updateSpeed (enemy: Enemy, BTPS: number) {
     if (enemy.excc) {
-        enemy.exccw -= d;
+        enemy.exccw -= BTPS;
         if (enemy.exccw <= 0) {
-            enemy.exc += d*enemy.excc;
+            enemy.exc += BTPS*Math.sign(enemy.excc);
+            enemy.exccw = enemy.exccwmax;
             if (Math.abs(enemy.exc) >= Math.abs(enemy.exrev)) {
                 enemy.excc = -enemy.excc;
             }
@@ -180,9 +205,10 @@ function updateSpeed (enemy: Enemy, d: number) {
     }
 
     if (enemy.eycc) {
-        enemy.eyccw -= d;
+        enemy.eyccw -= BTPS;
         if (enemy.eyccw <= 0) {
-            enemy.eyc += d*enemy.eycc;
+            enemy.eyc += BTPS*Math.sign(enemy.eycc);
+            enemy.eyccw = enemy.eyccwmax;
             if (Math.abs(enemy.eyc) >= Math.abs(enemy.eyrev)) {
                 enemy.eycc = -enemy.eycc;
             }

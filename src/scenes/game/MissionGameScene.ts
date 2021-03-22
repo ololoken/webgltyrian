@@ -17,14 +17,13 @@ import {SPF} from "../../Tyrian";
 import {Layer} from "./Layer";
 import {World} from "../../world/World";
 import {MainMenuScene} from "../menu/MainMenuScene";
+import {SceneLayers} from "./Types";
 
 type DemoParams = {episodeNumber: number, mapIndex: number};
 
-type SceneLayers = [Layer, Layer, Layer] | [];
-
 export class MissionGameScene extends AbstractScene<DemoParams> {
 
-    private layers: SceneLayers = [];
+    private layers: SceneLayers | [] = [];
 
     private hud!: Sprite;
 

@@ -48,8 +48,8 @@ export enum TyEventType {
     BACK_DELAY = 3,
     BACK_DELAY_TYPE = 4,
     ENEMIES_LOAD_SHAPES = 5,
-    ENEMY_CREATE_GROUND_25 = 6,
-    ENEMY_CREATE_TOP_50 = 7,
+    ENEMY_CREATE_GROUND_25 = 6,//enemy create events _XX suffix is
+    ENEMY_CREATE_TOP_50 = 7,//relic of opentyrian and means offset of rendering slot for certain types
     STARS_OFF = 8,
     STARS_ON = 9,
     ENEMY_CREATE_GROUND_75 = 10,

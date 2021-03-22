@@ -12,6 +12,7 @@ import {PascalDecryptFormatter} from "./Decoders";
 export const PALETTE_SIZE = 256,
              TILE_MAX_INDEX = 600,
              TILE_WIDTH = 24, TILE_HEIGHT = 28,
+             COMP_TILE_WIDTH = 12, COMP_TILE_HEIGHT = 14,
              BACK_TO_SHAPE_MAX_INDEX = 128,
              BACK_1_WIDTH = 14, BACK_1_HEIGHT = 300,
              BACK_2_WIDTH = 14, BACK_2_HEIGHT = 600,
@@ -22,7 +23,7 @@ const [UInt16, Int16] = [Primitive.UInt16LE(), Primitive.Int16LE()],
       [UInt32, Int32] = [Primitive.UInt32LE(), Primitive.Int32LE()];
 const asAsciiString = StringFormatter({encoding: 'ascii'});
 
-type TyWeapon = {
+type TyWeapon = Readonly<{
     drain: number,
     shotRepeat: number,
     multi: number,
@@ -41,9 +42,9 @@ type TyWeapon = {
     sound: number,
     trail: number,
     shipBlastFilter: number
-}
+}>
 
-type TyPort = {
+type TyPort = Readonly<{
     nameLength: number,
     name: string,
     opnum: number,
@@ -52,27 +53,27 @@ type TyPort = {
     price: number,
     graphic: number,
     powerConsumption: number
-}
+}>
 
-type TySpecial = {
+type TySpecial = Readonly<{
     nameLength: number,
     name: string,
     graphic: number,
     power: number,
     stype: number,
     weapon: number
-}
+}>
 
-type TyPower = {
+type TyPower = Readonly<{
     nameLength: number,
     name: string,
     graphic: number,
     power: number,
     speed: number,
     price: number
-}
+}>
 
-type TyShip = {
+type TyShip = Readonly<{
     nameLength: number,
     name: string,
     shipGraphic: number,
@@ -82,9 +83,9 @@ type TyShip = {
     speed: number,
     damage: number,
     price: number
-}
+}>
 
-type TyOption = {
+type TyOption = Readonly<{
     nameLength: number,
     name: string,
     power: number,
@@ -100,19 +101,19 @@ type TyOption = {
     ammo: number,
     stop: boolean,
     iconGraphic: number
-}
+}>
 
-type TyShield = {
+type TyShield = Readonly<{
     nameLength: number,
     name: string,
     tPower: number,
     mPower: number,
     graphic: number,
     price: number
-}
+}>
 
-type TyEnemy = {
-    shapes: number,
+export type TyEnemy = Readonly<{
+    shapesLength: number,
     tur: number[],
     freq: number[],
     xMove: number, yMove: number,
@@ -134,9 +135,9 @@ type TyEnemy = {
     eLaunchType: number,
     value: number,
     eEnemyDie: number
-}
+}>
 
-export type TyEpisodeItems = {
+export type TyEpisodeItems = Readonly<{
     weaponsCount: number, weapons: TyWeapon[],
     portsCount: number, ports: TyPort[],
     specials: TySpecial[],
@@ -145,7 +146,7 @@ export type TyEpisodeItems = {
     optionsCount: number, options: TyOption[],
     shieldsCount: number, shields: TyShield[],
     enemiesCount: number, enemies: TyEnemy[]
-}
+}>
 
 export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
     .single('weaponsCount', UInt16)
@@ -230,7 +231,7 @@ export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
         .single('graphic', UInt16)
         .single('price', UInt16),items => items.shieldsCount+1)
     .array('enemies', new Struct<TyEnemy>()
-        .single('shapes', Byte)
+        .single('shapesLength', Byte)
         .array('tur', Byte, l(3))
         .array('freq', Byte, l(3))
         .single('xMove', Char).single('yMove', Char)
@@ -240,7 +241,7 @@ export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
         .single('xcStart', Char).single('ycStart', Char)
         .single('armor', Byte)
         .single('eSize', Byte)
-        .array('eGraphic', UInt16, l(20))
+        .array('eGraphic', UInt16, l(20), (data) => data.map(v => v-1))
         .single('explosionType', Byte)
         .single('animationType', Byte)
         .single('shapeBank', Byte)
@@ -280,7 +281,7 @@ export const TyEpisodeMapsFileHeaderStruct = new Struct<{ length: number, offset
     .single('length', UInt16)
     .array('offsets', UInt32, la('length'))
 
-export type TyEpisodeMapEvent = {
+export type TyEpisodeMapEvent = Readonly<{
     time: number,
     type: number,
     data1: number,
@@ -289,7 +290,7 @@ export type TyEpisodeMapEvent = {
     data4: number,
     data5: number,
     data6: number,
-}
+}>
 
 const TyEpisodeMapEventStruct = new Struct<TyEpisodeMapEvent>()
     .single('time', UInt16)
@@ -301,24 +302,24 @@ const TyEpisodeMapEventStruct = new Struct<TyEpisodeMapEvent>()
     .single('data6', Char)
     .single('data4', Byte);
 
-type TyBackgroundData = {
+type TyBackgroundData = Readonly<{
     shapesMapping1: number[],
     shapesMapping2: number[],
     shapesMapping3: number[],
     background1: number[],
     background2: number[],
     background3: number[]
-}
+}>
 
 const TyEpisodeMapBackgroundStruct = new Struct<TyBackgroundData>()
-    .array('shapesMapping1', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
-    .array('shapesMapping2', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
-    .array('shapesMapping3', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), USwap16Formatter)
+    .array('shapesMapping1', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), (data) => USwap16Formatter(data).map(v => v-1))
+    .array('shapesMapping2', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), (data) => USwap16Formatter(data).map(v => v-1))
+    .array('shapesMapping3', UInt16, l(BACK_TO_SHAPE_MAX_INDEX), (data) => USwap16Formatter(data).map(v => v-1))
     .array('background1', Byte, l(BACK_1_WIDTH*BACK_1_HEIGHT))
     .array('background2', Byte, l(BACK_2_WIDTH*BACK_2_HEIGHT))
     .array('background3', Byte, l(BACK_3_WIDTH*BACK_3_HEIGHT));
 
-export type TyEpisodeMap = {
+export type TyEpisodeMap = Readonly<{
     mapFile: number,
     shapesFile: number,
     backX: number[],
@@ -327,7 +328,7 @@ export type TyEpisodeMap = {
     eventsCount: number,
     events: TyEpisodeMapEvent[],
     background: TyBackgroundData
-}
+}>
 
 export const TyEpisodeMapStruct = new Struct<TyEpisodeMap>()
     .single('mapFile', Byte)
@@ -340,7 +341,7 @@ export const TyEpisodeMapStruct = new Struct<TyEpisodeMap>()
     .single('background', TyEpisodeMapBackgroundStruct);
 
 type TyShapePayload = {width: number, height: number, size: number, data: number[]}
-export type TyShape = {hasData: number, payload: TyShapePayload[]};
+export type TyShape = Readonly<{hasData: number, payload: TyShapePayload[]}>;
 export const TyShapeTablesHeaderStruct = new Struct<{tablesCount: number, offsets: number[]}>()
     .single('tablesCount', UInt16)
     .array('offsets', UInt32, la('tablesCount'))
