@@ -1,7 +1,7 @@
 import {EnemyCreate} from "./events/EnemyCreate";
 import {World} from "./World";
 import {TyEventType} from "./EventMappings";
-import {TyEnemy} from "../Structs";
+import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy} from "../Structs";
 import {Enemy, LayerCode, WorldObject} from "./Types";
 
 const animationTypes = [
@@ -26,6 +26,26 @@ const EventTypeToLayerMapping = {
     [TyEventType.ENEMY_CREATE_2]: LayerCode.TOP,
     [TyEventType.ENEMY_CREATE_3]: LayerCode.GND
 }
+
+const Enemy4x4LayerMapping: LayerCode[] = [
+    LayerCode.GND,//0
+    LayerCode.GND,//1
+    LayerCode.SKY,//2
+    LayerCode.TOP,//3
+    LayerCode.GND,//4
+];
+
+const LayerAddFixedMoveY = {
+    [LayerCode.GND]: 1,
+    [LayerCode.SKY]: 0,
+    [LayerCode.TOP]: 1,
+}
+
+const Enemy4x4TileOffsets = [
+    {x: 0, y: 0},
+    {x: COMP_TILE_WIDTH*2, y: 0},
+    {x: 0, y: -COMP_TILE_HEIGHT*2},
+    {x: COMP_TILE_WIDTH*2, y: -COMP_TILE_HEIGHT*2}];
 
 function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: number, data6: number}, eDesc: TyEnemy): Enemy {
 
@@ -101,7 +121,15 @@ export function createEnemy (this: World, e: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.e.type];
             enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
-        case TyEventType.ENEMY_CREATE_GROUND_4x4: break;
+        case TyEventType.ENEMY_CREATE_GROUND_4x4: {
+            Enemy4x4TileOffsets.forEach((p, typeOffset) => {
+                let enemy = fillEnemyData({...e.e, data6: 0}, this.items.enemies[e.e.data1+typeOffset]);
+                enemy.position.x += p.x;
+                enemy.position.y += p.y;
+                let layer = Enemy4x4LayerMapping[e.e.data6];
+                enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            });
+        } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25:
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75:
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0:
@@ -138,9 +166,7 @@ export function updateEnemies (this: World, BTPS: number): void {
 
         enemy.position.y += BTPS*enemy.fixedMoveY;
 
-        if (layer == LayerCode.GND || layer == LayerCode.TOP) {
-            enemy.position.y += BTPS*this.backSpeed[layer];
-        }
+        enemy.position.y += LayerAddFixedMoveY[layer]*BTPS*this.backSpeed[layer];
 
         //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
@@ -182,7 +208,7 @@ export function updateEnemies (this: World, BTPS: number): void {
     }
 }
 
-function updateAnimationCycle(enemy: Enemy, BTPS: number) {
+function updateAnimationCycle (enemy: Enemy, BTPS: number) {
     if (enemy.animationActive) {
         enemy.animationCycle += BTPS;
 

@@ -1,7 +1,6 @@
 import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
 import {EnemyGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
-import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH} from "../../Structs";
 
 enum Enemy2x2SpriteOffsets {
     TOP_LEFT = 0,
@@ -40,19 +39,18 @@ export class EnemyRender extends Container {
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_LEFT])),
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_RIGHT])),
                 );
-                this.group[0].position.set(0, 0);
-                this.group[1].position.set(COMP_TILE_WIDTH, 0);
-                this.group[2].position.set(0, COMP_TILE_HEIGHT);
-                this.group[3].position.set(COMP_TILE_WIDTH, COMP_TILE_HEIGHT);
+                this.group[0].anchor.set(1, 1);
+                this.group[1].anchor.set(0, 1);
+                this.group[2].anchor.set(1, 0);
+                this.group[3].anchor.set(0, 0);
                 break;
             case EnemySize.s1x1:
                 this.group.push(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
-                this.group[0].position.set(0, 0);
+                this.group[0].anchor.set(0.5, 0.5);
                 break;
         }
 
         this.addChild(...this.group);
-        this.pivot.set(this.width/2, this.height/2);
     }
 
     private updateAnimation (): void {
