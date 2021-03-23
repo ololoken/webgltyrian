@@ -29,7 +29,7 @@ export class EnemyRender extends Container {
         this.atlas = cache.enemyShapeBanks[enemy.shapeBank];
         this.graphic = enemy.graphic;
         this.position.set(enemy.position.x, enemy.position.y);
-        this.cycle = new ObservablePoint(this.updateAnimation, this, enemy.animationCycle, 0);
+        this.cycle = new ObservablePoint(this.updateAnimation, this, 0, 0);
 
         switch (enemy.size) {
             case EnemySize.s2x2:

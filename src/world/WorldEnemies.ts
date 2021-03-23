@@ -3,13 +3,10 @@ import {World} from "./World";
 import {TyEventType} from "./EventMappings";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy} from "../Structs";
 import {Enemy, LayerCode, WorldObject} from "./Types";
+import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
+import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 
-const animationTypes = [
-    {cycle: 0, active: 0, fire: 0},
-    {cycle: 0, active: 1, fire: 0},
-    {cycle: 0, active: 2, fire: 1},
-]
-const enemies: (WorldObject & {enemy: Enemy, layer: LayerCode})[] = [];
+const registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode})[] = [];
 
 const EventTypeToLayerMapping = {
     [TyEventType.ENEMY_CREATE_TOP_50]: LayerCode.TOP,
@@ -48,7 +45,11 @@ const Enemy4x4TileOffsets = [
     {x: COMP_TILE_WIDTH*2, y: -COMP_TILE_HEIGHT*2}];
 
 function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: number, data6: number}, eDesc: TyEnemy): Enemy {
-
+    const animationTypes = [
+        {cycle: 0, state: 0, fire: 0, max: 0},
+        {cycle: 0, state: 1, fire: 0, max: 0},
+        {cycle: 0, state: 2, fire: 2, max: eDesc.shapesLength},
+    ]
     let enemy: Enemy = {
         shapesLength: eDesc.shapesLength,
         shapeBank: eDesc.shapeBank,
@@ -64,9 +65,11 @@ function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: 
         xMaxBounce: 100000,
         yMaxBounce: 100000,
         tur: [eDesc.tur[0], eDesc.tur[1], eDesc.tur[2]],
-        animationActive: animationTypes[eDesc.animationType].active,
+        animationState: animationTypes[eDesc.animationType].state,
         animationCycle: animationTypes[eDesc.animationType].cycle,
         animationFire: animationTypes[eDesc.animationType].fire,
+        animationMax: animationTypes[eDesc.animationType].max,
+        animationMin: 0,
         position: {
             x: eDesc.xStart + (Math.random() * eDesc.xcStart >> 0) + e.data2,
             y: eDesc.yStart + (Math.random() * eDesc.ycStart >> 0) + e.data5,
@@ -111,7 +114,7 @@ function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: 
     return enemy;
 }
 
-export function createEnemy (this: World, e: EnemyCreate): void {
+export function enemyCreate (this: World, e: EnemyCreate): void {
     switch (e.e.type) {
         case TyEventType.ENEMY_CREATE_TOP_50:
         case TyEventType.ENEMY_CREATE_GROUND_25:
@@ -119,7 +122,7 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_SKY_0: {
             let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
             let layer = EventTypeToLayerMapping[e.e.type];
-            enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
             Enemy4x4TileOffsets.forEach((p, typeOffset) => {
@@ -127,7 +130,7 @@ export function createEnemy (this: World, e: EnemyCreate): void {
                 enemy.position.x += p.x;
                 enemy.position.y += p.y;
                 let layer = Enemy4x4LayerMapping[e.e.data6];
-                enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+                registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25:
@@ -137,7 +140,7 @@ export function createEnemy (this: World, e: EnemyCreate): void {
             let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
             let layer = EventTypeToLayerMapping[e.e.type];
             enemy.position.y = 190 + e.e.data5;
-            enemies.push({
+            registeredEnemies.push({
                 enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -147,15 +150,15 @@ export function createEnemy (this: World, e: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_3: {
             let enemy = fillEnemyData({...e.e, data3: 0, data6: 0}, this.items.enemies[e.e.data3]);
             let layer = EventTypeToLayerMapping[e.e.type];
-            enemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }
 
 }
 
-export function updateEnemies (this: World, BTPS: number): void {
-    for (let i = 0, l = enemies.length; i < l; i++) {
-        let {enemy, layer, name, position, cycle} = enemies[i];
+export function enemiesUpdate (this: World, BTPS: number): void {
+    for (let i = 0, l = registeredEnemies.length; i < l; i++) {
+        let {enemy, layer, name, position, cycle} = registeredEnemies[i];
 
         updateSpeed(enemy, BTPS);
         updateAnimationCycle(enemy, BTPS);
@@ -173,7 +176,7 @@ export function updateEnemies (this: World, BTPS: number): void {
             || enemy.graphic[Math.floor(enemy.animationCycle)] == 999;
 
         if (readyToGC) {
-            enemies.splice(i--, 1);
+            registeredEnemies.splice(i--, 1);
             l--;
             this.layers[layer].unregisterEnemy(name);
             continue;
@@ -204,16 +207,22 @@ export function updateEnemies (this: World, BTPS: number): void {
         }
 
         position.copyFrom(enemy.position);
-        cycle.set(Math.floor(enemy.animationCycle), 0)
+        try {
+            cycle.set(Math.floor(enemy.animationCycle), 0)
+        } catch (e) {console.error(enemy.animationCycle)}
     }
 }
 
 function updateAnimationCycle (enemy: Enemy, BTPS: number) {
-    if (enemy.animationActive) {
+    if (enemy.animationState == 1) {
         enemy.animationCycle += BTPS;
 
+        if (Math.floor(enemy.animationCycle) == enemy.animationMax-1) {
+            enemy.animationState = enemy.animationFire;
+            return;
+        }
         if (enemy.animationCycle > enemy.shapesLength-1) {
-            enemy.animationCycle = enemy.animationFire;
+            enemy.animationCycle = enemy.animationMin;
         }
     }
 }
@@ -241,3 +250,171 @@ function updateSpeed (enemy: Enemy, BTPS: number) {
         }
     }
 }
+
+export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
+    switch (e.e.type) {
+        case TyEventType.ENEMIES_GLOBAL_MOVE_0: {
+            let enemies: typeof registeredEnemies = [];
+
+            switch (true) {
+                case e.e.data3 > 79 && e.e.data3 < 90:
+                    enemies = registeredEnemies.filter(by => by.enemy.linknum == e.e.data3 - 80);
+                    break;
+
+                case e.e.data3 == 0:
+                    enemies = registeredEnemies.filter(by => by.enemy.linknum == e.e.data4);
+                    break;
+                case e.e.data3 == 2:
+                    enemies = registeredEnemies.filter(by => by.layer == LayerCode.SKY);
+                    break;
+                case e.e.data3 == 1:
+                    enemies = registeredEnemies.filter(by => by.layer == LayerCode.GND);
+                    break;
+                case e.e.data3 == 3:
+                    enemies = registeredEnemies.filter(by => by.layer == LayerCode.TOP);
+                    break;
+                case e.e.data3 == 99:
+                    enemies = registeredEnemies;
+                    break;
+                default:
+                    console.warn('unhandled move', e);
+                    break;
+            }
+
+            enemies.forEach(en => {
+                if (e.e.data1 != -99) {
+                    en.enemy.exc = e.e.data1;
+                }
+                if (e.e.data2 != -99) {
+                    en.enemy.eyc = e.e.data2;
+                }
+                if (e.e.data6 != 0) {
+                    en.enemy.fixedMoveY = e.e.data6;
+                }
+                if (e.e.data6 == -99) {
+                    en.enemy.fixedMoveY = 0;
+                }
+                if (e.e.data5 > 0) {
+                    en.enemy.animationCycle = e.e.data5;
+                }
+            })
+
+        } break;
+        case TyEventType.ENEMIES_GLOBAL_MOVE_1: {
+            if (e.e.data3 > 79 && e.e.data3 < 90) {
+                //todo: after implementation of EnemiesMoveOverride
+                console.info("ENEMIES_GLOBAL_MOVE_1 ignored")
+                break;
+            }
+            registeredEnemies
+                .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
+                .forEach(en => {
+                    if (e.e.data1 != -99) {
+                        en.enemy.excc = e.e.data1;
+                        en.enemy.exccw = Math.abs(e.e.data1);
+                        en.enemy.exccwmax = Math.abs(e.e.data1);
+                    }
+
+                    if (e.e.data2 != -99) {
+                        en.enemy.eycc = e.e.data2;
+                        en.enemy.eyccw = Math.abs(e.e.data2);
+                        en.enemy.eyccwmax = Math.abs(e.e.data2);
+                    }
+
+                    if (e.e.data5 > 0) {
+                        en.enemy.animationCycle = e.e.data5;
+                    }
+
+                    if (e.e.data6 > 0) {
+                        en.enemy.shapesLength = e.e.data6;
+                        en.enemy.animationMin = e.e.data5;
+                        en.enemy.animationMax = 0;
+                        en.enemy.animationState = 1;
+                    }
+                });
+
+        } break;
+        case TyEventType.ENEMIES_GLOBAL_MOVE_2: {
+            if (e.e.data3 > 79 && e.e.data3 < 90) {
+                //todo: after implementation of EnemiesMoveOverride
+                console.info("ENEMIES_GLOBAL_MOVE_2 ignored")
+                break;
+            }
+            registeredEnemies
+                .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
+                .forEach(en => {
+                    if (e.e.data1 != -99) {
+                        en.enemy.exrev = e.e.data1;
+                    }
+                    if (e.e.data2 != -99) {
+                        en.enemy.eyrev = e.e.data2;
+                    }
+                    if (e.e.data3 > 0 && e.e.data3 < 17) {//todo: add filters in rendering
+                        en.enemy.filter = e.e.data3;
+                    }
+                })
+        } break;
+        case TyEventType.ENEMIES_GLOBAL_MOVE_3: {
+            if (e.e.data3 > 79 && e.e.data3 < 90) {
+                //todo: after implementation of EnemiesMoveOverride
+                console.info("ENEMIES_GLOBAL_MOVE_3 ignored")
+                break;
+            }
+            registeredEnemies
+                .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
+                .forEach(en => {
+                    if (e.e.data1 != -99) {
+                        en.enemy.xAccel = e.e.data1;
+                    }
+                    if (e.e.data2 != -99) {
+                        en.enemy.yAccel = e.e.data2;
+                    }
+                })
+        } break;
+        case TyEventType.ENEMIES_GLOBAL_MOVE_4: {
+            registeredEnemies
+                .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
+                .forEach(en => {
+                    if (e.e.data5 != -99) {
+                        en.enemy.xMinBounce = e.e.data5;
+                    }
+                    if (e.e.data6 != -99) {
+                        en.enemy.yMinBounce = e.e.data6;
+                    }
+                    if (e.e.data1 != -99) {
+                        en.enemy.xMaxBounce = e.e.data1;
+                    }
+                    if (e.e.data2 != -99) {
+                        en.enemy.yMaxBounce = e.e.data2;
+                    }
+                })
+        } break;
+    }
+}
+
+export function enemiesAnimate (e: EnemiesGlobalAnimate) {
+    registeredEnemies
+        .filter(by => by.enemy.linknum == e.e.data4)
+        .forEach(en => {
+            en.enemy.animationState = 1;
+            en.enemy.animationFire = 0;
+            if (e.e.data2 > 0) {
+                en.enemy.animationCycle = e.e.data2;
+                en.enemy.animationMin = e.e.data2;
+            } else {
+                en.enemy.animationCycle = 0;
+            }
+            if (e.e.data1 > 0) {
+                en.enemy.shapesLength = e.e.data1;
+            }
+            if (e.e.data3 == 1) {
+                en.enemy.animationMax = en.enemy.shapesLength;
+            }
+            if (e.e.data3 == 2) {
+                en.enemy.animationState = 2;
+                en.enemy.animationMax = en.enemy.shapesLength;
+                en.enemy.animationFire = 2;
+            }
+        })
+}
+

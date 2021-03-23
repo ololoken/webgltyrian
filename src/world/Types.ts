@@ -35,12 +35,13 @@ export type Enemy = EnemyGraphic & {
     exc: number; eyc: number;//speed
     excc: number; eycc: number; //fixed accel
     exccw: number; eyccw: number; //wait time
-    readonly exccwmax: number; readonly eyccwmax: number;
+    exccwmax: number; eyccwmax: number;
     armor: number;
     linknum: number,
     shapesLength: number;
-    animationActive: number,
+    animationState: number,
     animationFire: number,
+    animationMin: number, animationMax: number;
     exrev: number, eyrev: number,
     damaged: boolean,
     edlevel: number,

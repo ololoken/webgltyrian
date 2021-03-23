@@ -1,6 +1,6 @@
 import {TILE_HEIGHT, TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
-import {createEnemy, updateEnemies} from "./WorldEnemies";
+import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
@@ -16,8 +16,16 @@ export class World extends utils.EventEmitter {
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(20, 20);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -112, 420, 302)
 
-    private createEnemy = createEnemy;
-    private updateEnemies = updateEnemies;
+    private enemyCreate = enemyCreate;
+    private enemiesUpdate = enemiesUpdate;
+    private enemiesGlobalMove = enemiesGlobalMove;
+    private enemiesAnimate = enemiesAnimate;
+
+    protected readonly state = {
+        randomEnemies: false,
+        enemySmallAdjustPos: false,
+        topEnemyOver: false,
+    }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers) {
         super();
@@ -33,6 +41,7 @@ export class World extends utils.EventEmitter {
         this.bindBackEvents();
         this.bindEnemyEvents();
         this.bindLevelEvents();
+        this.bindStarEvents();
     }
 
     private bindBackEvents (): void {
@@ -41,16 +50,47 @@ export class World extends utils.EventEmitter {
             this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
             this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
         });
+        this.eventSystem.on('BackDelay', e => {
+            console.log('BackDelay', e);
+        });
+        this.eventSystem.on('Back2NotTransparent', e => console.log('Back2NotTransparent', e));
+        this.eventSystem.on('Back3EnemyOffset', e => console.log('Back3EnemyOffset', e));
+        this.eventSystem.on('BackJump', e => console.log('BackJump', e));
+        this.eventSystem.on('BackOverSwitch', e => console.log('BackOverSwitch', e));
+        this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
+        this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
+    }
+
+    private bindStarEvents (): void {
+        this.eventSystem.on('StarsSwitch', e => console.log('StarsSwitch', e));
+        this.eventSystem.on('StarsSpeedSet', e => console.log('StarsSpeedSet', e));
     }
 
     private bindLevelEvents (): void {
+        this.eventSystem.on('LevelSmoothies', e => console.log('LevelSmoothies', e));
+        this.eventSystem.on('LevelFilters', e => console.log('LevelFilters', e));
+        this.eventSystem.on('LevelEnemiesFrequency', e => console.log('LevelEnemiesFrequency', e));
+        this.eventSystem.on('LevelDifficulty', e => console.log('LevelDifficulty', e));
         this.eventSystem.on('LevelEnd', e => {
             this.emit('MissionEnd');
         });
     }
 
     private bindEnemyEvents (): void {
-        this.eventSystem.on('EnemyCreate', (e) => this.createEnemy(e));
+        this.eventSystem.on('EnemiesRandomSwitch', e => this.state.randomEnemies = e.state);
+        this.eventSystem.on('EnemiesMoveOverride', e => console.log('EnemiesMoveOverride', e))
+        this.eventSystem.on('EnemiesGlobalAnimate', e => this.enemiesAnimate(e));
+        this.eventSystem.on('EnemiesGlobalDamage', e => console.log('EnemiesGlobalDamage', e));
+        this.eventSystem.on('EnemiesGlobalLinkNum', e => console.log('EnemiesGlobalLinkNum', e));
+        this.eventSystem.on('EnemiesGlobalMove', e => this.enemiesGlobalMove(e));
+        this.eventSystem.on('EnemySpecialAssign', e => console.log('EnemySpecialAssign', e));
+        this.eventSystem.on('EnemiesReset', e => console.log('EnemiesReset', e));
+        this.eventSystem.on('EnemySmallAdjustPos', e => this.state.enemySmallAdjustPos = e.state);
+        this.eventSystem.on('EnemySpawn', e => console.log('EnemySpawn', e));
+        this.eventSystem.on('EnemyBossLinkNum', e => console.log('EnemyBossLinkNum', e));
+        this.eventSystem.on('EnemiesOverSwitch', e => this.state.topEnemyOver = e.state);
+        this.eventSystem.on('EnemiesContinualDamage', e => console.log('EnemiesContinualDamage', e));
+        this.eventSystem.on('EnemyCreate', e => this.enemyCreate(e));
     }
 
     public getRequiredShapes (): number[] {
@@ -64,7 +104,7 @@ export class World extends utils.EventEmitter {
         let BTPPS = deltaSec*TILE_HEIGHT;
         this.eventSystem.update(BTPPS);
         this.updateBackground(BTPPS);
-        this.updateEnemies(BTPPS);
+        this.enemiesUpdate(BTPPS);
     }
 
     private updateBackground (BTPPS: number) {
