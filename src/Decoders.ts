@@ -53,25 +53,16 @@ export const TyShapeDecoder: (tyShape: TyShape) => TyShape = tyShape => {
     }
     return tyShape;
 }
-//todo: fixme
-export const TyShapeCompressedDecoder: (compressed: number[]) => TyShape = compressed => {
-    let unpacked: number[] = [],
-        width = COMP_TILE_WIDTH, height = COMP_TILE_HEIGHT;
-    for (let ptr = 0; compressed[ptr] != 0x0F && ptr < width*height; ++ptr) {
+
+export const TyShapeCompressedDecoder: (compressed: number[], offset: number) => TyShape = (compressed, offset)=> {
+    let width = COMP_TILE_WIDTH, height = COMP_TILE_HEIGHT,
+        unpacked: number[] = [];
+    for (let ptr = offset; compressed[ptr] != 0x0F && ptr < compressed.length; ptr++) {
         let transparentCount = (compressed[ptr] & 0x0F);
         for (let i = 0; i < transparentCount; i++) unpacked.push(0);//set transparent pixels
         let dataCount = (compressed[ptr] & 0xF0) >> 4;
         for (let i = 0; i < dataCount; i++) unpacked.push(compressed[++ptr]);//copy N pixels with value following current position
     }
 
-    if (unpacked.length == width*height) {
-        console.log(compressed);
-    }
-
-    let data = new Array(width*height).fill(0);
-    for (let i = 0, l = unpacked.length; i < l; i++) {
-        data[i] = unpacked[i];
-    }
-
-    return {hasData: unpacked.length, payload: [{width, height, size: 0, data}]};
+    return {hasData: unpacked.length, payload: [{width, height, size: 0, data: [...unpacked, ...new Array(width*height-unpacked.length).fill(0)]}]};
 }

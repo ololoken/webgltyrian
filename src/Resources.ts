@@ -1,7 +1,6 @@
 import {BaseTexture, Texture, Rectangle, FORMATS, TARGETS, TYPES, MIPMAP_MODES, Sprite, Container, BufferResource} from "pixi.js";
 import {PaletteFilter} from "./filters/PaletteFilter";
 import {
-    TyCompressedShapesOffsets,
     TyPalettesStruct,
     TyPCXImage,
     TyPCXOffsetsStruct,
@@ -14,7 +13,7 @@ import {
     TyEpisodeScriptStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
-    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapeStruct,
+    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapesData,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeCompressedDecoder} from "./Decoders";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
@@ -134,9 +133,15 @@ const generateMainShapeBanks: ResourceInit = (dt) => TyShapeTablesHeaderStruct.u
             //misc sprites with defined W & H
             case idx < 7:// fonts, interface, option sprites
                 return TyShapesTableStruct.unpack(dt, offset).shapes.map(TyShapeDecoder);
+            //compressed sprites
             default:
-                return TyCompressedShapesOffsets(offset).unpack(dt, offset).offsets
-                    .map(shapeOffset => TyShapeCompressedDecoder(TyCompressedShapeStruct(offset+shapeOffset).unpack(dt).data))
+                let shapes: TyShape[] = [];
+                let compressed = TyCompressedShapesData(offset, idx+1 < offsets.length ? offsets[idx+1] : Number.MAX_SAFE_INTEGER)
+                    .unpack(dt, offset);
+                for (let i = 0; i < compressed.offsets.length; i++) {
+                    shapes.push(TyShapeCompressedDecoder(compressed.data, compressed.offsets[i]));
+                }
+                return shapes;
         }
     })
     .forEach((shapes, idx) => {
@@ -276,6 +281,11 @@ export const generateBackgroundTexturesAtlas = async (shapesFile: number): Promi
 
 export const generateEnemyShapeBankTextureAtlas = async (id: number): Promise<TextureAtlas> =>
     getFileDataView(`newsh${SHAPE_FILE_CODE[id-1].toLowerCase()}.shp`)
-        .then(shapesData => TyCompressedShapesOffsets(0).unpack(shapesData, 0).offsets
-            .map(shapeOffset => TyShapeCompressedDecoder(TyCompressedShapeStruct(shapeOffset).unpack(shapesData).data))
-        ).then(shapes => shapesToTexture(shapes))
+        .then(shapesData => {
+            let shapes: TyShape[] = [];
+            let compressed = TyCompressedShapesData(0, Number.MAX_SAFE_INTEGER).unpack(shapesData);
+            for (let i = 0; i < compressed.offsets.length; i++) {
+                shapes.push(TyShapeCompressedDecoder(compressed.data, compressed.offsets[i]));
+            }
+            return shapes;
+        }).then(shapes => shapesToTexture(shapes))
