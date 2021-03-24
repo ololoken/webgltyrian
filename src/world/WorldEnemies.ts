@@ -46,10 +46,10 @@ const Enemy4x4TileOffsets = [
 
 function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: number, data6: number}, eDesc: TyEnemy): Enemy {
     const animationTypes = [
-        {cycle: 0, state: 0, fire: 0, max: 0},
-        {cycle: 0, state: 1, fire: 0, max: 0},
-        {cycle: 0, state: 2, fire: 2, max: eDesc.shapesLength},
-    ]
+        {cycle: 0, state: 0, max: -1},
+        {cycle: 0, state: 1, max: -1},
+        {cycle: 0, state: 2, max: eDesc.shapesLength-1},
+    ];
     let enemy: Enemy = {
         shapesLength: eDesc.shapesLength,
         shapeBank: eDesc.shapeBank,
@@ -60,19 +60,18 @@ function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: 
         launchSpecial: eDesc.eLaunchType / 1000,
         xAccel: eDesc.xAccel,
         yAccel: eDesc.yAccel,
-        xMinBounce: -100000,
-        yMinBounce: -100000,
-        xMaxBounce: 100000,
-        yMaxBounce: 100000,
+        xMinBounce: -Number.MAX_SAFE_INTEGER,
+        yMinBounce: -Number.MAX_SAFE_INTEGER,
+        xMaxBounce: Number.MAX_SAFE_INTEGER,
+        yMaxBounce: Number.MAX_SAFE_INTEGER,
         tur: [eDesc.tur[0], eDesc.tur[1], eDesc.tur[2]],
         animationState: animationTypes[eDesc.animationType].state,
         animationCycle: animationTypes[eDesc.animationType].cycle,
-        animationFire: animationTypes[eDesc.animationType].fire,
         animationMax: animationTypes[eDesc.animationType].max,
         animationMin: 0,
         position: {
-            x: eDesc.xStart + (Math.random() * eDesc.xcStart >> 0) + e.data2,
-            y: eDesc.yStart + (Math.random() * eDesc.ycStart >> 0) + e.data5,
+            x: eDesc.xStart + (2 * Math.random() * eDesc.xcStart >> 0) + e.data2,
+            y: eDesc.yStart + (2 * Math.random() * eDesc.ycStart >> 0) + e.data5,
         },
         exc: eDesc.xMove,
         eyc: eDesc.yMove + e.data3,
@@ -125,10 +124,10 @@ export function enemyCreate (this: World, e: EnemyCreate): void {
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
-            Enemy4x4TileOffsets.forEach((p, typeOffset) => {
+            Enemy4x4TileOffsets.forEach((ep4x4, typeOffset) => {
                 let enemy = fillEnemyData({...e.e, data6: 0}, this.items.enemies[e.e.data1+typeOffset]);
-                enemy.position.x += p.x;
-                enemy.position.y += p.y;
+                enemy.position.x += ep4x4.x;
+                enemy.position.y += ep4x4.y;
                 let layer = Enemy4x4LayerMapping[e.e.data6];
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
@@ -173,7 +172,7 @@ export function enemiesUpdate (this: World, BTPS: number): void {
 
         //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
-            || enemy.graphic[Math.floor(enemy.animationCycle)] == 999;
+            || enemy.graphic[enemy.animationCycle>>0] == 999;
 
         if (readyToGC) {
             registeredEnemies.splice(i--, 1);
@@ -207,9 +206,7 @@ export function enemiesUpdate (this: World, BTPS: number): void {
         }
 
         position.copyFrom(enemy.position);
-        try {
-            cycle.set(Math.floor(enemy.animationCycle), 0)
-        } catch (e) {console.error(enemy.animationCycle)}
+        cycle.set(enemy.animationCycle>>0, 0);
     }
 }
 
@@ -217,8 +214,8 @@ function updateAnimationCycle (enemy: Enemy, BTPS: number) {
     if (enemy.animationState == 1) {
         enemy.animationCycle += BTPS;
 
-        if (Math.floor(enemy.animationCycle) == enemy.animationMax-1) {
-            enemy.animationState = enemy.animationFire;
+        if (enemy.animationCycle>>0 == enemy.animationMax) {
+            enemy.animationState = 2;//pause or ready to fire?
             return;
         }
         if (enemy.animationCycle > enemy.shapesLength-1) {
@@ -295,7 +292,7 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                     en.enemy.fixedMoveY = 0;
                 }
                 if (e.e.data5 > 0) {
-                    en.enemy.animationCycle = e.e.data5;
+                    en.enemy.animationCycle = e.e.data5-1;
                 }
             })
 
@@ -322,13 +319,13 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                     }
 
                     if (e.e.data5 > 0) {
-                        en.enemy.animationCycle = e.e.data5;
+                        en.enemy.animationCycle = e.e.data5-1;
                     }
 
                     if (e.e.data6 > 0) {
                         en.enemy.shapesLength = e.e.data6;
                         en.enemy.animationMin = e.e.data5;
-                        en.enemy.animationMax = 0;
+                        en.enemy.animationMax = -1;
                         en.enemy.animationState = 1;
                     }
                 });
@@ -397,23 +394,22 @@ export function enemiesAnimate (e: EnemiesGlobalAnimate) {
         .filter(by => by.enemy.linknum == e.e.data4)
         .forEach(en => {
             en.enemy.animationState = 1;
-            en.enemy.animationFire = 0;
             if (e.e.data2 > 0) {
-                en.enemy.animationCycle = e.e.data2;
-                en.enemy.animationMin = e.e.data2;
-            } else {
+                en.enemy.animationCycle = e.e.data2-1;
+                en.enemy.animationMin = e.e.data2-1;
+            }
+            else {
                 en.enemy.animationCycle = 0;
             }
             if (e.e.data1 > 0) {
                 en.enemy.shapesLength = e.e.data1;
             }
             if (e.e.data3 == 1) {
-                en.enemy.animationMax = en.enemy.shapesLength;
+                en.enemy.animationMax = en.enemy.shapesLength-1;
             }
             if (e.e.data3 == 2) {
                 en.enemy.animationState = 2;
-                en.enemy.animationMax = en.enemy.shapesLength;
-                en.enemy.animationFire = 2;
+                en.enemy.animationMax = en.enemy.shapesLength-1;
             }
         })
 }

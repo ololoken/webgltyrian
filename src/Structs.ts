@@ -10,8 +10,8 @@ import {
 import {PascalDecryptFormatter} from "./Decoders";
 
 export const PALETTE_SIZE = 256,
-             TILE_MAX_INDEX = 600,
-             TILE_WIDTH = 24, TILE_HEIGHT = 28,
+             MAP_TILES_MAX_INDEX = 600,
+             MAP_TILE_WIDTH = 24, MAP_TILE_HEIGHT = 28,
              COMP_TILE_WIDTH = 12, COMP_TILE_HEIGHT = 14,
              BACK_TO_SHAPE_MAX_INDEX = 128,
              BACK_1_WIDTH = 14, BACK_1_HEIGHT = 300,
@@ -360,8 +360,8 @@ export const TyMapBackgroundShapesStruct = new Struct<{shapes: TyShape[], traili
     .array('shapes', new Struct<TyShape>()
         .single('hasData', Byte, ([isEmpty]) => Boolean(isEmpty) ? 0 : 1)
         .array('payload', new Struct<TyShapePayload>()
-            .array('data', Byte, l(TILE_WIDTH*TILE_HEIGHT)), la('hasData')),
-        l(TILE_MAX_INDEX))
+            .array('data', Byte, l(MAP_TILE_WIDTH*MAP_TILE_HEIGHT)), la('hasData')),
+        l(MAP_TILES_MAX_INDEX))
     //no idea what's stored here
     .array('trailingData', Byte, l(Number.MAX_SAFE_INTEGER));
 

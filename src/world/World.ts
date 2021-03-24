@@ -1,4 +1,4 @@
-import {TILE_HEIGHT, TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
+import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
@@ -13,8 +13,8 @@ export class World extends utils.EventEmitter {
 
     protected readonly backSpeed: BackSpeed = [0, 0, 0];
     protected readonly layers: Layers;
-    protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(20, 20);
-    protected readonly gcBox: Rectangle = new Rectangle(-80, -112, 420, 302)
+    protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
+    protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360)
 
     private enemyCreate = enemyCreate;
     private enemiesUpdate = enemiesUpdate;
@@ -33,9 +33,9 @@ export class World extends utils.EventEmitter {
         this.items = items;
         this.layers = layers;
 
-        this.layers[LayerCode.GND].backPos.set((map.backX[LayerCode.GND]-1)*TILE_WIDTH, 0);
-        this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*TILE_WIDTH, 0);
-        this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*TILE_WIDTH, 0);
+        this.layers[LayerCode.GND].backPos.set((map.backX[LayerCode.GND]-1)*MAP_TILE_WIDTH, 0);
+        this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
+        this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
         this.eventSystem = new EventSystem(this.map.events);
         this.bindBackEvents();
@@ -101,10 +101,10 @@ export class World extends utils.EventEmitter {
 
     public update (deltaSec: number): void {
         //Try to use rule: 1 tyrian speed value = 1 background tile per second
-        let BTPPS = deltaSec*TILE_HEIGHT;
+        let BTPPS = deltaSec*MAP_TILE_HEIGHT;
         this.eventSystem.update(BTPPS);
-        this.updateBackground(BTPPS);
         this.enemiesUpdate(BTPPS);
+        this.updateBackground(BTPPS);
     }
 
     private updateBackground (BTPPS: number) {

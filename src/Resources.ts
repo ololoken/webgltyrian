@@ -13,7 +13,7 @@ import {
     TyEpisodeScriptStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
-    TILE_WIDTH, TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapesData,
+    MAP_TILE_WIDTH, MAP_TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapesData,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeCompressedDecoder} from "./Decoders";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
@@ -273,8 +273,8 @@ export const generateBackgroundTexturesAtlas = async (shapesFile: number): Promi
         .then(shapesData => TyMapBackgroundShapesStruct.unpack(shapesData))
         .then(({shapes}) => shapesToTexture(shapes.map(s => {
             if (s.hasData) {//map shapes has standard size, but I suspect it's specified in last 520 bytes of the mapShapesFile
-                s.payload[0].width = TILE_WIDTH;
-                s.payload[0].height = TILE_HEIGHT;
+                s.payload[0].width = MAP_TILE_WIDTH;
+                s.payload[0].height = MAP_TILE_HEIGHT;
             }
             return s;
         })));

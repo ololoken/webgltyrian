@@ -1,6 +1,6 @@
 import {BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES, Rectangle, Point} from "pixi.js";
 import {fragment, vertex} from "./ShaderDecorators";
-import {TILE_HEIGHT, TILE_WIDTH} from "../Structs";
+import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../Structs";
 import {TextureAtlas} from "../Resources";
 
 export class TileMapBackgroundFilter extends Filter {
@@ -84,7 +84,7 @@ void main() {
 
         this.uniforms.uAtlas = atlas.texture;
         this.uniforms.uAtlasSize = [atlas.texture.width, atlas.texture.height];
-        this.uniforms.uTileSize = [TILE_WIDTH, TILE_HEIGHT];
+        this.uniforms.uTileSize = [MAP_TILE_WIDTH, MAP_TILE_HEIGHT];
         this.uniforms.uOutSize = [outWidth, outHeight];
 
         this.uniforms.uMapping = this.toTexture(background, shapesMapping, atlas.frames);
@@ -101,8 +101,8 @@ void main() {
                 let rect = frames[shapesMapping[shapeId]];
                 buffer[4 * idx + 0] = 0;
                 buffer[4 * idx + 1] = 0;
-                buffer[4 * idx + 2] = rect.x/TILE_WIDTH;
-                buffer[4 * idx + 3] = rect.y/TILE_HEIGHT;
+                buffer[4 * idx + 2] = rect.x/MAP_TILE_WIDTH;
+                buffer[4 * idx + 3] = rect.y/MAP_TILE_HEIGHT;
                 return buffer
             }, new Uint8Array(this.mappingTextureSize*this.mappingTextureSize*4)), this.mappingTextureSize, this.mappingTextureSize, {
             width: this.mappingTextureSize,

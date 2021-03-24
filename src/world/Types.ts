@@ -40,7 +40,6 @@ export type Enemy = EnemyGraphic & {
     linknum: number,
     shapesLength: number;
     animationState: number,
-    animationFire: number,
     animationMin: number, animationMax: number;
     exrev: number, eyrev: number,
     damaged: boolean,

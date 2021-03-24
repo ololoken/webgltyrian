@@ -18,7 +18,6 @@ export class EnemyRender extends Container {
 
     private static childId = 0;
 
-    private readonly group: Sprite[] = [];
     public readonly cycle: ObservablePoint;
     private readonly atlas: TextureAtlas;
     private readonly graphic: number[];
@@ -33,36 +32,34 @@ export class EnemyRender extends Container {
 
         switch (enemy.size) {
             case EnemySize.s2x2:
-                this.group.push(
+                this.addChild(
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.TOP_LEFT])),
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.TOP_RIGHT])),
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_LEFT])),
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_RIGHT])),
                 );
-                this.group[0].anchor.set(1, 1);
-                this.group[1].anchor.set(0, 1);
-                this.group[2].anchor.set(1, 0);
-                this.group[3].anchor.set(0, 0);
+                (<Sprite>this.children[0]).anchor.set(1, 1);
+                (<Sprite>this.children[1]).anchor.set(0, 1);
+                (<Sprite>this.children[2]).anchor.set(1, 0);
+                (<Sprite>this.children[3]).anchor.set(0, 0);
                 break;
             case EnemySize.s1x1:
-                this.group.push(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
-                this.group[0].anchor.set(0.5, 0.5);
+                this.addChild(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
                 break;
+            default: throw new Error('eh?')
         }
-
-        this.addChild(...this.group);
     }
 
     private updateAnimation (): void {
-        switch (this.group.length) {
+        switch (this.children.length) {
             case 4:
-                this.group[0].texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_LEFT];
-                this.group[1].texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_RIGHT];
-                this.group[2].texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_LEFT];
-                this.group[3].texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_RIGHT];
+                (<Sprite>this.children[0]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_LEFT];
+                (<Sprite>this.children[1]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_RIGHT];
+                (<Sprite>this.children[2]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_LEFT];
+                (<Sprite>this.children[3]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_RIGHT];
                 break;
             case 1:
-                this.group[0].texture.frame = this.atlas.frames[this.graphic[this.cycle.x]];
+                (<Sprite>this.children[0]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x]];
                 break;
             default: throw new Error('eh?')
         }
