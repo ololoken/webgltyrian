@@ -1,4 +1,4 @@
-import {Container, ObservablePoint, Sprite, Texture, Rectangle} from "pixi.js";
+import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
 import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
@@ -29,8 +29,9 @@ export class Layer extends Container implements WorldLayer {
         this.addChild(this.backSprite);
 
         this.objectsContainer.filters = [cache.palettes[0]];
-        this.objectsContainer.width = MAIN_WIDTH;
+        this.objectsContainer.width = this.backSprite.width;
         this.objectsContainer.height = MAIN_HEIGHT;
+        this.objectsContainer.position.copyFrom(this.backSprite);
         this.addChild(this.objectsContainer);
 
         const initialScreenPos = opts.height*MAP_TILE_HEIGHT-MAIN_HEIGHT;
@@ -45,7 +46,7 @@ export class Layer extends Container implements WorldLayer {
             name: e.name!,
             position: e.position,
             cycle: e.cycle
-        };
+        }
     }
 
     public unregisterEnemy (name: string): void {

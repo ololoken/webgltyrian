@@ -5,7 +5,7 @@ import {TextureAtlas} from "../Resources";
 
 export class TileMapBackgroundFilter extends Filter {
     @vertex(`
-precision mediump float;
+precision highp float;
 attribute vec2 aVertexPosition;
 
 uniform mat3 projectionMatrix;
@@ -34,7 +34,7 @@ void main (void) {
 
 
     @fragment(`
-precision mediump float;
+precision highp float;
 varying vec2 vTextureCoord;//standard pixi uniforms
 uniform vec4 outputFrame;
 uniform vec4 inputSize;
@@ -46,18 +46,17 @@ uniform vec2 uOutSize;//"css" output size
 
 uniform sampler2D uMapping;//zw - tile coords in atlas
 uniform vec2 uMappingSize;//uBackground size
-uniform ivec2 uBackgroundSize;//background size in tiles
+uniform vec2 uBackgroundSize;//background size in tiles
 uniform vec2 uBackgroundOffset;//background offset in pixels
 
 void main() {
     vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
-    vec2 fitPixelOutSize = floor(uOutSize*(uBackgroundOffset/uTileSize+0.5))/uOutSize;
-    vec2 screenTile = uv*(uOutSize/uTileSize)+fitPixelOutSize;
+    vec2 screenTile = uv*(uOutSize/uTileSize)+uBackgroundOffset/uTileSize;
 
-    ivec2 tileCoord = ivec2(floor(screenTile));
+    vec2 tileCoord = floor(screenTile);
     vec2 tileInnerCoord = fract(screenTile)*uTileSize/uAtlasSize;
 
-    float mappingIndex = float(tileCoord.y*uBackgroundSize.x+tileCoord.x);
+    float mappingIndex = tileCoord.y*uBackgroundSize.x+tileCoord.x;
     float mappingY = floor(mappingIndex/uMappingSize.x);
     float mappingX = mappingIndex-mappingY*uMappingSize.x;
     vec2 shapeCoord = vec2(mappingX, mappingY)/uMappingSize;
@@ -72,10 +71,7 @@ void main() {
 
     private readonly mappingTextureSize = 128;
 
-    private _backOffs: Point = new Point(0, 0);
-    public get backgroundOffset (): Point {
-        return this._backOffs;
-    }
+    public readonly backgroundOffset = new Point(0, 0);
 
     public constructor (background: number[], shapesMapping: number[], atlas: TextureAtlas,
                         outWidth: number, outHeight: number,

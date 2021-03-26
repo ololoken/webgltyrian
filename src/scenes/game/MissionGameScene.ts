@@ -13,7 +13,6 @@ import {
     BACK_2_HEIGHT, BACK_2_WIDTH,
     BACK_3_HEIGHT, BACK_3_WIDTH,
 } from "../../Structs";
-import {SPF} from "../../Tyrian";
 import {Layer} from "./Layer";
 import {World} from "../../world/World";
 import {MainMenuScene} from "../menu/MainMenuScene";
@@ -122,9 +121,8 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
         return super.unload();
     }
 
-    public update (d: number): void {
-        //delta literally TARGET_FPMS*delta makes resulting "speed" constant (approx 1) on different real fps
-        //so lets pass in world real seconds between frames
-        this.world.update(d*SPF);
+    public update (step: number): void {
+        //step = literally TARGET_FPMS*deltaMS, adjustable step size
+        this.world.update(step);
     }
 }

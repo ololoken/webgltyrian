@@ -3,18 +3,20 @@ import {EventSystem} from "./EventSystem";
 import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
-import {MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
+import {FPS, MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
 import {BackSpeed, LayerCode, Layers} from "./Types";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
     protected readonly items: TyEpisodeItems;
-    private readonly eventSystem: EventSystem;
+    protected readonly eventSystem: EventSystem;
 
     protected readonly backSpeed: BackSpeed = [0, 0, 0];
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
-    protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360)
+    protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
+
+    protected BTPPS = 0;
 
     private enemyCreate = enemyCreate;
     private enemiesUpdate = enemiesUpdate;
@@ -99,12 +101,16 @@ export class World extends utils.EventEmitter {
             .filter(s => s > 0)
     }
 
-    public update (deltaSec: number): void {
+    public update (delta: number): void {
         //Try to use rule: 1 tyrian speed value = 1 background tile per second
-        let BTPPS = deltaSec*MAP_TILE_HEIGHT;
-        this.eventSystem.update(BTPPS);
-        this.enemiesUpdate(BTPPS);
-        this.updateBackground(BTPPS);
+        //let BTPPS = MAP_TILE_HEIGHT/FPS*delta;
+        this.BTPPS += MAP_TILE_HEIGHT/FPS*delta;
+        while (this.BTPPS >= 1) {
+            this.eventSystem.update(1);
+            this.updateBackground(1);
+            this.enemiesUpdate(1);
+            this.BTPPS -= 1;
+        }
     }
 
     private updateBackground (BTPPS: number) {

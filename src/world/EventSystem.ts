@@ -5,7 +5,7 @@ import {CreatedEvent, EventKey, TyEventKindMap} from "./EventMappings";
 
 export class EventSystem extends utils.EventEmitter<EventKey> {
     private readonly events: TyEpisodeMapEvent[];
-    private lastOffset: number = -Number.EPSILON;
+    public lastOffset: number = -Number.EPSILON;
 
     constructor (events: TyEpisodeMapEvent[]) {
         super();
@@ -16,23 +16,21 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
      * @param BTPPS number of pixel rows scrolled by ground layer
      */
     public update (BTPPS: number): void {
-        this.events.filter(e => e.time > this.lastOffset && e.time <= this.lastOffset+BTPPS+Number.EPSILON)
-            .filter(e => {
+        this.events.forEach(e => {
+                let inTime = e.time > this.lastOffset && e.time <= this.lastOffset+BTPPS+Number.EPSILON;
+                if (!inTime) {
+                    return false;
+                }
                 if (e.type in TyEventKindMap) {
-                    return true;
+                    let wrappedEvent = new TyEventKindMap[<keyof typeof TyEventKindMap>e.type](e);
+                    this.emit(wrappedEvent.key, wrappedEvent);
                 }
                 else {
                     console.info(`skipping event as unsupported: ${JSON.stringify(e)}`)
                     return false;
                 }
-            })
-            .map(e => this.wrap(e.type, e))
-            .map(e => this.emit(e.key, e));
+            });
         this.lastOffset += BTPPS;
-    }
-
-    private wrap<K extends keyof typeof TyEventKindMap> (t: K, e: TyEpisodeMapEvent): InstanceType<typeof TyEventKindMap[K]> {
-        return <InstanceType<typeof TyEventKindMap[K]>>new TyEventKindMap[t](e);
     }
 
     public emit<K extends EventKey> (e: K, ...o: CreatedEvent<K>[]): boolean {
@@ -44,6 +42,8 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
     }
 
     public getEvents<K extends keyof typeof TyEventKindMap> (t: K): InstanceType<typeof TyEventKindMap[K]>[] {
-        return <InstanceType<typeof TyEventKindMap[K]>[]>this.events.filter(e => e.type == t).map(e => this.wrap(e.type, e));
+        return <InstanceType<typeof TyEventKindMap[K]>[]>this.events
+            .filter(e => e.type == t)
+            .map(e => new TyEventKindMap[<keyof typeof TyEventKindMap>e.type](e));
     }
 }

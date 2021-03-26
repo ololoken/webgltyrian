@@ -42,62 +42,64 @@ const Enemy4x4TileOffsets = [
     {x: 0, y: 0},
     {x: COMP_TILE_WIDTH*2, y: 0},
     {x: 0, y: -COMP_TILE_HEIGHT*2},
-    {x: COMP_TILE_WIDTH*2, y: -COMP_TILE_HEIGHT*2}];
+    {x: COMP_TILE_WIDTH*2, y: -COMP_TILE_HEIGHT*2}
+];
 
-function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: number, data6: number}, eDesc: TyEnemy): Enemy {
+function fillEnemyData (eventData: {data2: number, data3: number, data4: number, data5: number, data6: number},
+                        enemyDesc: TyEnemy): Enemy {
     const animationTypes = [
         {cycle: 0, state: 0, max: -1},
         {cycle: 0, state: 1, max: -1},
-        {cycle: 0, state: 2, max: eDesc.shapesLength-1},
+        {cycle: 0, state: 2, max: enemyDesc.shapesLength-1},
     ];
     let enemy: Enemy = {
-        shapesLength: eDesc.shapesLength,
-        shapeBank: eDesc.shapeBank,
-        explosionType: eDesc.explosionType,
-        launchFreq: eDesc.eLaunchFreq,
-        launchWait: eDesc.eLaunchFreq,
-        launchType: eDesc.eLaunchType % 1000,
-        launchSpecial: eDesc.eLaunchType / 1000,
-        xAccel: eDesc.xAccel,
-        yAccel: eDesc.yAccel,
+        shapesLength: enemyDesc.shapesLength,
+        shapeBank: enemyDesc.shapeBank,
+        explosionType: enemyDesc.explosionType,
+        launchFreq: enemyDesc.eLaunchFreq,
+        launchWait: enemyDesc.eLaunchFreq,
+        launchType: enemyDesc.eLaunchType % 1000,
+        launchSpecial: enemyDesc.eLaunchType / 1000,
+        xAccel: enemyDesc.xAccel,
+        yAccel: enemyDesc.yAccel,
         xMinBounce: -Number.MAX_SAFE_INTEGER,
         yMinBounce: -Number.MAX_SAFE_INTEGER,
         xMaxBounce: Number.MAX_SAFE_INTEGER,
         yMaxBounce: Number.MAX_SAFE_INTEGER,
-        tur: [eDesc.tur[0], eDesc.tur[1], eDesc.tur[2]],
-        animationState: animationTypes[eDesc.animationType].state,
-        animationCycle: animationTypes[eDesc.animationType].cycle,
-        animationMax: animationTypes[eDesc.animationType].max,
+        tur: [enemyDesc.tur[0], enemyDesc.tur[1], enemyDesc.tur[2]],
+        animationState: animationTypes[enemyDesc.animationType].state,
+        animationCycle: animationTypes[enemyDesc.animationType].cycle,
+        animationMax: animationTypes[enemyDesc.animationType].max,
         animationMin: 0,
         position: {
-            x: eDesc.xStart + (2 * Math.random() * eDesc.xcStart >> 0) + e.data2,
-            y: eDesc.yStart + (2 * Math.random() * eDesc.ycStart >> 0) + e.data5,
+            x: enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) + eventData.data2,
+            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) + eventData.data5,
         },
-        exc: eDesc.xMove,
-        eyc: eDesc.yMove + e.data3,
-        excc: eDesc.xcAccel,
-        eycc: eDesc.ycAccel,
+        exc: enemyDesc.xMove,
+        eyc: enemyDesc.yMove + eventData.data3,
+        excc: enemyDesc.xcAccel,
+        eycc: enemyDesc.ycAccel,
         special: false,
         iced: 0,
-        exrev: eDesc.xRev,
-        eyrev: eDesc.yRev,
-        graphic: eDesc.eGraphic,
-        size: eDesc.eSize,
-        linknum: e.data4,
-        damaged: eDesc.dAnimation < 0,
-        enemydie: eDesc.eEnemyDie,
-        freq: [eDesc.freq[0], eDesc.freq[1], eDesc.freq[2]],
-        edani: eDesc.dAnimation,
-        edgr: eDesc.dgr,
-        edlevel: eDesc.dLevel,
-        fixedMoveY: e.data6,
+        exrev: enemyDesc.xRev,
+        eyrev: enemyDesc.yRev,
+        graphic: enemyDesc.eGraphic,
+        size: enemyDesc.eSize,
+        linknum: eventData.data4,
+        damaged: enemyDesc.dAnimation < 0,
+        enemydie: enemyDesc.eEnemyDie,
+        freq: [enemyDesc.freq[0], enemyDesc.freq[1], enemyDesc.freq[2]],
+        edani: enemyDesc.dAnimation,
+        edgr: enemyDesc.dgr,
+        edlevel: enemyDesc.dLevel,
+        fixedMoveY: eventData.data6,
         filter: 0x00,
-        evalue: eDesc.value,
-        armor: eDesc.armor,
-        isScoreItem: eDesc.armor <= 0,
+        evalue: enemyDesc.value,
+        armor: enemyDesc.armor,
+        isScoreItem: enemyDesc.armor <= 0,
 
-        exccw: Math.abs(eDesc.xcAccel), eyccw: Math.abs(eDesc.ycAccel), //acceleration change wait time current value
-        exccwmax: Math.abs(eDesc.xcAccel), eyccwmax: Math.abs(eDesc.ycAccel), //wait time
+        exccw: Math.abs(enemyDesc.xcAccel), eyccw: Math.abs(enemyDesc.ycAccel), //acceleration change wait time current value
+        exccwmax: Math.abs(enemyDesc.xcAccel), eyccwmax: Math.abs(enemyDesc.ycAccel), //wait time
     }
 
     switch (enemy.exrev) {
@@ -113,62 +115,62 @@ function fillEnemyData (e: {data2: number, data3: number, data4: number, data5: 
     return enemy;
 }
 
-export function enemyCreate (this: World, e: EnemyCreate): void {
-    switch (e.e.type) {
+export function enemyCreate (this: World, {e}: EnemyCreate): void {
+    switch (e.type) {
         case TyEventType.ENEMY_CREATE_TOP_50:
         case TyEventType.ENEMY_CREATE_GROUND_25:
         case TyEventType.ENEMY_CREATE_GROUND_75:
         case TyEventType.ENEMY_CREATE_SKY_0: {
-            let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
-            let layer = EventTypeToLayerMapping[e.e.type];
+            let layer = EventTypeToLayerMapping[e.type];
+            let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
+            enemy.position.y -= (1+46);
+            enemy.position.x += 12;
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
             Enemy4x4TileOffsets.forEach((ep4x4, typeOffset) => {
-                let enemy = fillEnemyData({...e.e, data6: 0}, this.items.enemies[e.e.data1+typeOffset]);
-                enemy.position.x += ep4x4.x;
-                enemy.position.y += ep4x4.y;
-                let layer = Enemy4x4LayerMapping[e.e.data6];
+                let layer = Enemy4x4LayerMapping[e.data6];
+                let enemy = fillEnemyData({...e, data6: 0}, this.items.enemies[e.data1+typeOffset]);
+                enemy.position.x += ep4x4.x+42;
+                enemy.position.y += ep4x4.y-1-46;
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
+          //  throw 'asdad';
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25:
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75:
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0:
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_50: {
-            let enemy = fillEnemyData(e.e, this.items.enemies[e.e.data1]);
-            let layer = EventTypeToLayerMapping[e.e.type];
-            enemy.position.y = 190 + e.e.data5;
-            registeredEnemies.push({
-                enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            let layer = EventTypeToLayerMapping[e.type];
+            let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
+            enemy.position.y = 190 + e.data5 - 1;
+            registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
         case TyEventType.ENEMY_CREATE_0:
         case TyEventType.ENEMY_CREATE_1:
         case TyEventType.ENEMY_CREATE_2:
         case TyEventType.ENEMY_CREATE_3: {
-            let enemy = fillEnemyData({...e.e, data3: 0, data6: 0}, this.items.enemies[e.e.data3]);
-            let layer = EventTypeToLayerMapping[e.e.type];
+            let layer = EventTypeToLayerMapping[e.type];
+            let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
+            enemy.position.y -= (1+46);
+            enemy.position.x += 12;
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }
 
 }
 
-export function enemiesUpdate (this: World, BTPS: number): void {
+export function enemiesUpdate (this: World, BTPPS: number): void {
     for (let i = 0, l = registeredEnemies.length; i < l; i++) {
         let {enemy, layer, name, position, cycle} = registeredEnemies[i];
 
-        updateSpeed(enemy, BTPS);
-        updateAnimationCycle(enemy, BTPS);
+        updateSpeed(enemy, BTPPS);
+        updateAnimationCycle(enemy, BTPPS);
 
         //position
-        enemy.position.x += BTPS*enemy.exc;
-        enemy.position.y += BTPS*enemy.eyc;
-
-        enemy.position.y += BTPS*enemy.fixedMoveY;
-
-        enemy.position.y += LayerAddFixedMoveY[layer]*BTPS*this.backSpeed[layer];
+        enemy.position.x += BTPPS*enemy.exc;
+        enemy.position.y += BTPPS*(enemy.eyc+enemy.fixedMoveY+LayerAddFixedMoveY[layer]*this.backSpeed[layer]);
 
         //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
@@ -224,11 +226,11 @@ function updateAnimationCycle (enemy: Enemy, BTPS: number) {
     }
 }
 
-function updateSpeed (enemy: Enemy, BTPS: number) {
+function updateSpeed (enemy: Enemy, BTPPS: number) {
     if (enemy.excc) {
-        enemy.exccw -= BTPS;
+        enemy.exccw -= BTPPS;
         if (enemy.exccw <= 0) {
-            enemy.exc += BTPS*Math.sign(enemy.excc);
+            enemy.exc += BTPPS*Math.sign(enemy.excc);
             enemy.exccw = enemy.exccwmax;
             if (Math.abs(enemy.exc) >= Math.abs(enemy.exrev)) {
                 enemy.excc = -enemy.excc;
@@ -237,9 +239,9 @@ function updateSpeed (enemy: Enemy, BTPS: number) {
     }
 
     if (enemy.eycc) {
-        enemy.eyccw -= BTPS;
+        enemy.eyccw -= BTPPS;
         if (enemy.eyccw <= 0) {
-            enemy.eyc += BTPS*Math.sign(enemy.eycc);
+            enemy.eyc += BTPPS*Math.sign(enemy.eycc);
             enemy.eyccw = enemy.eyccwmax;
             if (Math.abs(enemy.eyc) >= Math.abs(enemy.eyrev)) {
                 enemy.eycc = -enemy.eycc;
