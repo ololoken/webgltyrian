@@ -4,6 +4,8 @@ export interface WorldLayer {
     readonly backPos: ObservablePoint;
     registerEnemy (enemy: EnemyGraphic): WorldObject;
     unregisterEnemy (name: string): void;
+
+    registerPlayer(player: PlayerGraphic): WorldObject;
 }
 
 export enum LayerCode {
@@ -18,15 +20,21 @@ export type Layers = [WorldLayer, WorldLayer, WorldLayer];
 
 export type WorldObject = {
     position: ObservablePoint,
-    cycle: ObservablePoint,
+    animationStep: ObservablePoint,
     name: string
+}
+
+export interface PlayerGraphic {
+    shapeBank: number,
+    shipGraphic: number,
+    position: {x: number, y: number}
 }
 
 export type EnemyGraphic = {
     shapeBank: number,
     graphic: number[],
     animationCycle: number,
-    position: {x: number; y: number;}//pos
+    position: {x: number; y: number}
     size: number,
     filter: number,
 }

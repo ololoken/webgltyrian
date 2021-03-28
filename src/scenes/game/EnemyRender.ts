@@ -1,13 +1,7 @@
 import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
 import {EnemyGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
-
-enum Enemy2x2SpriteOffsets {
-    TOP_LEFT = 0,
-    TOP_RIGHT = 1,
-    BTM_LEFT = 19,
-    BTM_RIGHT = 20,
-}
+import {Sprite2x2Offsets} from "./Types";
 
 enum EnemySize {
     s1x1 = 0,
@@ -33,10 +27,10 @@ export class EnemyRender extends Container {
         switch (enemy.size) {
             case EnemySize.s2x2:
                 this.addChild(
-                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.TOP_LEFT])),
-                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.TOP_RIGHT])),
-                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_LEFT])),
-                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Enemy2x2SpriteOffsets.BTM_RIGHT])),
+                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.TOP_LEFT])),
+                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.TOP_RIGHT])),
+                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.BTM_LEFT])),
+                    new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.BTM_RIGHT])),
                 );
                 (<Sprite>this.children[0]).anchor.set(1, 1);
                 (<Sprite>this.children[1]).anchor.set(0, 1);
@@ -53,10 +47,10 @@ export class EnemyRender extends Container {
     private updateAnimation (): void {
         switch (this.children.length) {
             case 4:
-                (<Sprite>this.children[0]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_LEFT];
-                (<Sprite>this.children[1]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.TOP_RIGHT];
-                (<Sprite>this.children[2]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_LEFT];
-                (<Sprite>this.children[3]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Enemy2x2SpriteOffsets.BTM_RIGHT];
+                (<Sprite>this.children[0]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Sprite2x2Offsets.TOP_LEFT];
+                (<Sprite>this.children[1]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Sprite2x2Offsets.TOP_RIGHT];
+                (<Sprite>this.children[2]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Sprite2x2Offsets.BTM_LEFT];
+                (<Sprite>this.children[3]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x] + Sprite2x2Offsets.BTM_RIGHT];
                 break;
             case 1:
                 (<Sprite>this.children[0]).texture.frame = this.atlas.frames[this.graphic[this.cycle.x]];

@@ -15,9 +15,9 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
     /**
      * @param BTPPS number of pixel rows scrolled by ground layer
      */
-    public update (BTPPS: number): void {
+    public update (step: number): void {
         this.events.forEach(e => {
-                let inTime = e.time > this.lastOffset && e.time <= this.lastOffset+BTPPS+Number.EPSILON;
+                let inTime = e.time > this.lastOffset && e.time <= this.lastOffset+step+Number.EPSILON;
                 if (!inTime) {
                     return false;
                 }
@@ -30,7 +30,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
                     return false;
                 }
             });
-        this.lastOffset += BTPPS;
+        this.lastOffset += step;
     }
 
     public emit<K extends EventKey> (e: K, ...o: CreatedEvent<K>[]): boolean {

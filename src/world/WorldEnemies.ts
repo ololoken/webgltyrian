@@ -123,8 +123,8 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_SKY_0: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
-            enemy.position.y -= (1+46);
             enemy.position.x += 12;
+            enemy.position.y -= (this.STEP+46);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
@@ -132,10 +132,9 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
                 let layer = Enemy4x4LayerMapping[e.data6];
                 let enemy = fillEnemyData({...e, data6: 0}, this.items.enemies[e.data1+typeOffset]);
                 enemy.position.x += ep4x4.x+42;
-                enemy.position.y += ep4x4.y-1-46;
+                enemy.position.y += ep4x4.y-this.STEP-46;
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
-          //  throw 'asdad';
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25:
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75:
@@ -143,7 +142,9 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_50: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
-            enemy.position.y = 190 + e.data5 - 1;
+            enemy.position.y = 190 + e.data5;
+            enemy.position.x += 12;
+            enemy.position.y -= (this.STEP+46);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -153,24 +154,24 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_3: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
-            enemy.position.y -= (1+46);
             enemy.position.x += 12;
+            enemy.position.y -= (this.STEP+46);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }
 
 }
 
-export function enemiesUpdate (this: World, BTPPS: number): void {
+export function enemiesUpdate (this: World, step: number): void {
     for (let i = 0, l = registeredEnemies.length; i < l; i++) {
-        let {enemy, layer, name, position, cycle} = registeredEnemies[i];
+        let {enemy, layer, name, position, animationStep} = registeredEnemies[i];
 
-        updateSpeed(enemy, BTPPS);
-        updateAnimationCycle(enemy, BTPPS);
+        updateSpeed(enemy, step);
+        updateAnimationCycle(enemy, step);
 
         //position
-        enemy.position.x += BTPPS*enemy.exc;
-        enemy.position.y += BTPPS*(enemy.eyc+enemy.fixedMoveY+LayerAddFixedMoveY[layer]*this.backSpeed[layer]);
+        enemy.position.x += step*enemy.exc;
+        enemy.position.y += step*(enemy.eyc+enemy.fixedMoveY+LayerAddFixedMoveY[layer]*this.backSpeed[layer]);
 
         //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
@@ -208,13 +209,13 @@ export function enemiesUpdate (this: World, BTPPS: number): void {
         }
 
         position.copyFrom(enemy.position);
-        cycle.set(enemy.animationCycle>>0, 0);
+        animationStep.set(enemy.animationCycle>>0, 0);
     }
 }
 
-function updateAnimationCycle (enemy: Enemy, BTPS: number) {
+function updateAnimationCycle (enemy: Enemy, step: number) {
     if (enemy.animationState == 1) {
-        enemy.animationCycle += BTPS;
+        enemy.animationCycle += step;
 
         if (enemy.animationCycle>>0 == enemy.animationMax) {
             enemy.animationState = 2;//pause or ready to fire?
@@ -226,11 +227,11 @@ function updateAnimationCycle (enemy: Enemy, BTPS: number) {
     }
 }
 
-function updateSpeed (enemy: Enemy, BTPPS: number) {
+function updateSpeed (enemy: Enemy, step: number) {
     if (enemy.excc) {
-        enemy.exccw -= BTPPS;
+        enemy.exccw -= step;
         if (enemy.exccw <= 0) {
-            enemy.exc += BTPPS*Math.sign(enemy.excc);
+            enemy.exc += step*Math.sign(enemy.excc);
             enemy.exccw = enemy.exccwmax;
             if (Math.abs(enemy.exc) >= Math.abs(enemy.exrev)) {
                 enemy.excc = -enemy.excc;
@@ -239,9 +240,9 @@ function updateSpeed (enemy: Enemy, BTPPS: number) {
     }
 
     if (enemy.eycc) {
-        enemy.eyccw -= BTPPS;
+        enemy.eyccw -= step;
         if (enemy.eyccw <= 0) {
-            enemy.eyc += BTPPS*Math.sign(enemy.eycc);
+            enemy.eyc += step*Math.sign(enemy.eycc);
             enemy.eyccw = enemy.eyccwmax;
             if (Math.abs(enemy.eyc) >= Math.abs(enemy.eyrev)) {
                 enemy.eycc = -enemy.eycc;

@@ -73,7 +73,7 @@ type TyPower = Readonly<{
     price: number
 }>
 
-type TyShip = Readonly<{
+export type TyShip = Readonly<{
     nameLength: number,
     name: string,
     shipGraphic: number,

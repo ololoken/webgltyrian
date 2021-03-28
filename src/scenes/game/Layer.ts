@@ -3,8 +3,9 @@ import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "../../Tyrian";
-import {EnemyGraphic, WorldObject, WorldLayer} from "../../world/Types";
+import {EnemyGraphic, WorldObject, WorldLayer, PlayerGraphic} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
+import {PlayerRender} from "./PlayerRender";
 
 type LayerBackOptions = {background: number[], shapesMapping: number[], width: number, height: number};
 
@@ -41,15 +42,24 @@ export class Layer extends Container implements WorldLayer {
     }
 
     public registerEnemy (enemy: EnemyGraphic): WorldObject {
-        let e = this.objectsContainer.addChild(new EnemyRender(enemy));
+        let er = this.objectsContainer.addChild(new EnemyRender(enemy));
         return {
-            name: e.name!,
-            position: e.position,
-            cycle: e.cycle
+            name: er.name!,
+            position: er.position,
+            animationStep: er.cycle
         }
     }
 
     public unregisterEnemy (name: string): void {
         this.objectsContainer.removeChild(this.objectsContainer.getChildByName!(name, false));
+    }
+
+    registerPlayer(player: PlayerGraphic): WorldObject {
+        let plr = this.objectsContainer.addChild(new PlayerRender(player));
+        return {
+            name: plr.name!,
+            position: plr.position,
+            animationStep: plr.animationStep
+        }
     }
 }

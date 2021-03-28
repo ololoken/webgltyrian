@@ -4,7 +4,8 @@ import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./W
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {FPS, MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
-import {BackSpeed, LayerCode, Layers} from "./Types";
+import {BackSpeed, LayerCode, Layers, WorldObject} from "./Types";
+import {Player} from "./Player";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -17,11 +18,17 @@ export class World extends utils.EventEmitter {
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
 
     protected BTPPS = 0;
+    protected readonly STEP = 1;
 
     private enemyCreate = enemyCreate;
     private enemiesUpdate = enemiesUpdate;
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
+
+    private readonly playerOne: Player;
+    private readonly player: WorldObject;
+
+    private keysPressed: {[code: string]: boolean} = {};
 
     protected readonly state = {
         randomEnemies: false,
@@ -39,11 +46,15 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
+        this.playerOne = new Player(100, 100, this.items.ships[1]);
+        this.player = this.layers[LayerCode.SKY].registerPlayer(this.playerOne);
+
         this.eventSystem = new EventSystem(this.map.events);
         this.bindBackEvents();
         this.bindEnemyEvents();
         this.bindLevelEvents();
         this.bindStarEvents();
+        this.bindKeyboardEvents();
     }
 
     private bindBackEvents (): void {
@@ -103,21 +114,66 @@ export class World extends utils.EventEmitter {
 
     public update (delta: number): void {
         //Try to use rule: 1 tyrian speed value = 1 background tile per second
-        //let BTPPS = MAP_TILE_HEIGHT/FPS*delta;
         this.BTPPS += MAP_TILE_HEIGHT/FPS*delta;
-        while (this.BTPPS >= 1) {
-            this.eventSystem.update(1);
-            this.updateBackground(1);
-            this.enemiesUpdate(1);
-            this.BTPPS -= 1;
+        for (;  this.BTPPS >= 1; this.BTPPS -= 1) {
+            this.eventSystem.update(this.STEP);
+            this.updateBackground(this.STEP);
+            this.enemiesUpdate(this.STEP);
+            this.playersUpdate(this.STEP);
         }
     }
 
-    private updateBackground (BTPPS: number) {
+    private updateBackground (step: number): void {
         //todo: add parallax effect here when player will be ready
-        this.layers[LayerCode.GND].backPos.y += BTPPS*this.backSpeed[LayerCode.GND];
-        this.layers[LayerCode.SKY].backPos.y += BTPPS*this.backSpeed[LayerCode.SKY];
-        this.layers[LayerCode.TOP].backPos.y += BTPPS*this.backSpeed[LayerCode.TOP];
+        this.layers[LayerCode.GND].backPos.y += step*this.backSpeed[LayerCode.GND];
+        this.layers[LayerCode.SKY].backPos.y += step*this.backSpeed[LayerCode.SKY];
+        this.layers[LayerCode.TOP].backPos.y += step*this.backSpeed[LayerCode.TOP];
     }
 
+    private bindKeyboardEvents (): void {
+        window.addEventListener('keydown', (e) => {
+            this.keysPressed[e.code] = true;
+            e.preventDefault();
+        })
+        window.addEventListener('keyup', (e) => {
+            this.keysPressed[e.code] = false;
+            e.preventDefault();
+        })
+    }
+
+    private playersUpdate (step: number): void {
+        if (this.keysPressed['ArrowLeft']) {
+            this.playerOne.xAccel = Math.max(-2, this.playerOne.xAccel-step);
+        }
+        if (this.keysPressed['ArrowRight']) {
+            this.playerOne.xAccel = Math.min(2, this.playerOne.xAccel+step);
+        }
+        if (!this.keysPressed['ArrowLeft'] && !this.keysPressed['ArrowRight']) {
+            this.playerOne.xAccel = 0;
+        }
+
+        if (this.keysPressed['ArrowUp']) {
+            this.playerOne.yAccel = Math.max(-2, this.playerOne.yAccel-step);
+        }
+        if (this.keysPressed['ArrowDown']) {
+            this.playerOne.yAccel = Math.min(2, this.playerOne.yAccel+step);
+        }
+        if (!this.keysPressed['ArrowUp'] && !this.keysPressed['ArrowDown']) {
+            this.playerOne.yAccel = 0;
+        }
+
+        this.playerOne.xc += this.playerOne.xAccel;
+        this.playerOne.yc += this.playerOne.yAccel;
+
+        this.playerOne.xc = Math.min(4, Math.max(-4, this.playerOne.xc-Math.sign(this.playerOne.xc)));
+        this.playerOne.yc = Math.min(4, Math.max(-4, this.playerOne.yc-Math.sign(this.playerOne.yc)));
+
+        this.playerOne.banking = Math.max(-2, Math.min(2, Math.floor(this.playerOne.xc/2)));
+
+        this.playerOne.position.x += this.playerOne.xc;
+        this.playerOne.position.y += this.playerOne.yc;
+
+        this.player.position.copyFrom(this.playerOne.position);
+        this.player.animationStep.x = this.playerOne.banking*2+this.playerOne.shipGraphic;
+    }
 }
