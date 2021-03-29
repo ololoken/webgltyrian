@@ -16,6 +16,7 @@ export class World extends utils.EventEmitter {
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
+    protected readonly playerBounds: Rectangle = new Rectangle(20, 20, 240, 150);
 
     protected BTPPS = 0;
     protected readonly STEP = 1;
@@ -172,6 +173,19 @@ export class World extends utils.EventEmitter {
 
         this.playerOne.position.x += this.playerOne.xc;
         this.playerOne.position.y += this.playerOne.yc;
+
+        if (this.playerBounds.x > this.playerOne.position.x) {
+            this.playerOne.position.x = this.playerBounds.x;
+        }
+        if (this.playerBounds.y > this.playerOne.position.y) {
+            this.playerOne.position.y = this.playerBounds.y;
+        }
+        if (this.playerBounds.x+this.playerBounds.width < this.playerOne.position.x) {
+            this.playerOne.position.x = this.playerBounds.x+this.playerBounds.width;
+        }
+        if (this.playerBounds.y+this.playerBounds.height < this.playerOne.position.y) {
+            this.playerOne.position.y = this.playerBounds.y+this.playerBounds.height;
+        }
 
         this.player.position.copyFrom(this.playerOne.position);
         this.player.animationStep.x = this.playerOne.banking*2+this.playerOne.shipGraphic;
