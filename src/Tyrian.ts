@@ -13,9 +13,11 @@ export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
                                  autoStart: false, antialias: false});
     const stats = new Stats();
     stats.showPanel(0);
+    stats.dom.style.cssText = 'position:fixed;top:0;right:0;cursor:pointer;opacity:0.9;z-index:10000';
 
-    app.view.style.display = 'block';
-    app.view.style.margin = '0 auto'
+    app.view.style.cssText = 'float:left;';
+
+    document.body.style.cssText = 'padding:0;margin:0';
     document.body.appendChild(app.view);
     document.body.appendChild(stats.dom);
 

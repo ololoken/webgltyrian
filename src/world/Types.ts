@@ -1,22 +1,25 @@
 import {ObservablePoint} from "pixi.js";
 
-export interface WorldLayer {
+export interface IWorldLayer {
     readonly backPos: ObservablePoint;
-    registerEnemy (enemy: EnemyGraphic): WorldObject;
-    unregisterEnemy (name: string): void;
+    unregisterObject (name: string): void;
 
+    registerEnemy (enemy: EnemyGraphic): WorldObject;
+}
+
+export interface IPlayerLayer {
     registerPlayer(player: PlayerGraphic): WorldObject;
 }
 
 export enum LayerCode {
     GND = 0,
     SKY = 1,
-    TOP = 2
+    TOP = 2,
 }
 
 export type BackSpeed = [number, number, number];
 
-export type Layers = [WorldLayer, WorldLayer, WorldLayer];
+export type Layers = [IWorldLayer, IWorldLayer, IWorldLayer];
 
 export type WorldObject = {
     position: ObservablePoint,

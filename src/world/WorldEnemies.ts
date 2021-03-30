@@ -180,7 +180,7 @@ export function enemiesUpdate (this: World, step: number): void {
         if (readyToGC) {
             registeredEnemies.splice(i--, 1);
             l--;
-            this.layers[layer].unregisterEnemy(name);
+            this.layers[layer].unregisterObject(name);
             continue;
         }
 

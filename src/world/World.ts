@@ -4,7 +4,7 @@ import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./W
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {FPS, MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
-import {BackSpeed, LayerCode, Layers, WorldObject} from "./Types";
+import {BackSpeed, IPlayerLayer, LayerCode, Layers, WorldObject} from "./Types";
 import {Player} from "./Player";
 
 export class World extends utils.EventEmitter {
@@ -16,7 +16,7 @@ export class World extends utils.EventEmitter {
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
-    protected readonly playerBounds: Rectangle = new Rectangle(20, 20, 240, 150);
+    protected readonly playerBounds: Rectangle = new Rectangle(15, 15, 235, 155);
 
     protected BTPPS = 0;
     protected readonly STEP = 1;
@@ -37,7 +37,7 @@ export class World extends utils.EventEmitter {
         topEnemyOver: false,
     }
 
-    constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers) {
+    constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
         super();
         this.map = map;
         this.items = items;
@@ -47,8 +47,8 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(100, 100, this.items.ships[1]);
-        this.player = this.layers[LayerCode.SKY].registerPlayer(this.playerOne);
+        this.playerOne = new Player(130, 155, this.items.ships[1]);
+        this.player = playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
         this.bindBackEvents();
@@ -126,6 +126,8 @@ export class World extends utils.EventEmitter {
 
     private updateBackground (step: number): void {
         //todo: add parallax effect here when player will be ready
+        let tempW = Math.floor((260 - (this.playerOne.position.x - 36)) / (260 - 36) * (24 * 3) - 1);
+
         this.layers[LayerCode.GND].backPos.y += step*this.backSpeed[LayerCode.GND];
         this.layers[LayerCode.SKY].backPos.y += step*this.backSpeed[LayerCode.SKY];
         this.layers[LayerCode.TOP].backPos.y += step*this.backSpeed[LayerCode.TOP];

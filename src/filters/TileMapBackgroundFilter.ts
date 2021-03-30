@@ -73,9 +73,8 @@ void main() {
 
     public readonly backgroundOffset = new Point(0, 0);
 
-    public constructor (background: number[], shapesMapping: number[], atlas: TextureAtlas,
-                        outWidth: number, outHeight: number,
-                        backgroundWidth: number, backgroundHeight: number) {
+    public constructor (atlas: TextureAtlas, outWidth: number, outHeight: number,
+                        background: number[], backgroundWidth: number, backgroundHeight: number) {
         super(TileMapBackgroundFilter.vertexShader, TileMapBackgroundFilter.fragmentShader);
 
         this.uniforms.uAtlas = atlas.texture;
@@ -83,7 +82,7 @@ void main() {
         this.uniforms.uTileSize = [MAP_TILE_WIDTH, MAP_TILE_HEIGHT];
         this.uniforms.uOutSize = [outWidth, outHeight];
 
-        this.uniforms.uMapping = this.toTexture(background, shapesMapping, atlas.frames);
+        this.uniforms.uMapping = this.toTexture(background, atlas.frames);
         this.uniforms.uMappingSize = [this.mappingTextureSize, this.mappingTextureSize];
         this.uniforms.uBackgroundSize = [backgroundWidth, backgroundHeight];
         this.uniforms.uBackgroundOffset = this.backgroundOffset;
@@ -91,10 +90,9 @@ void main() {
         this.autoFit = false;
     }
 
-    private toTexture (background: number[], shapesMapping: number[], frames: Rectangle[]): Texture {
+    private toTexture (background: number[], frames: Rectangle[]): Texture {
         return new Texture(BaseTexture.fromBuffer(background.reduce((buffer, shapeId, idx) => {
-                //pascal specific -1
-                let rect = frames[shapesMapping[shapeId]];
+                let rect = frames[shapeId];
                 buffer[4 * idx + 0] = 0;
                 buffer[4 * idx + 1] = 0;
                 buffer[4 * idx + 2] = rect.x/MAP_TILE_WIDTH;
