@@ -49,19 +49,20 @@ uniform vec2 uMappingSize;//uBackground size
 uniform vec2 uBackgroundSize;//background size in tiles
 uniform vec2 uBackgroundOffset;//background offset in pixels
 
-void main() {
+void main () {
     vec2 uv = vTextureCoord/outputFrame.zw*inputSize.xy;//remap to [0..1] as output depends on "inner" tileset
-    vec2 screenTile = uv*(uOutSize/uTileSize)+uBackgroundOffset/uTileSize;
+    vec2 tileAtlas = uTileSize/uAtlasSize;
+    vec2 screenTile = (uv*uOutSize+uBackgroundOffset)/uTileSize;
 
     vec2 tileCoord = floor(screenTile);
-    vec2 tileInnerCoord = (floor(fract(screenTile)*uTileSize)+0.5)/uTileSize*uTileSize/uAtlasSize;
+    vec2 tileInnerCoord = (floor(fract(screenTile)*uTileSize)+0.5)/uTileSize*tileAtlas;
 
     float mappingIndex = tileCoord.y*uBackgroundSize.x+tileCoord.x;
     float mappingY = floor(mappingIndex/uMappingSize.x);
     float mappingX = mappingIndex-mappingY*uMappingSize.x;
     vec2 shapeCoord = vec2(mappingX, mappingY)/uMappingSize;
     
-    vec2 tileAtlasCoord = texture2D(uMapping, shapeCoord).zw*uTileSize*255.0/uAtlasSize;
+    vec2 tileAtlasCoord = 255.0*texture2D(uMapping, shapeCoord).zw*tileAtlas;
 
     vec4 tileColor = texture2D(uAtlas, tileAtlasCoord+tileInnerCoord);
     gl_FragColor = tileColor;
