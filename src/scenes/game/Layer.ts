@@ -40,8 +40,8 @@ export class Layer extends Container implements IWorldLayer {
             //while "world" moves forward background is rewinding back
             this.backRenderer.backgroundOffset.set(this.backPos.x, initialScreenPos-this.backPos.y), this, 0, 0);
         this.parallaxOffset = new ObservablePoint<Layer>(() => {
-            this.backSprite.position.x = this.parallaxOffset.x;
             this.objectsContainer.position.x = this.parallaxOffset.x;
+            this.backSprite.position.x = this.parallaxOffset.x;
         }, this);
     }
 

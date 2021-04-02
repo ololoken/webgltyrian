@@ -54,7 +54,7 @@ void main() {
     vec2 screenTile = uv*(uOutSize/uTileSize)+uBackgroundOffset/uTileSize;
 
     vec2 tileCoord = floor(screenTile);
-    vec2 tileInnerCoord = fract(screenTile)*uTileSize/uAtlasSize;
+    vec2 tileInnerCoord = (floor(fract(screenTile)*uTileSize)+0.5)/uTileSize*uTileSize/uAtlasSize;
 
     float mappingIndex = tileCoord.y*uBackgroundSize.x+tileCoord.x;
     float mappingY = floor(mappingIndex/uMappingSize.x);

@@ -18,8 +18,7 @@ export class World extends utils.EventEmitter {
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
     protected readonly playerBounds: Rectangle = new Rectangle(MAP_TILE_WIDTH, 15, MAP_TILE_WIDTH*9, 155);
 
-    protected BTPPS = 0;
-    protected readonly STEP = 1;
+    protected STEP = 0;
 
     private enemyCreate = enemyCreate;
     private enemiesUpdate = enemiesUpdate;
@@ -114,14 +113,11 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-        //Try to use rule: 1 tyrian speed value = 1 background tile per second
-        this.BTPPS += MAP_TILE_HEIGHT/FPS*delta;
-        for (;  this.BTPPS >= 1; this.BTPPS -= 1) {
-            this.eventSystem.update(this.STEP);
-            this.updateBackground(this.STEP);
-            this.enemiesUpdate(this.STEP);
-            this.playersUpdate(this.STEP);
-        }
+        this.STEP = MAP_TILE_HEIGHT/FPS;
+        this.eventSystem.update(this.STEP);
+        this.updateBackground(this.STEP);
+        this.enemiesUpdate(this.STEP);
+        this.playersUpdate(this.STEP);
     }
 
     private updateBackground (step: number): void {
@@ -168,16 +164,19 @@ export class World extends utils.EventEmitter {
             this.playerOne.yAccel = 0;
         }
 
-        this.playerOne.xc += this.playerOne.xAccel;
-        this.playerOne.yc += this.playerOne.yAccel;
+        this.playerOne.xc += step*this.playerOne.xAccel;
+        this.playerOne.yc += step*this.playerOne.yAccel;
 
-        this.playerOne.xc = Math.min(4, Math.max(-4, this.playerOne.xc-Math.sign(this.playerOne.xc)));
-        this.playerOne.yc = Math.min(4, Math.max(-4, this.playerOne.yc-Math.sign(this.playerOne.yc)));
+        this.playerOne.xc = Math.min(4, Math.max(-4, this.playerOne.xc));
+        this.playerOne.yc = Math.min(4, Math.max(-4, this.playerOne.yc));
 
         this.playerOne.banking = Math.max(-2, Math.min(2, Math.floor(this.playerOne.xc/2)));
 
-        this.playerOne.position.x += this.playerOne.xc;
-        this.playerOne.position.y += this.playerOne.yc;
+        this.playerOne.position.x += step*this.playerOne.xc;
+        this.playerOne.position.y += step*this.playerOne.yc;
+
+        this.playerOne.xc = Math.sign(this.playerOne.xc)*(Math.max(0, Math.abs(this.playerOne.xc)-0.45*step));
+        this.playerOne.yc = Math.sign(this.playerOne.yc)*(Math.max(0, Math.abs(this.playerOne.yc)-0.45*step));
 
         if (this.playerBounds.x > this.playerOne.position.x) {
             this.playerOne.position.x = this.playerBounds.x;
@@ -193,6 +192,6 @@ export class World extends utils.EventEmitter {
         }
 
         this.player.position.copyFrom(this.playerOne.position);
-        this.player.animationStep.x = this.playerOne.banking*2+this.playerOne.shipGraphic;
+        this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
     }
 }
