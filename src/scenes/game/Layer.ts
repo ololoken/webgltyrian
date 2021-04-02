@@ -2,7 +2,7 @@ import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
 import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
-import {MAIN_HEIGHT, MAIN_WIDTH} from "../../Tyrian";
+import {MAIN_HEIGHT} from "../../Tyrian";
 import {EnemyGraphic, WorldObject, IWorldLayer} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
 
@@ -13,6 +13,7 @@ export class Layer extends Container implements IWorldLayer {
     private readonly backRenderer: TileMapBackgroundFilter;
 
     public readonly backPos: ObservablePoint<Layer>;
+    public readonly parallaxOffset: ObservablePoint<Layer>;
 
     private objectsContainer: Container = new Container();
 
@@ -38,6 +39,10 @@ export class Layer extends Container implements IWorldLayer {
         this.backPos = new ObservablePoint<Layer>(() =>
             //while "world" moves forward background is rewinding back
             this.backRenderer.backgroundOffset.set(this.backPos.x, initialScreenPos-this.backPos.y), this, 0, 0);
+        this.parallaxOffset = new ObservablePoint<Layer>(() => {
+            this.backSprite.position.x = this.parallaxOffset.x;
+            this.objectsContainer.position.x = this.parallaxOffset.x;
+        }, this);
     }
 
     public registerEnemy (enemy: EnemyGraphic): WorldObject {

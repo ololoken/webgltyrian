@@ -124,7 +124,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.x += 12;
-            enemy.position.y -= (this.STEP+46);
+            enemy.position.y += -this.STEP-46;
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
@@ -144,7 +144,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.y = 190 + e.data5;
             enemy.position.x += 12;
-            enemy.position.y -= (this.STEP+46);
+            enemy.position.y += -this.STEP-46;
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -155,7 +155,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
             enemy.position.x += 12;
-            enemy.position.y -= (this.STEP+46);
+            enemy.position.y += -this.STEP-46;
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }

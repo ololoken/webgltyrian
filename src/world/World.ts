@@ -16,7 +16,7 @@ export class World extends utils.EventEmitter {
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
-    protected readonly playerBounds: Rectangle = new Rectangle(15, 15, 235, 155);
+    protected readonly playerBounds: Rectangle = new Rectangle(MAP_TILE_WIDTH, 15, MAP_TILE_WIDTH*9, 155);
 
     protected BTPPS = 0;
     protected readonly STEP = 1;
@@ -125,8 +125,11 @@ export class World extends utils.EventEmitter {
     }
 
     private updateBackground (step: number): void {
-        //todo: add parallax effect here when player will be ready
-        let tempW = Math.floor((260 - (this.playerOne.position.x - 36)) / (260 - 36) * (24 * 3) - 1);
+        let parallaxOffset = (1-this.playerOne.position.x/260)*MAP_TILE_WIDTH*3;
+
+        this.layers[LayerCode.GND].parallaxOffset.x = parallaxOffset/3-MAP_TILE_WIDTH*3;
+        this.layers[LayerCode.SKY].parallaxOffset.x = parallaxOffset*2/3-MAP_TILE_WIDTH*3;
+        this.layers[LayerCode.TOP].parallaxOffset.x = parallaxOffset-MAP_TILE_WIDTH*3;
 
         this.layers[LayerCode.GND].backPos.y += step*this.backSpeed[LayerCode.GND];
         this.layers[LayerCode.SKY].backPos.y += step*this.backSpeed[LayerCode.SKY];
