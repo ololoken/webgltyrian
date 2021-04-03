@@ -3,7 +3,7 @@ import {EventSystem} from "./EventSystem";
 import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
-import {FPS, MAIN_HEIGHT, MAIN_WIDTH} from "../Tyrian";
+import {FPS, MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {BackSpeed, IPlayerLayer, LayerCode, Layers, WorldObject} from "./Types";
 import {Player} from "./Player";
 
@@ -121,11 +121,11 @@ export class World extends utils.EventEmitter {
     }
 
     private updateBackground (step: number): void {
-        let parallaxOffset = (1-this.playerOne.position.x/260)*MAP_TILE_WIDTH*3;
+        let parallax = this.playerOne.position.x/260;
 
-        this.layers[LayerCode.GND].parallaxOffset.x = parallaxOffset/3-MAP_TILE_WIDTH*3;
-        this.layers[LayerCode.SKY].parallaxOffset.x = parallaxOffset*2/3-MAP_TILE_WIDTH*3;
-        this.layers[LayerCode.TOP].parallaxOffset.x = parallaxOffset-MAP_TILE_WIDTH*3;
+        this.layers[LayerCode.GND].parallaxOffset.x = (-MAP_TILE_WIDTH*(1*parallax+2)*SCALE>>0)/SCALE;
+        this.layers[LayerCode.SKY].parallaxOffset.x = (-MAP_TILE_WIDTH*(2*parallax+1)*SCALE>>0)/SCALE;
+        this.layers[LayerCode.TOP].parallaxOffset.x = (-MAP_TILE_WIDTH*(3*parallax+0)*SCALE>>0)/SCALE;
 
         this.layers[LayerCode.GND].backPos.y += step*this.backSpeed[LayerCode.GND];
         this.layers[LayerCode.SKY].backPos.y += step*this.backSpeed[LayerCode.SKY];
