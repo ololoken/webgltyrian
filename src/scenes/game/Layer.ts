@@ -26,12 +26,10 @@ export class Layer extends Container implements IWorldLayer {
             atlas, this.backSprite.width, this.backSprite.height,
             opts.background, opts.mapWidth, opts.mapHeight);
         this.backSprite.filters = [this.backRenderer, cache.palettes[0]];
-        this.backSprite.position.set((260-this.backSprite.width)/2, 0);
 
         this.objectsContainer.filters = [cache.palettes[0]];
         this.objectsContainer.width = this.backSprite.width;
         this.objectsContainer.height = this.backSprite.height;
-        this.objectsContainer.position.copyFrom(this.backSprite);
 
         this.addChild(this.backSprite, this.objectsContainer);
 

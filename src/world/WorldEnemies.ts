@@ -115,6 +115,8 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
     return enemy;
 }
 
+const fract = (x: number) => x-Math.trunc(x);
+
 export function enemyCreate (this: World, {e}: EnemyCreate): void {
     switch (e.type) {
         case TyEventType.ENEMY_CREATE_TOP_50:
@@ -124,7 +126,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.x += 12;
-            enemy.position.y += -this.STEP-46;
+            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
@@ -132,7 +134,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
                 let layer = Enemy4x4LayerMapping[e.data6];
                 let enemy = fillEnemyData({...e, data6: 0}, this.items.enemies[e.data1+typeOffset]);
                 enemy.position.x += ep4x4.x+42;
-                enemy.position.y += ep4x4.y-this.STEP-46;
+                enemy.position.y += ep4x4.y-47+fract(this.layers[layer].backPos.y);
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
         } break;
@@ -144,7 +146,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.y = 190 + e.data5;
             enemy.position.x += 12;
-            enemy.position.y += -this.STEP-46;
+            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -155,7 +157,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
             enemy.position.x += 12;
-            enemy.position.y += -this.STEP-46;
+            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }

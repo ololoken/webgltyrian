@@ -113,7 +113,7 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-        this.STEP = MAP_TILE_HEIGHT/FPS;
+        this.STEP = MAP_TILE_HEIGHT/FPS*delta;
         this.eventSystem.update(this.STEP);
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);
