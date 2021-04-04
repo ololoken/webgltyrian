@@ -39,6 +39,7 @@ export class EnemyRender extends Container {
                 break;
             case EnemySize.s1x1:
                 this.addChild(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
+                (<Sprite>this.children[0]).anchor.set(0.5, 0.5);
                 break;
             default: throw new Error('eh?')
         }

@@ -72,8 +72,10 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
         animationMax: animationTypes[enemyDesc.animationType].max,
         animationMin: 0,
         position: {
-            x: enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) + eventData.data2,
-            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) + eventData.data5,
+            x: eventData.data2 == -99
+                ? enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) + eventData.data2 - enemyDesc.xcStart
+                : eventData.data2,
+            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) + eventData.data5 - enemyDesc.ycStart,
         },
         exc: enemyDesc.xMove,
         eyc: enemyDesc.yMove + eventData.data3,
@@ -126,7 +128,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.x += 12;
-            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
+            enemy.position.y += -46+(fract(this.layers[layer].backPos.y)-this.backSpeed[layer]);
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
@@ -134,7 +136,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
                 let layer = Enemy4x4LayerMapping[e.data6];
                 let enemy = fillEnemyData({...e, data6: 0}, this.items.enemies[e.data1+typeOffset]);
                 enemy.position.x += ep4x4.x+42;
-                enemy.position.y += ep4x4.y-47+fract(this.layers[layer].backPos.y);
+                enemy.position.y += -46+ep4x4.y+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
         } break;
@@ -146,7 +148,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.y = 190 + e.data5;
             enemy.position.x += 12;
-            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
+            enemy.position.y += -46+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -157,7 +159,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
             enemy.position.x += 12;
-            enemy.position.y += -47+fract(this.layers[layer].backPos.y);
+            enemy.position.y += -46+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }
@@ -236,7 +238,7 @@ function updateSpeed (enemy: Enemy, step: number) {
             enemy.exc += step*Math.sign(enemy.excc);
             enemy.exccw = enemy.exccwmax;
             if (Math.abs(enemy.exc) >= Math.abs(enemy.exrev)) {
-                enemy.excc = -enemy.excc;
+                enemy.excc = -Math.abs(enemy.exrev)*Math.sign(enemy.excc);
             }
         }
     }
@@ -247,7 +249,7 @@ function updateSpeed (enemy: Enemy, step: number) {
             enemy.eyc += step*Math.sign(enemy.eycc);
             enemy.eyccw = enemy.eyccwmax;
             if (Math.abs(enemy.eyc) >= Math.abs(enemy.eyrev)) {
-                enemy.eycc = -enemy.eycc;
+                enemy.eycc = -Math.abs(enemy.eyrev)*Math.sign(enemy.eycc);
             }
         }
     }
@@ -262,7 +264,6 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                 case e.e.data3 > 79 && e.e.data3 < 90:
                     enemies = registeredEnemies.filter(by => by.enemy.linknum == e.e.data3 - 80);
                     break;
-
                 case e.e.data3 == 0:
                     enemies = registeredEnemies.filter(by => by.enemy.linknum == e.e.data4);
                     break;

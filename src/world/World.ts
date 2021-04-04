@@ -15,7 +15,7 @@ export class World extends utils.EventEmitter {
     protected readonly backSpeed: BackSpeed = [0, 0, 0];
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
-    protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 360);
+    protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 380);
     protected readonly playerBounds: Rectangle = new Rectangle(MAP_TILE_WIDTH, 15, MAP_TILE_WIDTH*9, 155);
 
     protected STEP = 0;
