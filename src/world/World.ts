@@ -3,7 +3,7 @@ import {EventSystem} from "./EventSystem";
 import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
-import {FPS, MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
+import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {BackSpeed, IPlayerLayer, LayerCode, Layers, WorldObject} from "./Types";
 import {Player} from "./Player";
 
@@ -113,7 +113,7 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-        this.STEP = MAP_TILE_HEIGHT/FPS*delta;
+        this.STEP = 1;
         this.eventSystem.update(this.STEP);
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);

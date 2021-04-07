@@ -72,13 +72,11 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
         animationMax: animationTypes[enemyDesc.animationType].max,
         animationMin: 0,
         position: {
-            x: eventData.data2 == -99
-                ? enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) + eventData.data2 - enemyDesc.xcStart
-                : eventData.data2,
-            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) + eventData.data5 - enemyDesc.ycStart,
+            x: enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) - enemyDesc.xcStart + 1,
+            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) - enemyDesc.ycStart + 1,
         },
         exc: enemyDesc.xMove,
-        eyc: enemyDesc.yMove + eventData.data3,
+        eyc: enemyDesc.yMove,
         excc: enemyDesc.xcAccel,
         eycc: enemyDesc.ycAccel,
         special: false,
@@ -104,6 +102,16 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
         exccwmax: Math.abs(enemyDesc.xcAccel), eyccwmax: Math.abs(enemyDesc.ycAccel), //wait time
     }
 
+    if (eventData.data2 !== -99) {
+        enemy.position.x = eventData.data2;
+        enemy.position.y = -28;
+    }
+
+    enemy.position.y += eventData.data5;
+    enemy.eyc += eventData.data3;
+
+
+
     switch (enemy.exrev) {
         case -99: enemy.exrev = 0; break;
         case 0: enemy.exrev = 100; break;
@@ -117,26 +125,35 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
     return enemy;
 }
 
-const fract = (x: number) => x-Math.trunc(x);
-
 export function enemyCreate (this: World, {e}: EnemyCreate): void {
     switch (e.type) {
-        case TyEventType.ENEMY_CREATE_TOP_50:
+        case TyEventType.ENEMY_CREATE_TOP_50: {
+            let layer = EventTypeToLayerMapping[e.type];
+            let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
+            enemy.position.y += -28-this.backSpeed[layer];
+            registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+        } break;
         case TyEventType.ENEMY_CREATE_GROUND_25:
-        case TyEventType.ENEMY_CREATE_GROUND_75:
+        case TyEventType.ENEMY_CREATE_GROUND_75: {
+            let layer = EventTypeToLayerMapping[e.type];
+            let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
+            enemy.position.x += 30;
+            enemy.position.y += -28-this.backSpeed[layer];
+            registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+        } break;
         case TyEventType.ENEMY_CREATE_SKY_0: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
-            enemy.position.x += 12;
-            enemy.position.y += -46+(fract(this.layers[layer].backPos.y)-this.backSpeed[layer]);
+            enemy.position.x += 30;
+            enemy.position.y += -28-this.backSpeed[layer];
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
             Enemy4x4TileOffsets.forEach((ep4x4, typeOffset) => {
                 let layer = Enemy4x4LayerMapping[e.data6];
-                let enemy = fillEnemyData({...e, data6: 0}, this.items.enemies[e.data1+typeOffset]);
-                enemy.position.x += ep4x4.x+42;
-                enemy.position.y += -46+ep4x4.y+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
+                let enemy = fillEnemyData(e, this.items.enemies[e.data1+typeOffset]);
+                enemy.position.x += 30+ep4x4.x;
+                enemy.position.y += -32+ep4x4.y-this.backSpeed[layer];
                 registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
         } break;
@@ -147,8 +164,6 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1]);
             enemy.position.y = 190 + e.data5;
-            enemy.position.x += 12;
-            enemy.position.y += -46+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -158,8 +173,6 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_3: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData({...e, data3: 0, data6: 0}, this.items.enemies[e.data3]);
-            enemy.position.x += 12;
-            enemy.position.y += -46+fract(this.layers[layer].backPos.y)-this.backSpeed[layer];
             registeredEnemies.push({enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
     }

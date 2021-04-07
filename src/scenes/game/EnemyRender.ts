@@ -2,6 +2,7 @@ import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
 import {EnemyGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
 import {Sprite2x2Offsets} from "./Types";
+import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH} from "../../Structs";
 
 enum EnemySize {
     s1x1 = 0,
@@ -32,14 +33,17 @@ export class EnemyRender extends Container {
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.BTM_LEFT])),
                     new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0] + Sprite2x2Offsets.BTM_RIGHT])),
                 );
-                (<Sprite>this.children[0]).anchor.set(1, 1);
+                (<Sprite>this.children[0]).position.set(0, 0);
+                (<Sprite>this.children[1]).position.set(COMP_TILE_WIDTH, 0);
+                (<Sprite>this.children[2]).position.set(0, COMP_TILE_HEIGHT);
+                (<Sprite>this.children[3]).position.set(COMP_TILE_WIDTH, COMP_TILE_HEIGHT);
+                /*(<Sprite>this.children[0]).anchor.set(1, 1);
                 (<Sprite>this.children[1]).anchor.set(0, 1);
                 (<Sprite>this.children[2]).anchor.set(1, 0);
-                (<Sprite>this.children[3]).anchor.set(0, 0);
+                (<Sprite>this.children[3]).anchor.set(0, 0);*/
                 break;
             case EnemySize.s1x1:
                 this.addChild(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
-                (<Sprite>this.children[0]).anchor.set(0.5, 0.5);
                 break;
             default: throw new Error('eh?')
         }
