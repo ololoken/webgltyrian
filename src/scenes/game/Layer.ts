@@ -19,6 +19,7 @@ export class Layer extends Container implements IWorldLayer {
 
     public constructor (atlas: TextureAtlas, opts: LayerBackOptions) {
         super();
+        this.sortableChildren = true;
         this.backSprite = new Sprite(Texture.EMPTY);
         this.backSprite.width = opts.mapWidth*MAP_TILE_WIDTH;
         this.backSprite.height = MAIN_HEIGHT;
@@ -54,5 +55,9 @@ export class Layer extends Container implements IWorldLayer {
 
     public unregisterObject (name: string): void {
         this.objectsContainer.removeChild(this.objectsContainer.getChildByName!(name, false));
+    }
+
+    public backSpriteOnTop (state: boolean): void {
+        this.backSprite.zIndex = state ? 100 : 0;
     }
 }

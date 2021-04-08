@@ -18,7 +18,7 @@ export class World extends utils.EventEmitter {
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 380);
     protected readonly playerBounds: Rectangle = new Rectangle(MAP_TILE_WIDTH, 15, MAP_TILE_WIDTH*9, 155);
 
-    protected STEP = 0;
+    protected STEP = 1;
 
     private enemyCreate = enemyCreate;
     private enemiesUpdate = enemiesUpdate;
@@ -33,7 +33,6 @@ export class World extends utils.EventEmitter {
     protected readonly state = {
         randomEnemies: false,
         enemySmallAdjustPos: false,
-        topEnemyOver: false,
     }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
@@ -69,7 +68,14 @@ export class World extends utils.EventEmitter {
         this.eventSystem.on('Back2NotTransparent', e => console.log('Back2NotTransparent', e));
         this.eventSystem.on('Back3EnemyOffset', e => console.log('Back3EnemyOffset', e));
         this.eventSystem.on('BackJump', e => console.log('BackJump', e));
-        this.eventSystem.on('BackOverSwitch', e => console.log('BackOverSwitch', e));
+        this.eventSystem.on('BackOverSwitch', e => {
+            switch (e.backTopOver) {
+                case 0: this.layers[LayerCode.TOP].backSpriteOnTop(false); break;
+                case 1: this.layers[LayerCode.TOP].backSpriteOnTop(true); break;
+                case 2: break;
+            }
+            console.log('BackOverSwitch', e);
+        });
         this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
         this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
     }
@@ -101,7 +107,7 @@ export class World extends utils.EventEmitter {
         this.eventSystem.on('EnemySmallAdjustPos', e => this.state.enemySmallAdjustPos = e.state);
         this.eventSystem.on('EnemySpawn', e => console.log('EnemySpawn', e));
         this.eventSystem.on('EnemyBossLinkNum', e => console.log('EnemyBossLinkNum', e));
-        this.eventSystem.on('EnemiesOverSwitch', e => this.state.topEnemyOver = e.state);
+        this.eventSystem.on('EnemiesOverSwitch', e => console.log('EnemiesOverSwitch', e));
         this.eventSystem.on('EnemiesContinualDamage', e => console.log('EnemiesContinualDamage', e));
         this.eventSystem.on('EnemyCreate', e => this.enemyCreate(e));
     }
@@ -113,7 +119,6 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-        this.STEP = 1;
         this.eventSystem.update(this.STEP);
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);

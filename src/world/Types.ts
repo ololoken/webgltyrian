@@ -3,6 +3,9 @@ import {ObservablePoint, Sprite} from "pixi.js";
 export interface IWorldLayer {
     readonly backPos: ObservablePoint;
     readonly parallaxOffset: ObservablePoint;
+
+    backSpriteOnTop (state: boolean): void
+
     unregisterObject (name: string): void;
 
     registerEnemy (enemy: EnemyGraphic): WorldObject;
