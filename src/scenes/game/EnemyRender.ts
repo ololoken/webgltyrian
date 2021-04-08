@@ -37,10 +37,6 @@ export class EnemyRender extends Container {
                 (<Sprite>this.children[1]).position.set(COMP_TILE_WIDTH, 0);
                 (<Sprite>this.children[2]).position.set(0, COMP_TILE_HEIGHT);
                 (<Sprite>this.children[3]).position.set(COMP_TILE_WIDTH, COMP_TILE_HEIGHT);
-                /*(<Sprite>this.children[0]).anchor.set(1, 1);
-                (<Sprite>this.children[1]).anchor.set(0, 1);
-                (<Sprite>this.children[2]).anchor.set(1, 0);
-                (<Sprite>this.children[3]).anchor.set(0, 0);*/
                 break;
             case EnemySize.s1x1:
                 this.addChild(new Sprite(new Texture(this.atlas.texture, this.atlas.frames[this.graphic[0]])));
