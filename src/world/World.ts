@@ -25,7 +25,7 @@ export class World extends utils.EventEmitter {
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
 
-    private readonly playerOne: Player;
+    protected readonly playerOne: Player;
     private readonly player: WorldObject;
 
     private keysPressed: {[code: string]: boolean} = {};

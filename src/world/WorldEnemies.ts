@@ -5,6 +5,7 @@ import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy} from "../Structs";
 import {Enemy, LayerCode, WorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
+import {Player} from "./Player";
 
 enum EnemyCode {
     GND_25 = 25,
@@ -238,7 +239,7 @@ export function enemiesUpdate (this: World, step: number): void {
     for (let i = 0, l = registeredEnemies.length; i < l; i++) {
         let {enemy, layer, name, position, animationStep, code} = registeredEnemies[i];
 
-        updateSpeed(enemy, step);
+        updateSpeed(this.playerOne, enemy, step);
         updateAnimationCycle(enemy, step);
 
         //position
@@ -261,7 +262,7 @@ export function enemiesUpdate (this: World, step: number): void {
             enemy.exc = -enemy.exc;
         }
 
-        if (enemy.position.y <= enemy.yMinBounce || enemy.position.x >= enemy.yMaxBounce) {
+        if (enemy.position.y <= enemy.yMinBounce || enemy.position.y >= enemy.yMaxBounce) {
             enemy.eyc = -enemy.eyc;
         }
 
@@ -299,7 +300,33 @@ function updateAnimationCycle (enemy: Enemy, step: number) {
     }
 }
 
-function updateSpeed (enemy: Enemy, step: number) {
+function updateSpeed (player: Player, enemy: Enemy, step: number) {
+    if (enemy.xAccel && enemy.xAccel - 89 > (11*Math.random())>>0) {
+        if (player.position.x > enemy.position.x) {
+            if (enemy.exc < enemy.xAccel - 89) {
+                enemy.exc += step;
+            }
+        }
+        else {
+            if (enemy.exc >= 0 || -enemy.exc < enemy.xAccel - 89) {
+                enemy.exc -= step;
+            }
+        }
+    }
+
+    if (enemy.yAccel && enemy.yAccel - 89 > (11*Math.random())>>0) {
+        if (player.position.y > enemy.position.y) {
+            if (enemy.eyc < enemy.yAccel - 89) {
+                enemy.eyc += step;
+            }
+        }
+        else {
+            if (enemy.eyc >= 0 || -enemy.eyc < enemy.yAccel - 89) {
+                enemy.eyc -= step;
+            }
+        }
+    }
+
     if (enemy.excc) {
         enemy.exccw -= step;
         if (enemy.exccw <= 0) {
