@@ -13,7 +13,7 @@ export class EventSystem extends utils.EventEmitter<EventKey> {
     }
 
     /**
-     * @param BTPPS number of pixel rows scrolled by ground layer
+     * @param step number of pixel rows scrolled by ground layer
      */
     public update (step: number): void {
         this.events.forEach(e => {

@@ -145,7 +145,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         case TyEventType.ENEMY_CREATE_TOP_50: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
-            enemy.position.y += -28-this.backSpeed[layer];
+            enemy.position.y += -32-this.backSpeed[layer];
             registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_25: {

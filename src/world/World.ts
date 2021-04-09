@@ -33,6 +33,15 @@ export class World extends utils.EventEmitter {
     protected readonly state = {
         randomEnemies: false,
         enemySmallAdjustPos: false,
+
+        map1YDelay: 1,
+        map1YDelayMax: 1,
+        map2YDelay: 1,
+        map2YDelayMax: 1,
+
+        backMove: 1,
+        backMove2: 1,
+        backMove3: 1,
     }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
@@ -58,11 +67,34 @@ export class World extends utils.EventEmitter {
 
     private bindBackEvents (): void {
         this.eventSystem.on('BackSpeedSet', e => {
+            this.state.map1YDelay = 1;
+            this.state.map1YDelayMax = 1;
+            this.state.map2YDelay = 1;
+            this.state.map2YDelayMax = 1;
+
+            this.state.backMove = e.backSpeed[LayerCode.GND];
+            this.state.backMove2 = e.backSpeed[LayerCode.SKY];
+            this.state.backMove3 = e.backSpeed[LayerCode.TOP];
+
             this.backSpeed[LayerCode.GND] = e.backSpeed[LayerCode.GND];
             this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
             this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
         });
         this.eventSystem.on('BackDelay', e => {
+            switch (e.e.type) {
+                case TyEventType.BACK_DELAY:
+                    this.state.backMove = 1;
+                    this.backSpeed[LayerCode.GND] = this.state.backMove;
+                    this.state.map1YDelay = 3;
+                    this.state.map1YDelayMax = 3;
+                    this.state.backMove2 = 1;
+                    this.backSpeed[LayerCode.SKY] = this.state.backMove2;
+                    this.state.map2YDelay = 2;
+                    this.state.map2YDelayMax = 2;
+                    this.state.backMove3 = 1;
+                    this.backSpeed[LayerCode.TOP] = this.state.backMove3;
+                    break;
+            }
             console.log('BackDelay', e);
         });
         this.eventSystem.on('Back2NotTransparent', e => console.log('Back2NotTransparent', e));
@@ -119,7 +151,27 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-        this.eventSystem.update(this.STEP);
+
+        if (this.state.map1YDelayMax > 1 && this.state.backMove < 2) {
+            this.state.backMove = (this.state.map1YDelay == 1) ? 1 : 0;
+        }
+
+        if (this.state.backMove != 0) {
+            this.eventSystem.update(this.STEP);
+        }
+
+        if (--this.state.map1YDelay == 0) {
+            this.state.map1YDelay = this.state.map1YDelayMax;
+            this.backSpeed[LayerCode.GND] = this.state.backMove;
+        }
+
+        if (--this.state.map2YDelay == 0) {
+            this.state.map2YDelay = this.state.map2YDelayMax;
+            this.backSpeed[LayerCode.SKY] = this.state.backMove2;
+        }
+
+        this.backSpeed[LayerCode.TOP] = this.state.backMove3;
+
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);
         this.playersUpdate(this.STEP);
