@@ -7,6 +7,7 @@ import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
 
+
 enum EnemyCode {
     GND_25 = 25,
     GND_75 = 75,
@@ -189,7 +190,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 30;
-            //enemy.position.y += 190;
+            enemy.position.y += 190;
             registeredEnemies.push({code: EnemyCode.GND_25, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75: {
@@ -218,7 +219,6 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 54;
             enemy.position.y = 190;
-            console.log(enemy)
             registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
@@ -516,3 +516,6 @@ export function enemiesAnimate (e: EnemiesGlobalAnimate) {
         })
 }
 
+export function hasRegisteredEnemies(this: World): boolean {
+    return registeredEnemies.length > 0;
+}

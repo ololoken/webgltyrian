@@ -1,6 +1,6 @@
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
-import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate} from "./WorldEnemies";
+import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate, hasRegisteredEnemies} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
@@ -24,6 +24,7 @@ export class World extends utils.EventEmitter {
     private enemiesUpdate = enemiesUpdate;
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
+    private hasRegisteredEnemies = hasRegisteredEnemies;
 
     protected readonly playerOne: Player;
     private readonly player: WorldObject;
@@ -34,14 +35,17 @@ export class World extends utils.EventEmitter {
         randomEnemies: false,
         enemySmallAdjustPos: false,
 
-        map1YDelay: 1,
-        map1YDelayMax: 1,
-        map2YDelay: 1,
-        map2YDelayMax: 1,
+        backDelayGND: 1,
+        backDelayGNDMax: 1,
+        backDelaySKY: 1,
+        backDelaySKYMax: 1,
 
-        backMove: 1,
-        backMove2: 1,
-        backMove3: 1,
+        backMoveGND: 1,
+        backMoveSKY: 1,
+        backMoveTOP: 1,
+
+        stopBackgrounds: false,
+        stopBackgroundNum: 0,
     }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
@@ -67,32 +71,39 @@ export class World extends utils.EventEmitter {
 
     private bindBackEvents (): void {
         this.eventSystem.on('BackSpeedSet', e => {
-            this.state.map1YDelay = 1;
-            this.state.map1YDelayMax = 1;
-            this.state.map2YDelay = 1;
-            this.state.map2YDelayMax = 1;
+            this.state.backDelayGND = 1;
+            this.state.backDelayGNDMax = 1;
+            this.state.backDelaySKY = 1;
+            this.state.backDelaySKYMax = 1;
 
-            this.state.backMove = e.backSpeed[LayerCode.GND];
-            this.state.backMove2 = e.backSpeed[LayerCode.SKY];
-            this.state.backMove3 = e.backSpeed[LayerCode.TOP];
+            this.state.backMoveGND = e.backSpeed[LayerCode.GND];
+            this.state.backMoveSKY = e.backSpeed[LayerCode.SKY];
+            this.state.backMoveTOP = e.backSpeed[LayerCode.TOP];
 
             this.backSpeed[LayerCode.GND] = e.backSpeed[LayerCode.GND];
             this.backSpeed[LayerCode.SKY] = e.backSpeed[LayerCode.SKY];
             this.backSpeed[LayerCode.TOP] = e.backSpeed[LayerCode.TOP];
+
+            if (this.backSpeed[LayerCode.GND] > 0) {
+                this.state.stopBackgroundNum = 0;
+            }
         });
         this.eventSystem.on('BackDelay', e => {
             switch (e.e.type) {
                 case TyEventType.BACK_DELAY:
-                    this.state.backMove = 1;
-                    this.backSpeed[LayerCode.GND] = this.state.backMove;
-                    this.state.map1YDelay = 3;
-                    this.state.map1YDelayMax = 3;
-                    this.state.backMove2 = 1;
-                    this.backSpeed[LayerCode.SKY] = this.state.backMove2;
-                    this.state.map2YDelay = 2;
-                    this.state.map2YDelayMax = 2;
-                    this.state.backMove3 = 1;
-                    this.backSpeed[LayerCode.TOP] = this.state.backMove3;
+                    this.state.backMoveGND = 1;
+                    this.backSpeed[LayerCode.GND] = this.state.backMoveGND;
+                    this.state.backDelayGND = 3;
+                    this.state.backDelayGNDMax = 3;
+                    this.state.backMoveSKY = 1;
+                    this.backSpeed[LayerCode.SKY] = this.state.backMoveSKY;
+                    this.state.backDelaySKY = 2;
+                    this.state.backDelaySKYMax = 2;
+                    this.state.backMoveTOP = 1;
+                    this.backSpeed[LayerCode.TOP] = this.state.backMoveTOP;
+                    break;
+                case TyEventType.BACK_DELAY_TYPE:
+                    this.state.stopBackgroundNum = e.e.data1 == 0 ? 1 : e.e.data1;
                     break;
             }
             console.log('BackDelay', e);
@@ -108,7 +119,6 @@ export class World extends utils.EventEmitter {
             }
             console.log('BackOverSwitch', e);
         });
-        this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
         this.eventSystem.on('BackWrap', e => console.log('BackWrap', e));
     }
 
@@ -151,26 +161,35 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
-
-        if (this.state.map1YDelayMax > 1 && this.state.backMove < 2) {
-            this.state.backMove = (this.state.map1YDelay == 1) ? 1 : 0;
+        if (!this.hasRegisteredEnemies() && this.state.stopBackgroundNum == 1) {
+            this.state.stopBackgroundNum = 9;
+        }
+        if (!this.hasRegisteredEnemies() && this.state.stopBackgrounds) {
+            this.state.stopBackgrounds = false;
+            this.state.backMoveGND = 1;
+            this.state.backMoveSKY = 2;
+            this.state.backMoveTOP = 3;
         }
 
-        if (this.state.backMove != 0) {
+        if (this.state.backDelayGNDMax > 1 && this.state.backMoveGND < 2) {
+            this.state.backMoveGND = (this.state.backDelayGND == 1) ? 1 : 0;
+        }
+
+        if (this.state.backMoveGND != 0) {
             this.eventSystem.update(this.STEP);
         }
 
-        if (--this.state.map1YDelay == 0) {
-            this.state.map1YDelay = this.state.map1YDelayMax;
-            this.backSpeed[LayerCode.GND] = this.state.backMove;
+        if (--this.state.backDelayGND == 0) {
+            this.state.backDelayGND = this.state.backDelayGNDMax;
+            this.backSpeed[LayerCode.GND] = this.state.backMoveGND;
         }
 
-        if (--this.state.map2YDelay == 0) {
-            this.state.map2YDelay = this.state.map2YDelayMax;
-            this.backSpeed[LayerCode.SKY] = this.state.backMove2;
+        if (--this.state.backDelaySKY == 0) {
+            this.state.backDelaySKY = this.state.backDelaySKYMax;
+            this.backSpeed[LayerCode.SKY] = this.state.backMoveSKY;
         }
 
-        this.backSpeed[LayerCode.TOP] = this.state.backMove3;
+        this.backSpeed[LayerCode.TOP] = this.state.backMoveTOP;
 
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);
