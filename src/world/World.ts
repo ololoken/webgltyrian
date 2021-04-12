@@ -1,6 +1,13 @@
-import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
+import {MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
-import {enemyCreate, enemiesUpdate, enemiesGlobalMove, enemiesAnimate, hasRegisteredEnemies} from "./WorldEnemies";
+import {
+    enemyCreate,
+    enemiesUpdate,
+    enemiesGlobalMove,
+    enemiesAnimate,
+    hasRegisteredEnemies,
+    shotsUpdate
+} from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
@@ -25,6 +32,7 @@ export class World extends utils.EventEmitter {
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
     private hasRegisteredEnemies = hasRegisteredEnemies;
+    private shotsUpdate = shotsUpdate;
 
     protected readonly playerOne: Player;
     private readonly player: WorldObject;
@@ -193,6 +201,7 @@ export class World extends utils.EventEmitter {
 
         this.updateBackground(this.STEP);
         this.enemiesUpdate(this.STEP);
+        this.shotsUpdate(this.STEP);
         this.playersUpdate(this.STEP);
     }
 

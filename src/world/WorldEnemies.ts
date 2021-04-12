@@ -2,11 +2,10 @@ import {EnemyCreate} from "./events/EnemyCreate";
 import {World} from "./World";
 import {TyEventType} from "./EventMappings";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy} from "../Structs";
-import {Enemy, LayerCode, WorldObject} from "./Types";
+import {Enemy, EnemyShot, LayerCode, WorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
-
 
 enum EnemyCode {
     GND_25 = 25,
@@ -16,6 +15,15 @@ enum EnemyCode {
 }
 
 const registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
+const ENEMY_SHOT_MAX = 60;
+const registeredEnemyShots: (WorldObject & {shot: EnemyShot})[] = [];
+
+const EnemyCodeToLayer = {
+    [EnemyCode.GND_25]: LayerCode.GND,
+    [EnemyCode.GND_75]: LayerCode.GND,
+    [EnemyCode.SKY_0]: LayerCode.SKY,
+    [EnemyCode.TOP_50]: LayerCode.TOP
+}
 
 const EventTypeToLayerMapping = {
     [TyEventType.ENEMY_CREATE_TOP_50]: LayerCode.TOP,
@@ -63,12 +71,21 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
         {cycle: 0, state: 1, max: -1},
         {cycle: 0, state: 2, max: enemyDesc.shapesLength-1},
     ];
+    const toWait = (tur: number): number => {
+        switch (true) {
+            case tur == 252: return 1;
+            case tur > 0: return 20;
+            default: return 255;
+        }
+    }
     let enemy: Enemy = {
         shapesLength: enemyDesc.shapesLength,
         shapeBank: enemyDesc.shapeBank,
         explosionType: enemyDesc.explosionType,
         launchFreq: enemyDesc.eLaunchFreq,
         launchWait: enemyDesc.eLaunchFreq,
+        shotWait: [toWait(enemyDesc.tur[0]), toWait(enemyDesc.tur[1]), toWait(enemyDesc.tur[2])],
+        shotMultiPos: [0, 0, 0],
         launchType: enemyDesc.eLaunchType % 1000,
         launchSpecial: enemyDesc.eLaunchType / 1000,
         xAccel: enemyDesc.xAccel,
@@ -283,6 +300,158 @@ export function enemiesUpdate (this: World, step: number): void {
 
         position.copyFrom(enemy.position);
         animationStep.set(enemy.animationCycle>>0, 0);
+
+        enemy.freq.forEach((v, i) => {
+            if (v) {
+                let tur = enemy.tur[i];
+                if (--enemy.shotWait[i] == 0 && tur) {
+                    enemy.shotWait[i] = enemy.freq[i];
+
+                    switch (tur) {
+                        case 255: // Magneto RePulse!!
+                        case 254: // Left ShortRange Magnet
+                            break;
+                        case 253: // Left ShortRange Magnet
+                            break;
+                        case 252: // Savara Boss DualMissile
+                            break;
+                        case 251: // Suck-O-Magnet
+                            break;
+                        default:
+                            for (let c = this.items.weapons[tur].multi; c > 0; c--) {
+
+                                if (enemy.animationState == 2) {
+                                    enemy.animationState = 1;
+                                }
+
+                                if (++enemy.shotMultiPos[i] > this.items.weapons[tur].max)
+                                    enemy.shotMultiPos[i] = 1;
+
+                                let shotParams: {sxc: number, syc: number, sxm: number, sym: number} = {
+                                    syc: 0, sxc: 0, sym: 0, sxm: 0
+                                };
+                                let tempPos = enemy.shotMultiPos[i] - 1;
+                                switch (i) {
+                                    case 0:
+                                        shotParams.syc = this.items.weapons[tur].accelerationY;
+                                        shotParams.sxc = this.items.weapons[tur].accelerationX;
+
+                                        shotParams.sxm = this.items.weapons[tur].sx[tempPos];
+                                        shotParams.sym = this.items.weapons[tur].sy[tempPos];
+                                        break;
+                                    case 1:
+                                        shotParams.sxc = this.items.weapons[tur].accelerationY;
+                                        shotParams.syc = -this.items.weapons[tur].accelerationY;
+
+                                        shotParams.sxm = this.items.weapons[tur].sy[tempPos];
+                                        shotParams.sym = this.items.weapons[tur].sx[tempPos];
+                                        break;
+                                    case 2:
+                                        shotParams.sxc = -this.items.weapons[tur].accelerationY;
+                                        shotParams.syc = this.items.weapons[tur].accelerationX;
+
+                                        shotParams.sxm = -this.items.weapons[tur].sy[tempPos];
+                                        shotParams.sym = -this.items.weapons[tur].sx[tempPos];
+                                        break;
+                                }
+
+                                let shot: EnemyShot = {
+                                    position: {
+                                        x: enemy.position.x + this.items.weapons[tur].bx[tempPos],
+                                        y: enemy.position.y + this.items.weapons[tur].by[tempPos],
+                                    },
+                                    shapeBank: this.items.weapons[tur].sg[tempPos] >= 500
+                                        ? 12
+                                        : 7,
+                                    graphic: [this.items.weapons[tur].sg[tempPos] >= 500
+                                        ? this.items.weapons[tur].sg[tempPos]-500
+                                        : this.items.weapons[tur].sg[tempPos]],
+                                    animationCycle: 0,
+                                    sdmg: this.items.weapons[tur].attack[tempPos],
+                                    tx: this.items.weapons[tur].tx,
+                                    ty: this.items.weapons[tur].ty,
+                                    duration: this.items.weapons[tur].del[tempPos],
+                                    animax: this.items.weapons[tur].animation,
+                                    fill: [],
+                                    ...shotParams,
+                                }
+
+                                if (this.items.weapons[tur].aim > 0) {
+                                    let aim = this.items.weapons[tur].aim;
+
+                                    let target_x = this.playerOne.position.x;
+                                    let target_y = this.playerOne.position.y;
+
+                                    let relative_x = (target_x + 21) - enemy.position.x;
+                                    if (relative_x == 0) {
+                                        relative_x = 1;
+                                    }
+                                    let relative_y = target_y - enemy.position.y;
+                                    if (relative_y == 0) {
+                                        relative_y = 1;
+                                    }
+                                    const longest_side = Math.max(Math.abs(relative_x), Math.abs(relative_y));
+                                    shot.sxm = relative_x / longest_side * aim;
+                                    shot.sym = relative_y / longest_side * aim;
+                                }
+                                registeredEnemyShots.push({shot, ...this.layers[LayerCode.SKY].registerShot(shot)});
+                            }
+                            break;
+                    }
+                }
+            }
+        })
+
+        if (enemy.launchFreq) {
+            if (--enemy.launchWait <= 0) {
+                enemy.launchWait = enemy.launchFreq;
+
+                if (enemy.launchSpecial != 0) {
+                    /*Type  1 : Must be inline with player*/
+                    if (Math.abs(enemy.position.y - this.playerOne.position.y) > 5) {
+                        continue;
+                    }
+                }
+
+                if (enemy.animationState == 2) {
+                    enemy.animationState = 1;
+                }
+
+                if (enemy.launchType == 0) {
+                    continue;
+                }
+
+                let type = enemy.launchType;
+                let shot = fillEnemyData({data2: 0, data3: 0, data4: 0, data5: 0, data6: 0}, this.items.enemies[type], this.state.enemySmallAdjustPos);
+                //b = JE_newEnemy(code == 50 ? 75 : enemyOffset - 25, tempW, 0);
+
+                shot.position.x = enemy.position.x + this.items.enemies[type].xcStart;
+                shot.position.y = enemy.position.y + this.items.enemies[type].ycStart;
+                if (shot.size == 0) {
+                    shot.position.y -= 7;
+                }
+
+                if (shot.launchType > 0 && shot.launchFreq == 0) {
+                    if (shot.launchType > 90) {
+                        shot.position.x += (Math.random()*(shot.launchType - 90)*2)>>0;
+                    }
+                    else {
+                        let target_x = this.playerOne.position.x - shot.position.x;
+                        let target_y = this.playerOne.position.y - shot.position.y;
+                        const longest_side = Math.max(Math.abs(target_x), Math.abs(target_y));
+                        shot.exc = Math.round(target_x/longest_side*shot.launchType);
+                        shot.eyc = Math.round(target_y/longest_side*shot.launchType);
+                    }
+                }
+
+                if (enemy.launchSpecial == 1 && enemy.linknum < 100) {
+                    shot.linknum = enemy.linknum;
+                }
+                let shotCode: EnemyCode = code == 25 ? 50 : code;
+                let shotLayer: LayerCode = EnemyCodeToLayer[shotCode];
+                registeredEnemies.push({code: shotCode, enemy: shot, layer: shotLayer, ...this.layers[shotLayer].registerEnemy(shot)});
+            }
+        }
     }
 }
 
@@ -516,6 +685,53 @@ export function enemiesAnimate (e: EnemiesGlobalAnimate) {
         })
 }
 
-export function hasRegisteredEnemies(this: World): boolean {
+export function hasRegisteredEnemies (this: World): boolean {
     return registeredEnemies.length > 0;
+}
+
+export function shotsUpdate (this: World, step: number): void {
+    for (let i = 0, l = registeredEnemyShots.length; i < l; i++) {
+        let {shot, name, animationStep, position} = registeredEnemyShots[i];
+        shot.sxm += step*shot.sxc;
+        shot.position.x += step*shot.sxm;
+        if (shot.tx != 0) {
+            if (shot.position.x > this.playerOne.position.x && shot.sxm > -shot.tx) {
+                shot.sxm -= step;
+            }
+            else if (shot.sxm < shot.tx) {
+                shot.sxm += step;
+            }
+        }
+        shot.sym += step*shot.syc;
+        shot.position.y += step*shot.sym;
+
+        if (shot.ty != 0) {
+            if (shot.position.y > this.playerOne.position.y && shot.sym > -shot.ty) {
+                shot.sym -= step;
+            }
+            else if (shot.sym < shot.ty) {
+                shot.sym += step;
+            }
+        }
+        let readyToGC = shot.duration-- <= 0
+            || !this.gcBox.contains(shot.position.x, shot.position.y);
+        if (readyToGC) {
+            registeredEnemyShots.splice(i--, 1);
+            l--;
+            this.layers[LayerCode.SKY].unregisterObject(name);
+        }
+
+        if (this.playerOne.hitArea.contains(shot.position.x, shot.position.y)) {
+            //todo: collision
+        }
+
+        if (shot.animax != 0) {
+            shot.animationCycle += step;
+            if (shot.animationCycle >= shot.animax) {
+                shot.animationCycle = 0;
+            }
+            animationStep.x = shot.animationCycle;
+        }
+        position.copyFrom(shot.position);
+    }
 }

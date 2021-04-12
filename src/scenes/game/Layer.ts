@@ -3,8 +3,9 @@ import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
 import {MAIN_HEIGHT} from "../../Tyrian";
-import {EnemyGraphic, WorldObject, IWorldLayer} from "../../world/Types";
+import {EnemyGraphic, WorldObject, IWorldLayer, EnemyShotGraphic} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
+import {ShotRender} from "./ShotRender";
 
 type LayerBackOptions = {background: number[], mapWidth: number, mapHeight: number};
 
@@ -50,6 +51,15 @@ export class Layer extends Container implements IWorldLayer {
             name: er.name!,
             position: er.position,
             animationStep: er.cycle
+        }
+    }
+
+    public registerShot (shot: EnemyShotGraphic): WorldObject {
+        let sh = this.objectsContainer.addChild(new ShotRender(shot));
+        return {
+            name: sh.name!,
+            position: sh.position,
+            animationStep: sh.cycle
         }
     }
 

@@ -1,3 +1,4 @@
+import {Rectangle} from "pixi.js"
 import {PlayerGraphic} from "./Types";
 import {TyShip} from "../Structs";
 
@@ -14,6 +15,7 @@ export class Player implements PlayerGraphic {
     shapeBank: number = 8;
     banking: number = 0;
     private readonly ship: TyShip;
+    public readonly hitArea = new Rectangle(0, 0, 0, 0);
 
     items: [] = [];
 

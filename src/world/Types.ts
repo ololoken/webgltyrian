@@ -9,6 +9,7 @@ export interface IWorldLayer {
     unregisterObject (name: string): void;
 
     registerEnemy (enemy: EnemyGraphic): WorldObject;
+    registerShot (shot: EnemyShotGraphic): WorldObject;
 }
 
 export interface IPlayerLayer {
@@ -46,6 +47,13 @@ export type EnemyGraphic = {
     filter: number,
 }
 
+export type EnemyShotGraphic = {
+    shapeBank: number,
+    graphic: number[],
+    animationCycle: number,
+    position: {x: number; y: number}
+}
+
 export type Enemy = EnemyGraphic & {
     exc: number; eyc: number;//speed
     excc: number; eycc: number; //fixed accel
@@ -65,6 +73,8 @@ export type Enemy = EnemyGraphic & {
     fixedMoveY: number,
     freq: [number, number, number],
     launchWait: number,
+    shotMultiPos: [number, number, number],
+    shotWait: [number, number, number],
     launchType: number,
     launchFreq: number,
     xAccel: number, yAccel: number,
@@ -80,3 +90,12 @@ export type Enemy = EnemyGraphic & {
     xMaxBounce: number, yMaxBounce: number,
 }
 
+export type EnemyShot = EnemyShotGraphic & {
+    sxm: number, sym: number,
+    sxc: number, syc: number,
+    tx: number, ty: number,
+    sdmg: number,
+    duration: number,
+    animax: number,
+    fill: number[],
+}
