@@ -689,7 +689,7 @@ export function hasRegisteredEnemies (this: World): boolean {
     return registeredEnemies.length > 0;
 }
 
-export function shotsUpdate (this: World, step: number): void {
+export function enemyShotsUpdate (this: World, step: number): void {
     for (let i = 0, l = registeredEnemyShots.length; i < l; i++) {
         let {shot, name, layer, animationStep, position} = registeredEnemyShots[i];
         shot.sxm += step*shot.sxc;
@@ -723,6 +723,9 @@ export function shotsUpdate (this: World, step: number): void {
 
         if (this.playerOne.hitArea.contains(shot.position.x, shot.position.y)) {
             //todo: collision
+            registeredEnemyShots.splice(i--, 1);
+            l--;
+            this.layers[layer].unregisterObject(name);
         }
 
         if (shot.animax != 0) {

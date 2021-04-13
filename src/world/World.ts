@@ -6,7 +6,7 @@ import {
     enemiesGlobalMove,
     enemiesAnimate,
     hasRegisteredEnemies,
-    shotsUpdate
+    enemyShotsUpdate
 } from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
@@ -23,7 +23,6 @@ export class World extends utils.EventEmitter {
     protected readonly layers: Layers;
     protected readonly actionRect: Rectangle = new Rectangle(0, 0, MAIN_WIDTH, MAIN_HEIGHT).pad(40, 40);
     protected readonly gcBox: Rectangle = new Rectangle(-80, -120, 500, 380);
-    protected readonly playerBounds: Rectangle = new Rectangle(MAP_TILE_WIDTH, 15, MAP_TILE_WIDTH*9, 155);
 
     protected STEP = 1;
 
@@ -32,7 +31,7 @@ export class World extends utils.EventEmitter {
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
     private hasRegisteredEnemies = hasRegisteredEnemies;
-    private shotsUpdate = shotsUpdate;
+    private enemyShotsUpdate = enemyShotsUpdate;
 
     protected readonly playerOne: Player;
     private readonly player: WorldObject;
@@ -169,6 +168,14 @@ export class World extends utils.EventEmitter {
     }
 
     public update (delta: number): void {
+        this.updateEventSystem(this.STEP);
+        this.updateBackground(this.STEP);
+        this.enemiesUpdate(this.STEP);
+        this.enemyShotsUpdate(this.STEP);
+        this.playersUpdate(this.STEP);
+    }
+
+    private updateEventSystem (step: number): void {
         if (!this.hasRegisteredEnemies() && this.state.stopBackgroundNum == 1) {
             this.state.stopBackgroundNum = 9;
         }
@@ -187,22 +194,21 @@ export class World extends utils.EventEmitter {
             this.eventSystem.update(this.STEP);
         }
 
-        if (--this.state.backDelayGND == 0) {
+        this.state.backDelayGND -= this.STEP;
+
+        if (this.state.backDelayGND <= 0) {
             this.state.backDelayGND = this.state.backDelayGNDMax;
             this.backSpeed[LayerCode.GND] = this.state.backMoveGND;
         }
 
-        if (--this.state.backDelaySKY == 0) {
+        this.state.backDelaySKY -= this.STEP;
+
+        if (this.state.backDelaySKY <= 0) {
             this.state.backDelaySKY = this.state.backDelaySKYMax;
             this.backSpeed[LayerCode.SKY] = this.state.backMoveSKY;
         }
 
         this.backSpeed[LayerCode.TOP] = this.state.backMoveTOP;
-
-        this.updateBackground(this.STEP);
-        this.enemiesUpdate(this.STEP);
-        this.shotsUpdate(this.STEP);
-        this.playersUpdate(this.STEP);
     }
 
     private updateBackground (step: number): void {
@@ -229,52 +235,7 @@ export class World extends utils.EventEmitter {
     }
 
     private playersUpdate (step: number): void {
-        if (this.keysPressed['ArrowLeft']) {
-            this.playerOne.xAccel = Math.max(-2, this.playerOne.xAccel-step);
-        }
-        if (this.keysPressed['ArrowRight']) {
-            this.playerOne.xAccel = Math.min(2, this.playerOne.xAccel+step);
-        }
-        if (!this.keysPressed['ArrowLeft'] && !this.keysPressed['ArrowRight']) {
-            this.playerOne.xAccel = 0;
-        }
-
-        if (this.keysPressed['ArrowUp']) {
-            this.playerOne.yAccel = Math.max(-2, this.playerOne.yAccel-step);
-        }
-        if (this.keysPressed['ArrowDown']) {
-            this.playerOne.yAccel = Math.min(2, this.playerOne.yAccel+step);
-        }
-        if (!this.keysPressed['ArrowUp'] && !this.keysPressed['ArrowDown']) {
-            this.playerOne.yAccel = 0;
-        }
-
-        this.playerOne.xc += step*this.playerOne.xAccel;
-        this.playerOne.yc += step*this.playerOne.yAccel;
-
-        this.playerOne.xc = Math.min(4, Math.max(-4, this.playerOne.xc));
-        this.playerOne.yc = Math.min(4, Math.max(-4, this.playerOne.yc));
-
-        this.playerOne.banking = Math.max(-2, Math.min(2, Math.floor(this.playerOne.xc/2)));
-
-        this.playerOne.position.x += step*this.playerOne.xc;
-        this.playerOne.position.y += step*this.playerOne.yc;
-
-        this.playerOne.xc = Math.sign(this.playerOne.xc)*(Math.max(0, Math.abs(this.playerOne.xc)-0.45*step));
-        this.playerOne.yc = Math.sign(this.playerOne.yc)*(Math.max(0, Math.abs(this.playerOne.yc)-0.45*step));
-
-        if (this.playerBounds.x > this.playerOne.position.x) {
-            this.playerOne.position.x = this.playerBounds.x;
-        }
-        if (this.playerBounds.y > this.playerOne.position.y) {
-            this.playerOne.position.y = this.playerBounds.y;
-        }
-        if (this.playerBounds.x+this.playerBounds.width < this.playerOne.position.x) {
-            this.playerOne.position.x = this.playerBounds.x+this.playerBounds.width;
-        }
-        if (this.playerBounds.y+this.playerBounds.height < this.playerOne.position.y) {
-            this.playerOne.position.y = this.playerBounds.y+this.playerBounds.height;
-        }
+        this.playerOne.update(this.keysPressed, step);
 
         this.player.position.copyFrom(this.playerOne.position);
         this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
