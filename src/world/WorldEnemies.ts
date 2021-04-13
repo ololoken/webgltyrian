@@ -16,7 +16,7 @@ enum EnemyCode {
 
 const registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
 const ENEMY_SHOT_MAX = 60;
-const registeredEnemyShots: (WorldObject & {shot: EnemyShot})[] = [];
+const registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
 
 const EnemyCodeToLayer = {
     [EnemyCode.GND_25]: LayerCode.GND,
@@ -394,7 +394,7 @@ export function enemiesUpdate (this: World, step: number): void {
                                     shot.sxm = relative_x / longest_side * aim;
                                     shot.sym = relative_y / longest_side * aim;
                                 }
-                                registeredEnemyShots.push({shot, ...this.layers[LayerCode.SKY].registerShot(shot)});
+                                registeredEnemyShots.push({shot, layer, ...this.layers[layer].registerShot(shot)});
                             }
                             break;
                     }
@@ -691,7 +691,7 @@ export function hasRegisteredEnemies (this: World): boolean {
 
 export function shotsUpdate (this: World, step: number): void {
     for (let i = 0, l = registeredEnemyShots.length; i < l; i++) {
-        let {shot, name, animationStep, position} = registeredEnemyShots[i];
+        let {shot, name, layer, animationStep, position} = registeredEnemyShots[i];
         shot.sxm += step*shot.sxc;
         shot.position.x += step*shot.sxm;
         if (shot.tx != 0) {
@@ -718,7 +718,7 @@ export function shotsUpdate (this: World, step: number): void {
         if (readyToGC) {
             registeredEnemyShots.splice(i--, 1);
             l--;
-            this.layers[LayerCode.SKY].unregisterObject(name);
+            this.layers[layer].unregisterObject(name);
         }
 
         if (this.playerOne.hitArea.contains(shot.position.x, shot.position.y)) {
