@@ -35,6 +35,7 @@ export class Player implements PlayerGraphic {
 
     public readonly shotMultiPos: number[] = new Array(10).fill(0);
     public readonly shotRepeat: number[] = new Array(10).fill(0);
+    public readonly shotDelay: number[] = new Array(10*8).fill(0);
 
     public readonly weapons: TyWeapon[] = [];
 
@@ -159,13 +160,14 @@ export class Player implements PlayerGraphic {
             this.shotRepeat[code] -= step;
             return shots;
         }
-        for (let multi_i = 1; multi_i <= this.weapons[code].multi; multi_i++) {
+        for (let multi_i = 0; multi_i < this.weapons[code].multi; multi_i++) {
 
-            if (this.shotMultiPos[code] == this.weapons[code].max || this.shotMultiPos[code] > 8) {
+            if (this.shotMultiPos[code] == this.weapons[code].max || this.shotMultiPos[code] >= 8) {
                 this.shotMultiPos[code] = 0;
             }
-            else {
-                this.shotMultiPos[code]++;
+            if (this.shotDelay[code*8+multi_i]) {
+                this.shotDelay[code*8+multi_i] -= step;
+                continue;
             }
 
             let shot: PlayerShot = <PlayerShot>{position: {x: 0, y: 0}};
@@ -231,20 +233,20 @@ export class Player implements PlayerGraphic {
             shot.shotXM = this.weapons[code].sx[this.shotMultiPos[code]];
 
             // Not sure what this field does exactly.
-            let del = this.weapons[code].del[this.shotMultiPos[code]];
+            let delay = this.weapons[code].delay[this.shotMultiPos[code]];
 
-            if (del == 121)
+            if (delay == 121)
             {
                 shot.shotTrail = 0;
-                del = 255;
+                delay = 255;
             }
 
             shot.graphic = [this.weapons[code].sg[this.shotMultiPos[code]]];
             if (shot.graphic[0] == 0) {
-                //shotAvail[shot_id] = 0;
+                this.shotDelay[code*8+multi_i] = 0;
             }
             else {
-                //shotAvail[shot_id] = del;
+                this.shotDelay[code*8+multi_i] = delay;
             }
             switch (true) {
                 case shot.graphic[0] > 60000: {
@@ -263,14 +265,14 @@ export class Player implements PlayerGraphic {
                 } break;
             }
 
-            if (del > 100 && del < 120) {
-                shot.shotAniMax = (del - 100 + 1);
+            if (delay > 100 && delay < 120) {
+                shot.shotAniMax = (delay - 100 + 1);
             }
             else {
-                shot.shotAniMax = this.weapons[code].animation + 1;
+                shot.shotAniMax = this.weapons[code].animation;
             }
 
-            if (del == 99 || del == 98) {
+            if (delay == 99 || delay == 98) {
                 tmp_by = this.position.x - mouseX;
                 if (tmp_by < -5) {
                     tmp_by = -5;
@@ -281,7 +283,7 @@ export class Player implements PlayerGraphic {
                 shot.shotXM += tmp_by;
             }
 
-            if (del == 99 || del == 100) {
+            if (delay == 99 || delay == 100) {
                 tmp_by = this.position.y - mouseY - this.weapons[code].sy[this.shotMultiPos[code]];
                 if (tmp_by < -4) {
                     tmp_by = -4;
@@ -313,6 +315,7 @@ export class Player implements PlayerGraphic {
 
             this.shotRepeat[code] = this.weapons[code].shotRepeat;
             shots.push(shot);
+            this.shotMultiPos[code]++;
         }
         return shots;
     }

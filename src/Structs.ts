@@ -32,7 +32,7 @@ export type TyWeapon = Readonly<{
     tx: number, ty: number,
     aim: number,
     attack: number[],
-    del: number[],
+    delay: number[],
     sx: number[], sy: number[],
     bx: number[], by: number[],
     sg: number[],
@@ -165,7 +165,7 @@ export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
         .single('tx', Byte).single('ty', Byte)
         .single('aim', Byte)
         .array('attack', Byte, l(8))
-        .array('del', Byte, l(8))
+        .array('delay', Byte, l(8))
         .array('sx', Char, l(8)).array('sy', Char, l(8))
         .array('bx', Char, l(8)).array('by', Char, l(8))
         .array('sg', UInt16, l(8))

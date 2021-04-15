@@ -370,7 +370,7 @@ export function enemiesUpdate (this: World, step: number): void {
                                     sdmg: this.items.weapons[tur].attack[tempPos],
                                     tx: this.items.weapons[tur].tx,
                                     ty: this.items.weapons[tur].ty,
-                                    duration: this.items.weapons[tur].del[tempPos],
+                                    duration: this.items.weapons[tur].delay[tempPos],
                                     animax: this.items.weapons[tur].animation,
                                     fill: [],
                                     ...shotParams,
