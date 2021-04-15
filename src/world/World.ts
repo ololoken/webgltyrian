@@ -6,13 +6,14 @@ import {
     enemiesGlobalMove,
     enemiesAnimate,
     hasRegisteredEnemies,
-    enemyShotsUpdate
+    enemyShotsUpdate,
+    getClosestEnemy, EnemyCode
 } from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
-import {BackSpeed, IPlayerLayer, LayerCode, Layers, WorldObject} from "./Types";
-import {Player} from "./Player";
+import {BackSpeed, Enemy, EnemyShot, IPlayerLayer, LayerCode, Layers, PlayerShot, WorldObject} from "./Types";
+import {Player, WeaponCode} from "./Player";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -32,11 +33,17 @@ export class World extends utils.EventEmitter {
     private enemiesAnimate = enemiesAnimate;
     private hasRegisteredEnemies = hasRegisteredEnemies;
     private enemyShotsUpdate = enemyShotsUpdate;
+    private getClosestEnemy = getClosestEnemy;
 
+    protected readonly playerLayer: IPlayerLayer;
     protected readonly playerOne: Player;
     private readonly player: WorldObject;
 
     private keysPressed: {[code: string]: boolean} = {};
+
+    protected readonly registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
+    public readonly registeredPlayerShots: (WorldObject & {shot: PlayerShot})[] = [];
+    public readonly registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
 
     protected readonly state = {
         randomEnemies: false,
@@ -60,13 +67,14 @@ export class World extends utils.EventEmitter {
         this.map = map;
         this.items = items;
         this.layers = layers;
+        this.playerLayer = playerLayer;
 
         this.layers[LayerCode.GND].backPos.set((map.backX[LayerCode.GND]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1]);
-        this.player = playerLayer.registerPlayer(this.playerOne);
+        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[132]);
+        this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
         this.bindBackEvents();
@@ -236,8 +244,30 @@ export class World extends utils.EventEmitter {
 
     private playersUpdate (step: number): void {
         this.playerOne.update(this.keysPressed, step);
-
         this.player.position.copyFrom(this.playerOne.position);
         this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
+
+        if (this.keysPressed['Space']) {
+            this.registeredPlayerShots.push(...this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 0, 0).map(shot => {
+                if (this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim > 5) {/*Guided Shot*/
+                    shot.aimDelay = 5;
+                    shot.aimDelayMax = this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim-shot.aimDelay;
+                    shot.aimAtEnemy = this.getClosestEnemy(this.playerOne.position);
+                }
+                return {shot, ...this.playerLayer.registerShot(shot)};
+            }));
+        }
+        for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
+            let {shot, name, position} = this.registeredPlayerShots[i];
+            this.playerOne.shotUpdate(shot, step);
+            let readyToGC = !this.gcBox.contains(shot.position.x, shot.position.y);
+            if (readyToGC) {
+                this.registeredPlayerShots.splice(i--, 1);
+                l--;
+                this.playerLayer.unregisterObject(name);
+            }
+            position.copyFrom(shot.position);
+
+        }
     }
 }

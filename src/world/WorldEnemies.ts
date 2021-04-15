@@ -7,16 +7,16 @@ import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
 
-enum EnemyCode {
+export enum EnemyCode {
     GND_25 = 25,
     GND_75 = 75,
     SKY_0 = 0,
     TOP_50 = 50,
 }
 
-const registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
+//const registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
 const ENEMY_SHOT_MAX = 60;
-const registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
+//const
 
 const EnemyCodeToLayer = {
     [EnemyCode.GND_25]: LayerCode.GND,
@@ -164,28 +164,28 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.y += -32-this.backSpeed[layer];
-            registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_25: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 30;
             enemy.position.y += -32-this.backSpeed[layer];
-            registeredEnemies.push({code: EnemyCode.GND_25, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.GND_25, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_75: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 30;
             enemy.position.y += -32-this.backSpeed[layer];
-            registeredEnemies.push({code: EnemyCode.GND_75, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.GND_75, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_SKY_0: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 54;
             enemy.position.y += -this.backSpeed[layer];
-            registeredEnemies.push({code: EnemyCode.SKY_0, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.SKY_0, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_4x4: {
             let layer = Enemy4x4LayerMapping[e.data6];
@@ -200,7 +200,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
                 let enemy = fillEnemyData(e, this.items.enemies[e.data1+typeOffset], this.state.enemySmallAdjustPos);
                 enemy.position.x += 30+ep4x4.x;
                 enemy.position.y += -32+ep4x4.y-this.backSpeed[layer];
-                registeredEnemies.push({code, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+                this.registeredEnemies.push({code, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
             });
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_25: {
@@ -208,35 +208,35 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 30;
             enemy.position.y += 190;
-            registeredEnemies.push({code: EnemyCode.GND_25, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.GND_25, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_GROUND_BOTTOM_75: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 30;
             enemy.position.y += 190;
-            registeredEnemies.push({code: EnemyCode.GND_75, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.GND_75, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_SKY_BOTTOM_0: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 54;
             enemy.position.y = 190 + e.data5;
-            registeredEnemies.push({code: EnemyCode.SKY_0, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.SKY_0, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_TOP_BOTTOM_50_1: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 54;
             enemy.position.y = 180 + e.data5;
-            registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_TOP_BOTTOM_50_2: {
             let layer = EventTypeToLayerMapping[e.type];
             let enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos);
             enemy.position.x += 54;
             enemy.position.y = 190;
-            registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
+            this.registeredEnemies.push({code: EnemyCode.TOP_50, enemy, layer, ...this.layers[layer].registerEnemy(enemy)});
         } break;
         case TyEventType.ENEMY_CREATE_ARCADE: break;
         case TyEventType.ENEMY_CREATE_0:
@@ -253,8 +253,8 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
 }
 
 export function enemiesUpdate (this: World, step: number): void {
-    for (let i = 0, l = registeredEnemies.length; i < l; i++) {
-        let {enemy, layer, name, position, animationStep, code} = registeredEnemies[i];
+    for (let i = 0, l = this.registeredEnemies.length; i < l; i++) {
+        let {enemy, layer, name, position, animationStep, code} = this.registeredEnemies[i];
 
         updateSpeed(this.playerOne, enemy, step);
         updateAnimationCycle(enemy, step);
@@ -268,7 +268,7 @@ export function enemiesUpdate (this: World, step: number): void {
             || enemy.graphic[enemy.animationCycle>>0] == 999;
 
         if (readyToGC) {
-            registeredEnemies.splice(i--, 1);
+            this.registeredEnemies.splice(i--, 1);
             l--;
             this.layers[layer].unregisterObject(name);
             continue;
@@ -394,7 +394,7 @@ export function enemiesUpdate (this: World, step: number): void {
                                     shot.sxm = relative_x / longest_side * aim;
                                     shot.sym = relative_y / longest_side * aim;
                                 }
-                                registeredEnemyShots.push({shot, layer, ...this.layers[layer].registerShot(shot)});
+                                this.registeredEnemyShots.push({shot, layer, ...this.layers[layer].registerShot(shot)});
                             }
                             break;
                     }
@@ -449,7 +449,7 @@ export function enemiesUpdate (this: World, step: number): void {
                 }
                 let shotCode: EnemyCode = code == 25 ? 50 : code;
                 let shotLayer: LayerCode = EnemyCodeToLayer[shotCode];
-                registeredEnemies.push({code: shotCode, enemy: shot, layer: shotLayer, ...this.layers[shotLayer].registerEnemy(shot)});
+                this.registeredEnemies.push({code: shotCode, enemy: shot, layer: shotLayer, ...this.layers[shotLayer].registerEnemy(shot)});
             }
         }
     }
@@ -522,7 +522,7 @@ function updateSpeed (player: Player, enemy: Enemy, step: number) {
 export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
     switch (e.e.type) {
         case TyEventType.ENEMIES_GLOBAL_MOVE_0: {
-            let enemies: typeof registeredEnemies = [];
+            let enemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
 
             switch (true) {
                 case e.e.data3 > 79 && e.e.data3 < 90:
@@ -530,19 +530,19 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                     console.info('ENEMIES_GLOBAL_MOVE_0 ignored')
                     break;
                 case e.e.data3 == 0:
-                    enemies = registeredEnemies.filter(by => by.enemy.linknum == e.e.data4);
+                    enemies = this.registeredEnemies.filter(by => by.enemy.linknum == e.e.data4);
                     break;
                 case e.e.data3 == 2:
-                    enemies = registeredEnemies.filter(by => by.code == EnemyCode.SKY_0);
+                    enemies = this.registeredEnemies.filter(by => by.code == EnemyCode.SKY_0);
                     break;
                 case e.e.data3 == 1:
-                    enemies = registeredEnemies.filter(by => by.code == EnemyCode.GND_25);
+                    enemies = this.registeredEnemies.filter(by => by.code == EnemyCode.GND_25);
                     break;
                 case e.e.data3 == 3:
-                    enemies = registeredEnemies.filter(by => by.code == EnemyCode.TOP_50);
+                    enemies = this.registeredEnemies.filter(by => by.code == EnemyCode.TOP_50);
                     break;
                 case e.e.data3 == 99:
-                    enemies = registeredEnemies;
+                    enemies = this.registeredEnemies;
                     break;
                 default:
                     console.warn('unhandled move', e);
@@ -574,7 +574,7 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                 console.info("ENEMIES_GLOBAL_MOVE_1 ignored")
                 break;
             }
-            registeredEnemies
+            this.registeredEnemies
                 .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
                 .forEach(en => {
                     if (e.e.data1 != -99) {
@@ -608,7 +608,7 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                 console.info("ENEMIES_GLOBAL_MOVE_2 ignored")
                 break;
             }
-            registeredEnemies
+            this.registeredEnemies
                 .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
                 .forEach(en => {
                     if (e.e.data1 != -99) {
@@ -628,7 +628,7 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                 console.info("ENEMIES_GLOBAL_MOVE_3 ignored")
                 break;
             }
-            registeredEnemies
+            this.registeredEnemies
                 .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
                 .forEach(en => {
                     if (e.e.data1 != -99) {
@@ -640,7 +640,7 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
                 })
         } break;
         case TyEventType.ENEMIES_GLOBAL_MOVE_4: {
-            registeredEnemies
+            this.registeredEnemies
                 .filter(by => e.e.data4 == 0 || by.enemy.linknum == e.e.data4)
                 .forEach(en => {
                     if (e.e.data5 != -99) {
@@ -660,8 +660,8 @@ export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
     }
 }
 
-export function enemiesAnimate (e: EnemiesGlobalAnimate) {
-    registeredEnemies
+export function enemiesAnimate (this: World, e: EnemiesGlobalAnimate) {
+    this.registeredEnemies
         .filter(by => by.enemy.linknum == e.e.data4)
         .forEach(en => {
             en.enemy.animationState = 1;
@@ -686,12 +686,12 @@ export function enemiesAnimate (e: EnemiesGlobalAnimate) {
 }
 
 export function hasRegisteredEnemies (this: World): boolean {
-    return registeredEnemies.length > 0;
+    return this.registeredEnemies.length > 0;
 }
 
 export function enemyShotsUpdate (this: World, step: number): void {
-    for (let i = 0, l = registeredEnemyShots.length; i < l; i++) {
-        let {shot, name, layer, animationStep, position} = registeredEnemyShots[i];
+    for (let i = 0, l = this.registeredEnemyShots.length; i < l; i++) {
+        let {shot, name, layer, animationStep, position} = this.registeredEnemyShots[i];
         shot.sxm += step*shot.sxc;
         shot.position.x += step*shot.sxm;
         if (shot.tx != 0) {
@@ -716,14 +716,14 @@ export function enemyShotsUpdate (this: World, step: number): void {
         let readyToGC = shot.duration-- <= 0
             || !this.gcBox.contains(shot.position.x, shot.position.y);
         if (readyToGC) {
-            registeredEnemyShots.splice(i--, 1);
+            this.registeredEnemyShots.splice(i--, 1);
             l--;
             this.layers[layer].unregisterObject(name);
         }
 
         if (this.playerOne.hitArea.contains(shot.position.x, shot.position.y)) {
             //todo: collision
-            registeredEnemyShots.splice(i--, 1);
+            this.registeredEnemyShots.splice(i--, 1);
             l--;
             this.layers[layer].unregisterObject(name);
         }
@@ -737,4 +737,18 @@ export function enemyShotsUpdate (this: World, step: number): void {
         }
         position.copyFrom(shot.position);
     }
+}
+
+export function getClosestEnemy(this: World, position: {x: number, y: number}): WorldObject | undefined {
+    let found: WorldObject | undefined;
+    let dist = 1<<10;
+    for (let i = 0, l = this.registeredEnemies.length; i < l; i++) {
+        if (!this.registeredEnemies[i].enemy.isScoreItem) {
+            let d = Math.abs(this.registeredEnemies[i].position.x - position.x) + Math.abs(this.registeredEnemies[i].position.y - position.y);
+            if (d < dist) {
+                found = this.registeredEnemies[i];
+            }
+        }
+    }
+    return found;
 }

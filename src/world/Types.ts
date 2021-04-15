@@ -1,4 +1,4 @@
-import {ObservablePoint, Sprite} from "pixi.js";
+import {ObservablePoint} from "pixi.js";
 
 export interface IWorldLayer {
     readonly backPos: ObservablePoint;
@@ -13,7 +13,10 @@ export interface IWorldLayer {
 }
 
 export interface IPlayerLayer {
+    unregisterObject (name: string): void;
+
     registerPlayer(player: PlayerGraphic): WorldObject;
+    registerShot(shot: PlayerShotGraphic): WorldObject;
 }
 
 export enum LayerCode {
@@ -98,4 +101,25 @@ export type EnemyShot = EnemyShotGraphic & {
     duration: number,
     animax: number,
     fill: number[],
+}
+
+export type PlayerShotGraphic = {
+    shapeBank: number,
+    graphic: number[],
+    animationCycle: number,
+    position: {x: number; y: number}
+}
+
+export type PlayerShot = PlayerShotGraphic & {
+    shotXM: number, shotYM: number, shotXC: number, shotYC: number,
+    shotComplicated: boolean,
+    shotDevX: number, shotDirX: number, shotDevY: number, shotDirY: number,
+    shotCirSizeX: number, shotCirSizeY: number,
+    shotTrail: number,
+    shotAniMax: number,
+    shotDmg: number,
+    shotBlastFilter: number,
+    chainReaction: number,
+    playerNumber: number, aimAtEnemy?: WorldObject,
+    aimDelay: number, aimDelayMax: number
 }

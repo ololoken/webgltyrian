@@ -23,7 +23,7 @@ const [UInt16, Int16] = [Primitive.UInt16LE(), Primitive.Int16LE()],
       [UInt32, Int32] = [Primitive.UInt32LE(), Primitive.Int32LE()];
 const asAsciiString = StringFormatter({encoding: 'ascii'});
 
-type TyWeapon = Readonly<{
+export type TyWeapon = Readonly<{
     drain: number,
     shotRepeat: number,
     multi: number,

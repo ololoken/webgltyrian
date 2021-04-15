@@ -5,7 +5,7 @@ import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
 import {MAIN_HEIGHT} from "../../Tyrian";
 import {EnemyGraphic, WorldObject, IWorldLayer, EnemyShotGraphic} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
-import {ShotRender} from "./ShotRender";
+import {EnemyShotRender} from "./EnemyShotRender";
 
 type LayerBackOptions = {background: number[], mapWidth: number, mapHeight: number};
 
@@ -55,7 +55,7 @@ export class Layer extends Container implements IWorldLayer {
     }
 
     public registerShot (shot: EnemyShotGraphic): WorldObject {
-        let sh = this.objectsContainer.addChild(new ShotRender(shot));
+        let sh = this.objectsContainer.addChild(new EnemyShotRender(shot));
         return {
             name: sh.name!,
             position: sh.position,
