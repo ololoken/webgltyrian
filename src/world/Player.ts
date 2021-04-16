@@ -127,7 +127,7 @@ export class Player implements PlayerGraphic {
             }
         }
 
-        switch (shot.shotTrail) {
+        switch (shot.trail) {
             case 255: break;
             case 98: break;//todo: draw trail using explosion
             default: break;//todo: draw trail using explosion
@@ -161,16 +161,18 @@ export class Player implements PlayerGraphic {
             return shots;
         }
         for (let multi_i = 0; multi_i < this.weapons[code].multi; multi_i++) {
-
+            let id = this.shotDelay.filter(by => by <= 0).pop();
+            if (id === undefined) {
+                return shots;
+            }
             if (this.shotMultiPos[code] == this.weapons[code].max || this.shotMultiPos[code] >= 8) {
                 this.shotMultiPos[code] = 0;
             }
-            if (this.shotDelay[code*8+multi_i]) {
-                this.shotDelay[code*8+multi_i] -= step;
-                continue;
+            if (this.shotDelay[id]) {
+                //continue;
             }
 
-            let shot: PlayerShot = <PlayerShot>{position: {x: 0, y: 0}};
+            let shot: PlayerShot = <PlayerShot>{id, position: {x: 0, y: 0}};
             shot.chainReaction = 0;
             shot.playerNumber = 1;
             shot.animationCycle = 0;
@@ -206,7 +208,7 @@ export class Player implements PlayerGraphic {
                 shot.shotDirY = -1;
             }
 
-            shot.shotTrail = this.weapons[code].trail;
+            shot.trail = this.weapons[code].trail;
 
             if (this.weapons[code].attack[this.shotMultiPos[code]] > 99 && this.weapons[code].attack[this.shotMultiPos[code]] < 250) {
                 shot.chainReaction = this.weapons[code].attack[this.shotMultiPos[code]]-100;
@@ -219,8 +221,6 @@ export class Player implements PlayerGraphic {
             shot.shotBlastFilter = this.weapons[code].shipBlastFilter;
 
             let tmp_by = this.weapons[code].by[this.shotMultiPos[code]];
-
-            /*Note: Only front selection used for player shots...*/
 
             shot.position = {
                 x: this.position.x + this.weapons[code].bx[this.shotMultiPos[code]],
@@ -237,16 +237,16 @@ export class Player implements PlayerGraphic {
 
             if (delay == 121)
             {
-                shot.shotTrail = 0;
+                shot.trail = 0;
                 delay = 255;
             }
 
-            shot.graphic = [this.weapons[code].sg[this.shotMultiPos[code]]];
+            shot.graphic = [this.weapons[code].sg[this.shotMultiPos[code]]-1];
             if (shot.graphic[0] == 0) {
-                this.shotDelay[code*8+multi_i] = 0;
+                this.shotDelay[id] = 0;
             }
             else {
-                this.shotDelay[code*8+multi_i] = delay;
+                this.shotDelay[id] = delay;
             }
             switch (true) {
                 case shot.graphic[0] > 60000: {
@@ -307,15 +307,18 @@ export class Player implements PlayerGraphic {
 
             if (this.weapons[code].sx[this.shotMultiPos[code]] > 100) {
                 shot.shotXM = this.weapons[code].sx[this.shotMultiPos[code]];
-                shot.position.x -= this.position.x;
-                if (shot.shotXM == 101) {
-                    shot.position.y -= this.position.y;
-                }
+                //shot.position.x -= this.position.x;
+                //if (shot.shotXM == 101) {
+                //    shot.position.y -= this.position.y;
+                //}
             }
 
+            shot.position.y -= 7;
+            shot.position.x -= 6;
+
             this.shotRepeat[code] = this.weapons[code].shotRepeat;
-            shots.push(shot);
             this.shotMultiPos[code]++;
+            shots.push(shot);
         }
         return shots;
     }

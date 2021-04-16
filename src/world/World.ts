@@ -42,7 +42,7 @@ export class World extends utils.EventEmitter {
     private keysPressed: {[code: string]: boolean} = {};
 
     protected readonly registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
-    public readonly registeredPlayerShots: (WorldObject & {shot: PlayerShot})[] = [];
+    public readonly registeredPlayerShots: (WorldObject & {shot: PlayerShot, id: number})[] = [];
     public readonly registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
 
     protected readonly state = {
@@ -69,11 +69,13 @@ export class World extends utils.EventEmitter {
         this.layers = layers;
         this.playerLayer = playerLayer;
 
+        console.log(this.items);
+
         this.layers[LayerCode.GND].backPos.set((map.backX[LayerCode.GND]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[253]);
+        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[412]);
         this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
@@ -248,29 +250,32 @@ export class World extends utils.EventEmitter {
         this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
 
         if (this.keysPressed['Space']) {
-            let shots = this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100);
-            console.log(shots);
-            this.registeredPlayerShots.push(...shots.map(shot => {
+            this.registeredPlayerShots.push(...this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100).map(shot => {
 
                 if (this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim > 5) {/*Guided Shot*/
                     shot.aimDelay = 5;
                     shot.aimDelayMax = this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim-shot.aimDelay;
                     shot.aimAtEnemy = this.getClosestEnemy(this.playerOne.position);
                 }
-                return {shot, ...this.playerLayer.registerShot(shot)};
+                return {id: shot.id, shot, ...this.playerLayer.registerShot(shot)};
             }));
         }
         for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
-            let {shot, name, position} = this.registeredPlayerShots[i];
+            let {shot, name, position, id, animationStep} = this.registeredPlayerShots[i];
+            this.playerOne.shotDelay[id] -= step;
+            if (this.playerOne.shotDelay[id] <= 0) {
+                this.playerOne.shotDelay[id] = 0;
+            }
             this.playerOne.shotUpdate(shot, step);
             let readyToGC = !this.gcBox.contains(shot.position.x, shot.position.y);
             if (readyToGC) {
+                this.playerOne.shotDelay[id] = 0;
                 this.registeredPlayerShots.splice(i--, 1);
                 l--;
                 this.playerLayer.unregisterObject(name);
             }
             position.copyFrom(shot.position);
-
+            animationStep.x = shot.animationCycle;
         }
     }
 }

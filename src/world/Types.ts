@@ -111,11 +111,12 @@ export type PlayerShotGraphic = {
 }
 
 export type PlayerShot = PlayerShotGraphic & {
+    id: number,
     shotXM: number, shotYM: number, shotXC: number, shotYC: number,
     shotComplicated: boolean,
     shotDevX: number, shotDirX: number, shotDevY: number, shotDirY: number,
     shotCirSizeX: number, shotCirSizeY: number,
-    shotTrail: number,
+    trail: number,
     shotAniMax: number,
     shotDmg: number,
     shotBlastFilter: number,

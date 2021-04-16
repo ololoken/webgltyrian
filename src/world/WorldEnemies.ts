@@ -357,8 +357,8 @@ export function enemiesUpdate (this: World, step: number): void {
 
                                 let shot: EnemyShot = {
                                     position: {
-                                        x: enemy.position.x + this.items.weapons[tur].bx[tempPos],
-                                        y: enemy.position.y + this.items.weapons[tur].by[tempPos],
+                                        x: enemy.position.x + this.items.weapons[tur].bx[tempPos]+6,
+                                        y: enemy.position.y + this.items.weapons[tur].by[tempPos]+7,
                                     },
                                     shapeBank: this.items.weapons[tur].sg[tempPos] >= 500
                                         ? 12
