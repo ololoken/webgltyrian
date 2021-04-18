@@ -33,9 +33,9 @@ export class Player implements PlayerGraphic {
 
     items: [] = [];
 
-    public readonly shotMultiPos: number[] = new Array(10).fill(0);
-    public readonly shotRepeat: number[] = new Array(10).fill(0);
-    public readonly shotDelay: number[] = new Array(10*8).fill(0);
+    private readonly shotMultiPos: number[] = new Array(10).fill(0);
+    private readonly shotRepeat: number[] = new Array(10).fill(0);
+    private readonly shotDelay: number[] = new Array(10*8).fill(0);
 
     public readonly weapons: TyWeapon[] = [];
 
@@ -97,7 +97,11 @@ export class Player implements PlayerGraphic {
         }
     }
 
-    public shotUpdate (shot: PlayerShot, step: number): void {
+    public shotUpdate (id: number, shot: PlayerShot, step: number): void {
+        this.shotDelay[id] -= step;
+        if (this.shotDelay[id] <= 0) {
+            this.shotDelay[id] = 0;
+        }
         shot.shotXM += step*shot.shotXC;
         shot.position.x += step*shot.shotXM;
         if (shot.shotXM > 100) {
@@ -160,16 +164,13 @@ export class Player implements PlayerGraphic {
             this.shotRepeat[code] -= step;
             return shots;
         }
+        let id = this.shotDelay.filter(by => by <= 0).pop();
+        if (id === undefined) {
+            return shots;
+        }
         for (let multi_i = 0; multi_i < this.weapons[code].multi; multi_i++) {
-            let id = this.shotDelay.filter(by => by <= 0).pop();
-            if (id === undefined) {
-                return shots;
-            }
             if (this.shotMultiPos[code] == this.weapons[code].max || this.shotMultiPos[code] >= 8) {
                 this.shotMultiPos[code] = 0;
-            }
-            if (this.shotDelay[id]) {
-                //continue;
             }
 
             let shot: PlayerShot = <PlayerShot>{id, position: {x: 0, y: 0}};
@@ -321,5 +322,9 @@ export class Player implements PlayerGraphic {
             shots.push(shot);
         }
         return shots;
+    }
+
+    public shotRemove(id: number): void {
+        this.shotDelay[id] = 0;
     }
 }

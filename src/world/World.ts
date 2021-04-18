@@ -7,7 +7,10 @@ import {
     enemiesAnimate,
     hasRegisteredEnemies,
     enemyShotsUpdate,
-    getClosestEnemy, EnemyCode
+    getClosestEnemy,
+    EnemyCode,
+    enemyShotsCreate,
+    enemyLaunch
 } from "./WorldEnemies";
 import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
@@ -34,9 +37,11 @@ export class World extends utils.EventEmitter {
     private hasRegisteredEnemies = hasRegisteredEnemies;
     private enemyShotsUpdate = enemyShotsUpdate;
     private getClosestEnemy = getClosestEnemy;
+    protected enemyShotsCreate = enemyShotsCreate;
+    protected enemyLaunch = enemyLaunch;
 
     protected readonly playerLayer: IPlayerLayer;
-    protected readonly playerOne: Player;
+    private readonly playerOne: Player;
     private readonly player: WorldObject;
 
     private keysPressed: {[code: string]: boolean} = {};
@@ -75,7 +80,7 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[412]);
+        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[175]);
         this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
@@ -180,8 +185,8 @@ export class World extends utils.EventEmitter {
     public update (delta: number): void {
         this.updateEventSystem(this.STEP);
         this.updateBackground(this.STEP);
-        this.enemiesUpdate(this.STEP);
-        this.enemyShotsUpdate(this.STEP);
+        this.enemiesUpdate(this.STEP, this.playerOne);
+        this.enemyShotsUpdate(this.STEP, this.playerOne);
         this.playersUpdate(this.STEP);
     }
 
@@ -245,31 +250,22 @@ export class World extends utils.EventEmitter {
     }
 
     private playersUpdate (step: number): void {
-        this.playerOne.update(this.keysPressed, step);
-        this.player.position.copyFrom(this.playerOne.position);
-        this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
-
         if (this.keysPressed['Space']) {
-            this.registeredPlayerShots.push(...this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100).map(shot => {
-
+            this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100).forEach(shot => {
                 if (this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim > 5) {/*Guided Shot*/
                     shot.aimDelay = 5;
                     shot.aimDelayMax = this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim-shot.aimDelay;
                     shot.aimAtEnemy = this.getClosestEnemy(this.playerOne.position);
                 }
-                return {id: shot.id, shot, ...this.playerLayer.registerShot(shot)};
-            }));
+                this.registeredPlayerShots.push({id: shot.id, shot, ...this.playerLayer.registerShot(shot)});
+            });
         }
         for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
             let {shot, name, position, id, animationStep} = this.registeredPlayerShots[i];
-            this.playerOne.shotDelay[id] -= step;
-            if (this.playerOne.shotDelay[id] <= 0) {
-                this.playerOne.shotDelay[id] = 0;
-            }
-            this.playerOne.shotUpdate(shot, step);
+            this.playerOne.shotUpdate(id, shot, step);
             let readyToGC = !this.gcBox.contains(shot.position.x, shot.position.y);
             if (readyToGC) {
-                this.playerOne.shotDelay[id] = 0;
+                this.playerOne.shotRemove(id);
                 this.registeredPlayerShots.splice(i--, 1);
                 l--;
                 this.playerLayer.unregisterObject(name);
@@ -277,5 +273,9 @@ export class World extends utils.EventEmitter {
             position.copyFrom(shot.position);
             animationStep.x = shot.animationCycle;
         }
+
+        this.playerOne.update(this.keysPressed, step);
+        this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
+        this.player.position.copyFrom(this.playerOne.position);
     }
 }
