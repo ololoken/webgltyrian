@@ -148,6 +148,65 @@ export type TyEpisodeItems = Readonly<{
     enemiesCount: number, enemies: TyEnemy[]
 }>
 
+export type TySong = Readonly<{
+    mode: number,
+    speed: number,
+    tempo: number,
+    patternsLength: number,
+    channelsDelay: number[],
+    regbd: number,
+    soundBanksLength: number,
+    soundBanks: TySoundBank[],
+    positionsLength: number,
+    positions: TySongPosition[],
+    patterns: number[],
+}>
+
+type TySoundBank = Readonly<{
+    modMisc: number,
+    modVol: number,
+    modAd: number,
+    modSr: number,
+    modWave: number,
+    carMisc: number,
+    carVol: number,
+    carAd: number,
+    carSr: number,
+    carWave: number,
+    feedback: number,
+    keyOff: number,
+    portamento: number,
+    glide: number,
+    finetune: number,
+    vibrato: number,
+    vibDelay: number,
+    modTrem: number,
+    carTrem: number,
+    tremWait: number,
+    arpeggio: number,
+    arpTab: number[],
+    start: number,
+    size: number,
+    fms: number,
+    transp: number,
+    midInst: number,
+    midVelo: number,
+    midKey: number,
+    midTrans: number,
+    middum1: number,
+    middum2: number,
+}>
+
+type TySongPosition = Readonly<{
+    patnum: number,
+    transpose: number
+}>
+
+export type TySfxHeader = Readonly<{
+    soundsLength: number,
+    offsets: number[]
+}>
+
 export const TyEpisodeItemsStruct = new Struct<TyEpisodeItems>()
     .single('weaponsCount', UInt16)
     .single('portsCount',  UInt16)
@@ -375,3 +434,58 @@ export const TyCompressedShapesData = (offset: number, end: number) => new Struc
 export const TyPCXImage = (offset: number, length: number) =>  new Struct<{img: number[]}>()
     .goto(l(offset))
     .array('img', Byte, l(length));
+
+export const TySoundData = (offset: number, length: number) =>  new Struct<{sound: number[]}>()
+    .goto(l(offset))
+    .array('sound', Byte, l(length));
+
+export const TyMusicHeaderStruct = new Struct<{length: number, offsets: number[]}>()
+    .single('length', UInt16)
+    .array('offsets', UInt32, la('length'))
+
+export const TySongStruct = new Struct<TySong>()
+    .single('mode', Byte)
+    .single('speed', UInt16)
+    .single('tempo', Byte)
+    .single('patternsLength', Byte)
+    .array('channelsDelay', Byte, l(9))
+    .single('regbd', Byte)
+    .single('soundBanksLength', UInt16)
+    .array('soundBanks', new Struct<TySoundBank>()
+        .single('modMisc', Byte)
+        .single('modVol', Byte)
+        .single('modAd', Byte)
+        .single('modSr', Byte)
+        .single('modWave', Byte)
+        .single('carMisc', Byte)
+        .single('carVol', Byte)
+        .single('carAd', Byte)
+        .single('carSr', Byte)
+        .single('carWave', Byte)
+        .single('feedback', Byte)
+        .single('keyOff', Byte)
+        .single('portamento', Byte)
+        .single('glide', Byte)
+        .single('finetune', Byte)
+        .single('vibrato', Byte)
+        .single('vibDelay', Byte)
+        .single('modTrem', Byte)
+        .single('carTrem', Byte)
+        .single('tremWait', Byte)
+        .single('arpeggio', Byte)
+        .array('arpTab', Byte, l(12))
+        .single('start', UInt16)
+        .single('size', UInt16)
+        .single('fms', Byte)
+        .single('transp', UInt16)
+        .single('midInst', Byte)
+        .single('midVelo', Byte)
+        .single('midKey', Byte)
+        .single('midTrans', Byte)
+        .single('middum1', Byte)
+        .single('middum2', Byte), la('soundBanksLength'))
+    .single('positionsLength', UInt16)
+    .array('positions', new Struct<TySongPosition>()
+        .single('patnum', UInt16)
+        .single('transpose', Byte), la('positionsLength'))
+    .array('patterns', UInt16, la('patternsLength'))

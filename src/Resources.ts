@@ -13,7 +13,14 @@ import {
     TyEpisodeScriptStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
-    MAP_TILE_WIDTH, MAP_TILE_HEIGHT, PALETTE_SIZE, TyEpisodeMap, TyCompressedShapesData,
+    MAP_TILE_WIDTH,
+    MAP_TILE_HEIGHT,
+    PALETTE_SIZE,
+    TyEpisodeMap,
+    TyCompressedShapesData,
+    TyMusicHeaderStruct,
+    TySong,
+    TySongStruct, TySoundData,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeCompressedDecoder} from "./Decoders";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
@@ -76,8 +83,11 @@ export const cache : {
         palettes: PaletteFilter[],
         mainShapeBanks: TextureAtlas[],
         enemyShapeBanks: TextureAtlas[];
-        episodes: TyEpisodeData[]
-    } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: []}
+        episodes: TyEpisodeData[],
+        songs: TySong[],
+        sfx: number[][],
+        vfx: number[][],
+    } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: [], songs: [], sfx: [], vfx: []}
 
 const generatePalettes: ResourceInit = (dt) => {
     const data = PaletteDecoder(TyPalettesStruct.unpack(dt).palettes);
@@ -147,6 +157,17 @@ const generateMainShapeBanks: ResourceInit = (dt) => TyShapeTablesHeaderStruct.u
     .forEach((shapes, idx) => {
         cache.mainShapeBanks[idx] = shapesToTexture(shapes);
     });
+
+const generateSongs: ResourceInit = (dt) => TyMusicHeaderStruct.unpack(dt).offsets
+    .forEach((offset, idx, offsets) => {
+        cache.songs[idx] = TySongStruct.unpack(dt, offset)
+    })
+
+const generateSounds: (cacheIndex: 'sfx' | 'vfx') => ResourceInit = (cacheIndex) => (dt) =>
+    TyMusicHeaderStruct.unpack(dt).offsets.forEach((offset, idx, offsets) =>
+        cache[cacheIndex][idx] = TySoundData(offset, (idx+1 < offsets.length ? offsets[idx+1] : Number.MAX_SAFE_INTEGER)-offset)
+            .unpack(dt, offset).sound
+    )
 
 export type TextureAtlas = {
     frames: Rectangle[],
@@ -234,7 +255,10 @@ export const textContainer = (text: string, font: SpriteTableIndex, palette: num
 const basicResources: Resource = {
     pal: {path: 'palette.dat', init: generatePalettes},
     pcx: {path: 'tyrian.pic', init: generatePCXTexture},
-    shp: {path: 'tyrian.shp', init: generateMainShapeBanks}
+    shp: {path: 'tyrian.shp', init: generateMainShapeBanks},
+    mus: {path: 'music.mus', init: generateSongs},
+    sfx: {path: 'tyrian.snd', init: generateSounds('sfx')},
+    vfx: {path: 'voices.snd', init: generateSounds('vfx')}
 }
 
 const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)

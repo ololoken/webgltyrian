@@ -561,7 +561,6 @@ export function enemyShotsUpdate (this: World, step: number, playerOne: Player):
         }
         shot.sym += step*shot.syc;
         shot.position.y += step*shot.sym;
-
         if (shot.ty != 0) {
             if (shot.position.y > playerOne.position.y && shot.sym > -shot.ty) {
                 shot.sym -= step;
