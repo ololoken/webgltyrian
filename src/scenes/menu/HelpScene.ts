@@ -1,8 +1,9 @@
 import {AbstractScene} from "../AbstractScene";
-import {PCX, pcxSprite, SpriteTableIndex, textContainer} from "../../Resources";
+import {cache, PCX, pcxSprite, SFX_CODE, SpriteTableIndex, textContainer} from "../../Resources";
 import {MainMenuScene, MenuItem} from "./MainMenuScene";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {filters} from "pixi.js";
+import {Audio} from "../../Audio";
 
 
 export class HelpScene extends AbstractScene<number> {
@@ -36,6 +37,7 @@ export class HelpScene extends AbstractScene<number> {
             m.btn!.filters.push(m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter());
             m.btn!.interactive = true;
             m.btn!.on('click', () => {
+                Audio.getInstance().playSample(cache.sfx[SFX_CODE.S_SELECT]);
                 this.state = 0;
                 this.resolve(new MainMenuScene(3));
             });

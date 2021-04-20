@@ -20,7 +20,7 @@ import {
     TyCompressedShapesData,
     TyMusicHeaderStruct,
     TySong,
-    TySongStruct, TySoundData,
+    TySongStruct, TySoundData, PCM_RESAMPLE_RATE,
 } from "./Structs";
 import {PaletteDecoder, TyShapeDecoder, TyShapeCompressedDecoder} from "./Decoders";
 import {MAIN_HEIGHT, MAIN_WIDTH} from "./Tyrian";
@@ -68,6 +68,51 @@ const FontSprite: number[] = [
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
 ];
 
+export enum SFX_CODE {
+    S_WEAPON_1         =  0,
+    S_WEAPON_2         =  1,
+    S_ENEMY_HIT        =  2,
+    S_EXPLOSION_4      =  3,
+    S_WEAPON_5         =  4,
+    S_WEAPON_6         =  5,
+    S_WEAPON_7         =  6,
+    S_SELECT           =  7,
+    S_EXPLOSION_8      =  8,
+    S_EXPLOSION_9      =  9,
+    S_WEAPON_10        = 10,
+    S_EXPLOSION_11     = 11,
+    S_EXPLOSION_12     = 12,
+    S_WEAPON_13        = 13,
+    S_WEAPON_14        = 14,
+    S_WEAPON_15        = 15,
+    S_SPRING           = 16,
+    S_WARNING          = 17,
+    S_ITEM             = 18,
+    S_HULL_HIT         = 19,
+    S_MACHINE_GUN      = 20,
+    S_SOUL_OF_ZINGLON  = 21,
+    S_EXPLOSION_22     = 22,
+    S_CLINK            = 23,
+    S_CLICK            = 24,
+    S_WEAPON_25        = 25,
+    S_WEAPON_26        = 26,
+    S_SHIELD_HIT       = 27,
+    S_CURSOR           = 28,
+    S_POWERUP          = 29,
+}
+
+export enum VFX_CODE {
+    V_CLEARED_PLATFORM = 0,  // "Cleared enemy platform."
+    V_BOSS             = 1,  // "Large enemy approaching."
+    V_ENEMIES          = 2,  // "Enemies ahead."
+    V_GOOD_LUCK        = 3,  // "Good luck."
+    V_LEVEL_END        = 4,  // "Level completed."
+    V_DANGER           = 5,  // "Danger."
+    V_SPIKES           = 6,  // "Warning: spikes ahead."
+    V_DATA_CUBE        = 7,  // "Data acquired."
+    V_ACCELERATE       = 8,  // "Unexplained speed increase."
+}
+
 export enum SpriteTableIndex {
     FONT_LARGE = 0,
     FONT_REGULAR = 1,
@@ -85,8 +130,8 @@ export const cache : {
         enemyShapeBanks: TextureAtlas[];
         episodes: TyEpisodeData[],
         songs: TySong[],
-        sfx: number[][],
-        vfx: number[][],
+        sfx: Float32Array[],
+        vfx: Float32Array[],
     } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: [], songs: [], sfx: [], vfx: []}
 
 const generatePalettes: ResourceInit = (dt) => {
@@ -165,8 +210,12 @@ const generateSongs: ResourceInit = (dt) => TyMusicHeaderStruct.unpack(dt).offse
 
 const generateSounds: (cacheIndex: 'sfx' | 'vfx') => ResourceInit = (cacheIndex) => (dt) =>
     TyMusicHeaderStruct.unpack(dt).offsets.forEach((offset, idx, offsets) =>
-        cache[cacheIndex][idx] = TySoundData(offset, (idx+1 < offsets.length ? offsets[idx+1] : Number.MAX_SAFE_INTEGER)-offset)
+        cache[cacheIndex][idx] = Float32Array.from(TySoundData(offset, (idx+1 < offsets.length ? offsets[idx+1] : Number.MAX_SAFE_INTEGER)-offset)
             .unpack(dt, offset).sound
+                .reduce((resampled, pcm, idx) => {
+                    resampled.push(...new Array(PCM_RESAMPLE_RATE).fill((pcm << 24 >> 24)/128));
+                    return resampled;
+                }, <number[]>[]))
     )
 
 export type TextureAtlas = {

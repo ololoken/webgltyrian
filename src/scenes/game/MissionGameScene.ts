@@ -4,8 +4,8 @@ import {
     generateBackgroundTexturesAtlas, generateEnemyShapeBankTextureAtlas,
     getEpisodeData,
     PCX,
-    pcxSprite,
-    TextureAtlas
+    pcxSprite, SFX_CODE,
+    TextureAtlas, VFX_CODE
 } from "../../Resources";
 import {Sprite} from "pixi.js";
 import {
@@ -18,6 +18,7 @@ import {World} from "../../world/World";
 import {MainMenuScene} from "../menu/MainMenuScene";
 import {PlayerLayer} from "./PlayerLayer";
 import {IPlayerLayer, Layers} from "../../world/Types";
+import {Audio} from "../../Audio";
 
 type DemoParams = {episodeNumber: number, mapIndex: number};
 
@@ -72,6 +73,7 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                 this.world.on('MissionEnd', () => this.resolve(new MainMenuScene(0)));
 
                 loaded(true);
+                Audio.getInstance().playSample(cache.vfx[VFX_CODE.V_GOOD_LUCK]);
             })
         });
     }

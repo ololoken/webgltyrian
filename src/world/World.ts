@@ -17,6 +17,7 @@ import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {BackSpeed, Enemy, EnemyShot, IPlayerLayer, LayerCode, Layers, PlayerShot, WorldObject} from "./Types";
 import {Player, WeaponCode} from "./Player";
+import {Audio} from "../Audio";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -188,6 +189,9 @@ export class World extends utils.EventEmitter {
         this.enemiesUpdate(this.STEP, this.playerOne);
         this.enemyShotsUpdate(this.STEP, this.playerOne);
         this.playersUpdate(this.STEP);
+
+        Audio.getInstance().play();
+        Audio.getInstance().dequeue();
     }
 
     private updateEventSystem (step: number): void {

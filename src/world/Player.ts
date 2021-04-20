@@ -1,6 +1,8 @@
 import {Rectangle} from "pixi.js"
 import {PlayerGraphic, PlayerShot} from "./Types";
-import {MAP_TILE_WIDTH, TyShip, TyWeapon} from "../Structs";
+import {MAP_TILE_WIDTH, PORT_CHANNEL, TyShip, TyWeapon} from "../Structs";
+import {Audio} from "../Audio";
+import {cache} from "../Resources";
 
 export enum WeaponCode {
     SHOT_FRONT,
@@ -320,6 +322,10 @@ export class Player implements PlayerGraphic {
             this.shotRepeat[code] = this.weapons[code].shotRepeat;
             this.shotMultiPos[code]++;
             shots.push(shot);
+
+            if (this.weapons[code].sound > 0) {
+                Audio.getInstance().enqueue(PORT_CHANNEL[code], cache.sfx[this.weapons[code].sound]);
+            }
         }
         return shots;
     }

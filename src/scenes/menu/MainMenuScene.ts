@@ -1,15 +1,17 @@
 import {Sprite, Container, filters} from 'pixi.js'
 import {AbstractScene, IScene} from "../AbstractScene";
 import {
+    cache,
     getSprite,
     PCX,
-    pcxSprite,
+    pcxSprite, SFX_CODE,
     SpriteTableIndex,
     textContainer
 } from "../../Resources";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {HelpScene} from "./HelpScene";
 import {MissionGameScene} from "../game/MissionGameScene";
+import {Audio} from "../../Audio";
 
 export type MenuItem = {
     text: string,
@@ -76,6 +78,7 @@ export class MainMenuScene extends AbstractScene<number> {
                 m.btn.on('click', () => {
                     this.state = idx;
                     if (this.menu[this.state].target) {
+                        Audio.getInstance().playSample(cache.sfx[SFX_CODE.S_SELECT]);
                         this.resolve(this.menu[this.state].target!());
                     }
                 });
