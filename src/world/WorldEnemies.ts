@@ -6,6 +6,8 @@ import {Enemy, EnemyShot, LayerCode, WorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
+import {Audio} from "../Audio";
+import {cache} from "../Resources";
 
 export enum EnemyCode {
     GND_25 = 25,
@@ -708,6 +710,14 @@ export function enemyShotsCreate (this: World, step: number, enemy: Enemy, playe
                         shot.sym = relative_y / longest_side * aim;
                     }
                     shots.push(shot);
+
+                    if (this.items.weapons[tur].sound > 0) {
+                        let channel = 0;
+                        do {
+                            channel = Math.random()*8+0.5 >> 0;
+                        } while (channel == 3)
+                        Audio.getInstance().enqueue(channel, cache.sfx[this.items.weapons[tur].sound-1]);
+                    }
                 }
                 break;
         }

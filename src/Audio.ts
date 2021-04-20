@@ -54,8 +54,17 @@ export class Audio {
     private playBuffer (buffer: AudioBuffer) {
         let bufferSource = this.audioCtx.createBufferSource();
         bufferSource.buffer = buffer;
-        bufferSource.connect(this.audioCtx.destination);
-        bufferSource.addEventListener('ended', () => bufferSource.disconnect());
+        let splitter = this.audioCtx.createChannelSplitter(buffer.numberOfChannels);
+        let merger = this.audioCtx.createChannelMerger(buffer.numberOfChannels);
+        bufferSource.connect(splitter);
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            splitter.connect(merger, channel);
+        }
+        merger.connect(this.audioCtx.destination);
+        bufferSource.addEventListener('ended', () => {
+            bufferSource.disconnect();
+            merger.disconnect();
+        });
         bufferSource.start();
     }
 }

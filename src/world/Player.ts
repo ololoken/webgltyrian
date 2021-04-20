@@ -324,7 +324,7 @@ export class Player implements PlayerGraphic {
             shots.push(shot);
 
             if (this.weapons[code].sound > 0) {
-                Audio.getInstance().enqueue(PORT_CHANNEL[code], cache.sfx[this.weapons[code].sound]);
+                Audio.getInstance().enqueue(PORT_CHANNEL[code], cache.sfx[this.weapons[code].sound-1]);
             }
         }
         return shots;
