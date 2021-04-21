@@ -10,10 +10,18 @@ export class Audio {
     }
 
     private audioCtx: AudioContext;
+    private splitter: ChannelSplitterNode;
+    private merger: ChannelMergerNode;
     private que: Float32Array[] = [];
 
     private constructor() {
         this.audioCtx = new AudioContext({sampleRate: SAMPLE_RATE});
+        this.splitter = this.audioCtx.createChannelSplitter(SFX_CHANNELS);
+        this.merger = this.audioCtx.createChannelMerger(SFX_CHANNELS);
+        for (let channel = 0; channel < SFX_CHANNELS; channel++) {
+            this.splitter.connect(this.merger, channel);
+        }
+        this.merger.connect(this.audioCtx.destination);
         this.dequeue();
     }
 
@@ -46,7 +54,7 @@ export class Audio {
     }
 
     public playSample (sample: Float32Array): void {
-        let buffer = this.audioCtx.createBuffer(1, sample.length, this.audioCtx.sampleRate);
+        let buffer = this.audioCtx.createBuffer(SFX_CHANNELS, sample.length, this.audioCtx.sampleRate);
         buffer.getChannelData(0).set(sample);
         this.playBuffer(buffer);
     }
@@ -54,16 +62,9 @@ export class Audio {
     private playBuffer (buffer: AudioBuffer) {
         let bufferSource = this.audioCtx.createBufferSource();
         bufferSource.buffer = buffer;
-        let splitter = this.audioCtx.createChannelSplitter(buffer.numberOfChannels);
-        let merger = this.audioCtx.createChannelMerger(buffer.numberOfChannels);
-        bufferSource.connect(splitter);
-        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-            splitter.connect(merger, channel);
-        }
-        merger.connect(this.audioCtx.destination);
+        bufferSource.connect(this.splitter);
         bufferSource.addEventListener('ended', () => {
             bufferSource.disconnect();
-            merger.disconnect();
         });
         bufferSource.start();
     }
