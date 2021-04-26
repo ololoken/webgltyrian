@@ -310,14 +310,10 @@ export class Player implements PlayerGraphic {
 
             if (this.weapons[code].sx[this.shotMultiPos[code]] > 100) {
                 shot.shotXM = this.weapons[code].sx[this.shotMultiPos[code]];
-                //shot.position.x -= this.position.x;
-                //if (shot.shotXM == 101) {
-                //    shot.position.y -= this.position.y;
-                //}
             }
 
-            shot.position.y -= 7;
             shot.position.x -= 6;
+            shot.position.y -= 7;
 
             this.shotRepeat[code] = this.weapons[code].shotRepeat;
             this.shotMultiPos[code]++;

@@ -63,12 +63,8 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                 this.world = new World(map, items, this.layers, this.playerLayer);
 
                 //process load content event(s) and then ignore them
-                (await Promise.all(this.world.getRequiredShapes()
-                    .reduce((a, id) => {
-                        a[id] = generateEnemyShapeBankTextureAtlas(id);
-                        return a;
-                    }, <Promise<TextureAtlas>[]>[])))
-                    .forEach((atlas, id) => cache.enemyShapeBanks[id] = atlas);
+                await this.world.getRequiredShapes()
+                    .map(async id => cache.enemyShapeBanks[id] = await generateEnemyShapeBankTextureAtlas(id));
 
                 this.world.on('MissionEnd', () => this.resolve(new MainMenuScene(0)));
 
@@ -85,7 +81,6 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
     }
 
     public update (step: number): void {
-        //step = literally TARGET_FPMS*deltaMS, adjustable step size
         this.world.update(step);
     }
 }

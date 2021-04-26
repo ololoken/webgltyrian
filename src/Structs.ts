@@ -19,7 +19,8 @@ export const PALETTE_SIZE = 256,
              BACK_3_WIDTH = 15, BACK_3_HEIGHT = 600,
              SFX_CHANNELS = 8,
              PCM_RESAMPLE_RATE = 4, SAMPLE_RATE = 44100,
-             PORT_CHANNEL = [0, 2, 4, 4, 2, 2, 5, 5, 1, 4, 1];
+             PORT_CHANNEL = [0, 2, 4, 4, 2, 2, 5, 5, 1, 4, 1],
+             PLAYER_CONTAINER_WIDTH = 260, PLAYER_CONTAINER_HEIGHT = 190;
 
 const [UInt16, Int16] = [Primitive.UInt16LE(), Primitive.Int16LE()],
       [Byte, Char] = [Primitive.UInt8(), Primitive.Int8()],

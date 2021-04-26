@@ -1,4 +1,4 @@
-import {ObservablePoint} from "pixi.js";
+import {ObservablePoint, Rectangle} from "pixi.js";
 
 export interface IWorldLayer {
     readonly backPos: ObservablePoint;
@@ -31,6 +31,7 @@ export type Layers = [IWorldLayer, IWorldLayer, IWorldLayer];
 
 export type WorldObject = {
     position: ObservablePoint,
+    getBoundingRect: () => Rectangle,
     animationStep: ObservablePoint,
     name: string
 }
@@ -112,9 +113,11 @@ export type PlayerShotGraphic = {
 
 export type PlayerShot = PlayerShotGraphic & {
     id: number,
-    shotXM: number, shotYM: number, shotXC: number, shotYC: number,
+    shotXM: number, shotYM: number,
+    shotXC: number, shotYC: number,
     shotComplicated: boolean,
-    shotDevX: number, shotDirX: number, shotDevY: number, shotDirY: number,
+    shotDevX: number, shotDevY: number,
+    shotDirY: number, shotDirX: number,
     shotCirSizeX: number, shotCirSizeY: number,
     trail: number,
     shotAniMax: number,

@@ -248,7 +248,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
 
 }
 
-export function enemiesUpdate (this: World, step: number, playerOne: Player): void {
+export function updateEnemies (this: World, step: number, playerOne: Player): void {
     for (let i = 0, l = this.registeredEnemies.length; i < l; i++) {
         let {enemy, layer, name, position, animationStep, code} = this.registeredEnemies[i];
 
@@ -548,7 +548,7 @@ export function hasRegisteredEnemies (this: World): boolean {
     return this.registeredEnemies.length > 0;
 }
 
-export function enemyShotsUpdate (this: World, step: number, playerOne: Player): void {
+export function updateEnemiesShots (this: World, step: number, playerOne: Player): void {
     for (let i = 0, l = this.registeredEnemyShots.length; i < l; i++) {
         let {shot, name, layer, animationStep, position} = this.registeredEnemyShots[i];
         shot.sxm += step*shot.sxc;

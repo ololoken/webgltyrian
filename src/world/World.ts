@@ -2,11 +2,11 @@ import {MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {
     enemyCreate,
-    enemiesUpdate,
+    updateEnemies,
+    updateEnemiesShots,
     enemiesGlobalMove,
     enemiesAnimate,
     hasRegisteredEnemies,
-    enemyShotsUpdate,
     getClosestEnemy,
     EnemyCode,
     enemyShotsCreate,
@@ -32,11 +32,11 @@ export class World extends utils.EventEmitter {
     protected STEP = 1;
 
     private enemyCreate = enemyCreate;
-    private enemiesUpdate = enemiesUpdate;
+    private updateEnemies = updateEnemies;
     private enemiesGlobalMove = enemiesGlobalMove;
     private enemiesAnimate = enemiesAnimate;
     private hasRegisteredEnemies = hasRegisteredEnemies;
-    private enemyShotsUpdate = enemyShotsUpdate;
+    private updateEnemiesShots = updateEnemiesShots;
     private getClosestEnemy = getClosestEnemy;
     protected enemyShotsCreate = enemyShotsCreate;
     protected enemyLaunch = enemyLaunch;
@@ -186,9 +186,9 @@ export class World extends utils.EventEmitter {
     public update (delta: number): void {
         this.updateEventSystem(this.STEP);
         this.updateBackground(this.STEP);
-        this.enemiesUpdate(this.STEP, this.playerOne);
-        this.enemyShotsUpdate(this.STEP, this.playerOne);
-        this.playersUpdate(this.STEP);
+        this.updateEnemies(this.STEP, this.playerOne);
+        this.updateEnemiesShots(this.STEP, this.playerOne);
+        this.updatePlayers(this.STEP);
 
         Audio.getInstance().play();
         Audio.getInstance().dequeue();
@@ -253,7 +253,7 @@ export class World extends utils.EventEmitter {
         })
     }
 
-    private playersUpdate (step: number): void {
+    private updatePlayers (step: number): void {
         if (this.keysPressed['Space']) {
             this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100).forEach(shot => {
                 if (this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim > 5) {/*Guided Shot*/
@@ -265,21 +265,39 @@ export class World extends utils.EventEmitter {
             });
         }
         for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
-            let {shot, name, position, id, animationStep} = this.registeredPlayerShots[i];
+            let {shot, name, position, id, animationStep, getBoundingRect} = this.registeredPlayerShots[i];
             this.playerOne.shotUpdate(id, shot, step);
+            position.copyFrom(shot.position);
+            animationStep.x = shot.animationCycle;
+
             let readyToGC = !this.gcBox.contains(shot.position.x, shot.position.y);
             if (readyToGC) {
                 this.playerOne.shotRemove(id);
                 this.registeredPlayerShots.splice(i--, 1);
                 l--;
                 this.playerLayer.unregisterObject(name);
+                continue;
             }
-            position.copyFrom(shot.position);
-            animationStep.x = shot.animationCycle;
+
+            for (let e = 0, el = this.registeredEnemies.length, hit = false; e < el && !hit; e++) {
+                let {enemy, position: ePosition, getBoundingRect: enemyGetBoundingRect} = this.registeredEnemies[e];
+                hit = this.intersects(getBoundingRect(), enemyGetBoundingRect());
+                if (hit) {
+                    this.playerOne.shotRemove(id);
+                    this.registeredPlayerShots.splice(i--, 1);
+                    l--;
+                    this.playerLayer.unregisterObject(name);
+                }
+            }
         }
 
         this.playerOne.update(this.keysPressed, step);
         this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
         this.player.position.copyFrom(this.playerOne.position);
+    }
+
+    private intersects (a: Rectangle, b: Rectangle) {
+        return Math.max(a.left, b.left) < Math.min(a.right, b.right) &&
+               Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
     }
 }

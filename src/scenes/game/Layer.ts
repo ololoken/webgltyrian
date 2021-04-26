@@ -50,7 +50,13 @@ export class Layer extends Container implements IWorldLayer {
         return {
             name: er.name!,
             position: er.position,
-            animationStep: er.cycle
+            animationStep: er.cycle,
+            getBoundingRect: () => {
+                let rect = er.getLocalBounds();
+                rect.x = er.position.x;
+                rect.y = er.position.y;
+                return rect;
+            }
         }
     }
 
@@ -59,7 +65,13 @@ export class Layer extends Container implements IWorldLayer {
         return {
             name: sh.name!,
             position: sh.position,
-            animationStep: sh.cycle
+            animationStep: sh.cycle,
+            getBoundingRect: () => {
+                let rect = sh.getLocalBounds();
+                rect.x = sh.position.x;
+                rect.y = sh.position.y;
+                return rect;
+            }
         }
     }
 
