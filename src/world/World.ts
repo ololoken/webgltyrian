@@ -81,7 +81,7 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[175]);
+        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[169]);
         this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
@@ -254,6 +254,16 @@ export class World extends utils.EventEmitter {
     }
 
     private updatePlayers (step: number): void {
+        this.updatePlayerShots(step);
+        this.collidePlayerShots();
+        this.collideEnemiesShots();
+
+        this.playerOne.update(this.keysPressed, step);
+        this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
+        this.player.position.copyFrom(this.playerOne.position);
+    }
+
+    private updatePlayerShots (step: number): void {
         if (this.keysPressed['Space']) {
             this.playerOne.shotsCreate(WeaponCode.SHOT_FRONT, step, 130, 100).forEach(shot => {
                 if (this.playerOne.weapons[WeaponCode.SHOT_FRONT].aim > 5) {/*Guided Shot*/
@@ -276,24 +286,32 @@ export class World extends utils.EventEmitter {
                 this.registeredPlayerShots.splice(i--, 1);
                 l--;
                 this.playerLayer.unregisterObject(name);
-                continue;
-            }
-
-            for (let e = 0, el = this.registeredEnemies.length, hit = false; e < el && !hit; e++) {
-                let {enemy, position: ePosition, getBoundingRect: enemyGetBoundingRect} = this.registeredEnemies[e];
-                hit = this.intersects(getBoundingRect(), enemyGetBoundingRect());
-                if (hit) {
-                    this.playerOne.shotRemove(id);
-                    this.registeredPlayerShots.splice(i--, 1);
-                    l--;
-                    this.playerLayer.unregisterObject(name);
-                }
             }
         }
+    }
 
-        this.playerOne.update(this.keysPressed, step);
-        this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
-        this.player.position.copyFrom(this.playerOne.position);
+    private collidePlayerShots (): void {
+        for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
+            let {shot, name, id, getBoundingRect} = this.registeredPlayerShots[i];
+            let hitEnemies = this.registeredEnemies.filter(({getBoundingRect: enemyGetBoundingRect}) => this.intersects(getBoundingRect(), enemyGetBoundingRect()));
+            if (hitEnemies.length > 0) {
+                this.playerOne.shotRemove(id);
+                this.registeredPlayerShots.splice(i--, 1);
+                l--;
+                this.playerLayer.unregisterObject(name);
+            }
+        }
+    }
+
+    private collideEnemiesShots (): void {
+        for (let i = 0, l = this.registeredEnemyShots.length; i < l; i++) {
+            let {shot, name, getBoundingRect, layer} = this.registeredEnemyShots[i];
+            if (this.intersects(this.player.getBoundingRect(), getBoundingRect())) {
+                this.registeredEnemyShots.splice(i--, 1);
+                l--;
+                this.layers[layer].unregisterObject(name);
+            }
+        }
     }
 
     private intersects (a: Rectangle, b: Rectangle) {

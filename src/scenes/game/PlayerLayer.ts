@@ -22,9 +22,10 @@ export class PlayerLayer extends Container implements IPlayerLayer {
             position: plr.position,
             animationStep: plr.animationStep,
             getBoundingRect: () => {
-                let rect = plr.getLocalBounds();
-                rect.x = plr.position.x;
-                rect.y = plr.position.y;
+                let rect = plr.getLocalBounds(),
+                    pos = plr.getGlobalPosition!();
+                rect.x = pos.x;
+                rect.y = pos.y;
                 return rect;
             }
         }
@@ -37,9 +38,10 @@ export class PlayerLayer extends Container implements IPlayerLayer {
             position: s.position,
             animationStep: s.cycle,
             getBoundingRect: () => {
-                let rect = s.getLocalBounds();
-                rect.x = s.position.x;
-                rect.y = s.position.y;
+                let rect = s.getLocalBounds(),
+                    pos = s.getGlobalPosition!();
+                rect.x = pos.x;
+                rect.y = pos.y;
                 return rect;
             }
         }

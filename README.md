@@ -7,15 +7,17 @@ What's ready:
 0. Basic menu scenes and scene manager implementation.
 1. Content loading of original game.
 2. A couple of shader to apply palettes and outlining.
-3. Shader for game map rendering. 
-
-In progress
+3. Shader for game map rendering.
 4. Add World with basic game logic.
 5. Event system.
+6. Sound effects
+
+In Progress:
+7. Collide and damage model.
 
 The plan is:
-6. Mission scene and first playable demo.
-7. Replace original graphics with [remastered by LostGarden's Daniel Cook](https://opengameart.org/content/remastered-tyrian-graphics-0).
+xx. Mission scene and first playable demo.
+xx. Replace original graphics with [remastered by LostGarden's Daniel Cook](https://opengameart.org/content/remastered-tyrian-graphics-0).
 
 ..... and so on.
 
