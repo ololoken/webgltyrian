@@ -3,6 +3,7 @@ import {resolve, join} from 'path'
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import {CleanWebpackPlugin} from "clean-webpack-plugin";
 import CopyPlugin from 'copy-webpack-plugin';
+import FaviconsWebpackPlugin from 'favicons-webpack-plugin';
 
 const webAppPlugins: WebpackPluginInstance[] = [
     new HtmlWebpackPlugin({title: 'webgltyrian'}),
@@ -10,7 +11,8 @@ const webAppPlugins: WebpackPluginInstance[] = [
     new CopyPlugin({patterns: [
             { from: 'assets', to: 'assets' },
             { from: 'data', to: 'assets/data' }
-    ]})
+    ]}),
+    new FaviconsWebpackPlugin('data/icon.png')
 ]
 
 const tsRuleBase: RuleSetRule = {

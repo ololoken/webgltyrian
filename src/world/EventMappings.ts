@@ -36,6 +36,7 @@ import {GalagaShotFreqInc} from "./events/GalagaShotFreqInc";
 import {PlayerSpecialWeaponSet} from "./events/PlayerSpecialWeaponSet";
 import {EnemiesMoveOverride} from "./events/EnemiesMoveOverride";
 import {LevelSmoothies} from "./events/LevelSmoothies";
+import {PlaySound} from "./events/PlaySound";
 
 class Unsupported extends EventBase {
     key: EventKey = 'Unsupported'
@@ -104,7 +105,7 @@ export enum TyEventType {
     WTF_59 = 59,//not used
     ENEMY_SPECIAL_ASSIGN = 60,
     EVENTS_JUMP_GLOBAL_FLAG = 61,
-    MUSIC_EFFECT = 62,
+    SOUND_EFFECT = 62,
     EVENTS_JUMP_SINGLE_PLAYER = 63,
     LEVEL_SMOOTHIES = 64,
     BACK_3_X1 = 65,
@@ -188,6 +189,7 @@ export const TyEventKindMap = {
     [TyEventType.EVENTS_JUMP_SUPER_ENEMY]: EventsJump,
     [TyEventType.ENEMY_SPECIAL_ASSIGN]: EnemySpecialAssign,
     [TyEventType.EVENTS_JUMP_GLOBAL_FLAG]: EventsJump,
+    [TyEventType.SOUND_EFFECT]: PlaySound,
     [TyEventType.EVENTS_JUMP_SINGLE_PLAYER]: EventsJump,
     [TyEventType.LEVEL_SMOOTHIES]: LevelSmoothies,
     [TyEventType.BACK_3_X1]: Back3EnemyOffset,
@@ -243,6 +245,7 @@ const EventTypeMap = {
     LevelEnemiesFrequency: LevelEnemiesFrequency,
     LevelFilters: LevelFilters,
     LevelSmoothies: LevelSmoothies,
+    PlaySound: PlaySound,
     PlayerImprevious: PlayerImprevious,
     PlayerSpecialWeaponSet: PlayerSpecialWeaponSet,
     RandomExplosionsSwitch: RandomExplosionsSwitch,

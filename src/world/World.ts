@@ -18,6 +18,7 @@ import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {BackSpeed, Enemy, EnemyShot, IPlayerLayer, LayerCode, Layers, PlayerShot, WorldObject} from "./Types";
 import {Player, WeaponCode} from "./Player";
 import {Audio} from "../Audio";
+import {cache} from "../Resources";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -89,6 +90,7 @@ export class World extends utils.EventEmitter {
         this.bindEnemyEvents();
         this.bindLevelEvents();
         this.bindStarEvents();
+        this.bindMiscEvents();
         this.bindKeyboardEvents();
     }
 
@@ -175,6 +177,10 @@ export class World extends utils.EventEmitter {
         this.eventSystem.on('EnemiesOverSwitch', e => console.log('EnemiesOverSwitch', e));
         this.eventSystem.on('EnemiesContinualDamage', e => console.log('EnemiesContinualDamage', e));
         this.eventSystem.on('EnemyCreate', e => this.enemyCreate(e));
+    }
+
+    private bindMiscEvents (): void {
+        this.eventSystem.on('PlaySound', e => Audio.getInstance().enqueue(3, cache.sfx[e.sound-1]));
     }
 
     public getRequiredShapes (): number[] {
