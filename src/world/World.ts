@@ -1,4 +1,4 @@
-import {MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap, TyEventType} from "../Structs";
+import {EnemySize, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap, TyEventType} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {
     enemyCreate,
@@ -9,7 +9,9 @@ import {
     hasRegisteredEnemies,
     getClosestEnemy,
     enemyShotsCreate,
-    enemyLaunch
+    enemyLaunch,
+    enemySpecialAssign,
+    EnemyCodeToLayerMapping
 } from "./WorldEnemies";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
@@ -25,7 +27,7 @@ import {
 } from "./Types";
 import {Player, WeaponCode} from "./Player";
 import {Audio} from "../Audio";
-import {cache} from "../Resources";
+import {cache, SFX_CODE} from "../Resources";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -48,6 +50,7 @@ export class World extends utils.EventEmitter {
     private getClosestEnemy = getClosestEnemy;
     protected enemyShotsCreate = enemyShotsCreate;
     protected enemyLaunch = enemyLaunch;
+    protected enemySpecialAssign = enemySpecialAssign;
 
     protected readonly playerLayer: IPlayerLayer;
     private readonly playerOne: Player;
@@ -62,6 +65,7 @@ export class World extends utils.EventEmitter {
     protected readonly state = {
         randomEnemies: false,
         enemySmallAdjustPos: false,
+        enemyContinualDamage: false,
 
         backDelayGND: 1,
         backDelayGNDMax: 1,
@@ -74,6 +78,10 @@ export class World extends utils.EventEmitter {
 
         stopBackgrounds: false,
         stopBackgroundNum: 0,
+
+        cubeMax: 0,
+
+        globalFlags: [false, false, false, false, false, false, false, false, false]
     }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
@@ -176,7 +184,7 @@ export class World extends utils.EventEmitter {
         this.eventSystem.on('EnemiesGlobalDamage', e => console.log('EnemiesGlobalDamage', e));
         this.eventSystem.on('EnemiesGlobalLinkNum', e => console.log('EnemiesGlobalLinkNum', e));
         this.eventSystem.on('EnemiesGlobalMove', e => this.enemiesGlobalMove(e));
-        this.eventSystem.on('EnemySpecialAssign', e => console.log('EnemySpecialAssign', e));
+        this.eventSystem.on('EnemySpecialAssign', e => this.enemySpecialAssign(e));
         this.eventSystem.on('EnemiesReset', e => console.log('EnemiesReset', e));
         this.eventSystem.on('EnemySmallAdjustPos', e => this.state.enemySmallAdjustPos = e.state);
         this.eventSystem.on('EnemySpawn', e => console.log('EnemySpawn', e));
@@ -310,6 +318,107 @@ export class World extends utils.EventEmitter {
                 this.playerOne.shotRemove(id);
                 this.registeredPlayerShots.splice(i, 1);
                 this.playerLayer.unregisterObject(name);
+
+                hitEnemies.forEach(({enemy}) => {
+                    //todo: chain/infinite/ice shot
+                    //not killed but damaged
+                    if (enemy.armor > shot.shotDmg) {
+                        if (enemy.armor - shot.shotDmg <= enemy.edlevel && Number(!enemy.damaged)^Number(enemy.edani < 0)) {
+                            this.registeredEnemies.filter(({enemy: e}) =>
+                                enemy === e || ((enemy.linknum !== 0)
+                                    && ((e.edlevel > 0 && e.linknum == enemy.linknum)
+                                        || (this.state.enemyContinualDamage && enemy.linknum-100 == e.linknum))
+                                        || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum)//WTF?
+                                )
+                            ).forEach(({code, name, enemy: e}) => {
+                                e.animationCycle = 0;
+
+                                e.damaged = !e.damaged;
+
+                                if (e.edani != 0) {
+                                    e.animationState = Math.abs(e.edani);
+                                    e.animationState = 0;
+                                    e.animationMax = 0;
+                                    e.animationMin = e.edgr;
+                                    e.animationCycle = e.animationMin-1;
+
+                                }
+                                else if (e.edgr > 0) {
+                                    e.graphic[0] = e.edgr;
+                                    e.animationCycle = 0;
+                                    e.animationState = 0;
+                                    e.animationMin = 0;
+                                }
+                                else {
+                                    this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
+                                    //todo: explode
+                                }
+
+                                if (e.armor > e.edlevel) {
+                                    e.armor = e.edlevel;
+                                }
+
+                                /* todo: draw explosion/"superpixels"
+                                if (enemyDat[enemy[temp3].enemytype].esize != 1)
+                                    JE_setupExplosion(tempX, tempY - 6, 0, 1, false, false);
+                                else
+                                    JE_setupExplosionLarge(enemy[temp3].enemyground, enemy[temp3].explonum / 2, tempX, tempY);
+
+                                 */
+                            })
+                        }
+                        Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_ENEMY_HIT]);
+                        if (enemy.armor != 255) {
+                            enemy.armor -= shot.shotDmg;
+                            //todo: add explosion
+                        }
+                        else {
+                            //todo: add "superpixels"
+                        }
+                    }
+                    //killed
+                    else {
+                        this.registeredEnemies.filter(({enemy: e}) =>
+                            e === enemy || (enemy.linknum !== 0
+                                && (e.linknum == enemy.linknum
+                                    || enemy.linknum-100 == e.linknum
+                                    || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum))
+                        )).forEach(({enemy: e, code, name}) => {
+                            if (e.special) {
+                                this.state.globalFlags[e.flagnum-1] = e.setto;
+                            }
+                            if (e.evalue > 0 && e.evalue < 10000) {
+                                if (e.evalue == 1) {
+                                    this.state.cubeMax++;
+                                }
+                                else {
+                                    this.playerOne.cash += e.evalue;
+                                }
+                            }
+                            if (e.edlevel == -1 && e.linknum == enemy.linknum) {
+                                e.edlevel = 0;
+                                e.graphic[0] = e.edgr;
+                                e.animationCycle = 0;
+                                e.animationState = 0;
+                                e.animationMax = 0;
+                                e.animationMin = 1;
+                                e.damaged = true;
+                                e.animationCycle = 0;
+                            }
+                            else {
+                                this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
+                            }
+                            if (e.size == EnemySize.s2x2) {
+                                //todo: explosion
+                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9])
+                            }
+                            else {
+                                //todo: explosion
+                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8])
+                            }
+                        });
+                    }
+                });
             }
         }
     }

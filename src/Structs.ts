@@ -116,6 +116,11 @@ type TyShield = Readonly<{
     price: number
 }>
 
+export enum EnemySize {
+    s1x1 = 0,
+    s2x2 = 1
+}
+
 export type TyEnemy = Readonly<{
     shapesLength: number,
     tur: number[],
@@ -126,7 +131,7 @@ export type TyEnemy = Readonly<{
     xStart: number, yStart: number,
     xcStart: number, ycStart: number,
     armor: number,
-    eSize: number,
+    eSize: EnemySize,
     eGraphic: number[],
     explosionType: number,
     animationType: number,

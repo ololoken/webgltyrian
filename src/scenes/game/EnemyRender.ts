@@ -2,12 +2,7 @@ import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
 import {EnemyGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
 import {Sprite2x2Offsets} from "./Types";
-import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH} from "../../Structs";
-
-enum EnemySize {
-    s1x1 = 0,
-    s2x2 = 1
-}
+import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, EnemySize} from "../../Structs";
 
 export class EnemyRender extends Container {
 

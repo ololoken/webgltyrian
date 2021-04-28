@@ -1,5 +1,6 @@
 import {ObservablePoint, Rectangle} from "pixi.js";
 import {EnemyCode} from "./WorldEnemies";
+import {EnemySize} from "../Structs";
 
 export interface IWorldLayer {
     readonly backPos: ObservablePoint;
@@ -48,7 +49,7 @@ export type EnemyGraphic = {
     graphic: number[],
     animationCycle: number,
     position: {x: number; y: number}
-    size: number,
+    size: EnemySize,
     filter: number,
 }
 
@@ -90,6 +91,9 @@ export type Enemy = EnemyGraphic & {
     special: boolean,
     iced: number,
     launchSpecial: number,
+
+    flagnum: number,
+    setto: boolean,
 
     xMinBounce: number, yMinBounce: number,
     xMaxBounce: number, yMaxBounce: number,

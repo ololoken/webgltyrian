@@ -7,6 +7,7 @@ import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
 import {Audio} from "../Audio";
 import {cache} from "../Resources";
+import {EnemySpecialAssign} from "./events/EnemySpecialAssign";
 
 export enum EnemyCode {
     GND_25 = 25,
@@ -15,7 +16,7 @@ export enum EnemyCode {
     TOP_50 = 50,
 }
 
-const EnemyCodeToLayerMapping = {
+export const EnemyCodeToLayerMapping = {
     [EnemyCode.GND_25]: LayerCode.GND,
     [EnemyCode.GND_75]: LayerCode.GND,
     [EnemyCode.SKY_0]: LayerCode.SKY,
@@ -113,6 +114,9 @@ function fillEnemyData (eventData: {data2: number, data3: number, data4: number,
         evalue: enemyDesc.value,
         armor: enemyDesc.armor,
         isScoreItem: enemyDesc.armor <= 0,
+
+        flagnum: 0,
+        setto: false,
 
         exccw: Math.abs(enemyDesc.xcAccel), eyccw: Math.abs(enemyDesc.ycAccel), //acceleration change wait time current value
         exccwmax: Math.abs(enemyDesc.xcAccel), eyccwmax: Math.abs(enemyDesc.ycAccel), //wait time
@@ -732,4 +736,14 @@ export function enemyLaunch (this: World, step: number, enemy: Enemy, playerOne:
         launchedEnemy.linknum = enemy.linknum;
     }
     return launchedEnemy;
+}
+
+export function enemySpecialAssign (this: World,e: EnemySpecialAssign) {
+    this.registeredEnemies
+        .filter(({enemy}) => enemy.linknum == e.e.data4)
+        .forEach(({enemy}) => {
+            enemy.special = true;
+            enemy.flagnum = e.e.data1;
+            enemy.setto = e.e.data2 == 1;
+        })
 }
