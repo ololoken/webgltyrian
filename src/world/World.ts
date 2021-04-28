@@ -8,13 +8,21 @@ import {
     enemiesAnimate,
     hasRegisteredEnemies,
     getClosestEnemy,
-    EnemyCode,
     enemyShotsCreate,
     enemyLaunch
 } from "./WorldEnemies";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
-import {BackSpeed, Enemy, EnemyShot, IPlayerLayer, LayerCode, Layers, PlayerShot, WorldObject} from "./Types";
+import {
+    BackSpeed,
+    EnemyRegistered,
+    EnemyShotRegistered,
+    IPlayerLayer,
+    LayerCode,
+    Layers,
+    PlayerShotRegistered,
+    WorldObject
+} from "./Types";
 import {Player, WeaponCode} from "./Player";
 import {Audio} from "../Audio";
 import {cache} from "../Resources";
@@ -47,9 +55,9 @@ export class World extends utils.EventEmitter {
 
     private keysPressed: {[code: string]: boolean} = {};
 
-    protected readonly registeredEnemies: (WorldObject & {enemy: Enemy, code: EnemyCode})[] = [];
-    public readonly registeredPlayerShots: (WorldObject & {shot: PlayerShot, id: number})[] = [];
-    public readonly registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
+    protected readonly registeredEnemies: EnemyRegistered[] = [];
+    public readonly registeredPlayerShots: PlayerShotRegistered[] = [];
+    public readonly registeredEnemyShots: EnemyShotRegistered[] = [];
 
     protected readonly state = {
         randomEnemies: false,
@@ -279,7 +287,7 @@ export class World extends utils.EventEmitter {
                 this.registeredPlayerShots.push({id: shot.id, shot, ...this.playerLayer.registerShot(shot)});
             });
         }
-        for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
+        for (let i = this.registeredPlayerShots.length-1; i >= 0; i--) {
             let {shot, name, position, id, animationStep, getBoundingRect} = this.registeredPlayerShots[i];
             this.playerOne.shotUpdate(id, shot, step);
             position.copyFrom(shot.position);
@@ -288,32 +296,29 @@ export class World extends utils.EventEmitter {
             let readyToGC = !this.gcBox.contains(shot.position.x, shot.position.y);
             if (readyToGC) {
                 this.playerOne.shotRemove(id);
-                this.registeredPlayerShots.splice(i--, 1);
-                l--;
+                this.registeredPlayerShots.splice(i, 1);
                 this.playerLayer.unregisterObject(name);
             }
         }
     }
 
     private collidePlayerShots (): void {
-        for (let i = 0, l = this.registeredPlayerShots.length; i < l; i++) {
+        for (let i = this.registeredPlayerShots.length-1; i >= 0; i--) {
             let {shot, name, id, getBoundingRect} = this.registeredPlayerShots[i];
             let hitEnemies = this.registeredEnemies.filter(({getBoundingRect: enemyGetBoundingRect}) => this.intersects(getBoundingRect(), enemyGetBoundingRect()));
             if (hitEnemies.length > 0) {
                 this.playerOne.shotRemove(id);
-                this.registeredPlayerShots.splice(i--, 1);
-                l--;
+                this.registeredPlayerShots.splice(i, 1);
                 this.playerLayer.unregisterObject(name);
             }
         }
     }
 
     private collideEnemiesShots (): void {
-        for (let i = 0, l = this.registeredEnemyShots.length; i < l; i++) {
+        for (let i = this.registeredEnemyShots.length-1; i >= 0; i--) {
             let {shot, name, getBoundingRect, layer} = this.registeredEnemyShots[i];
             if (this.intersects(this.player.getBoundingRect(), getBoundingRect())) {
-                this.registeredEnemyShots.splice(i--, 1);
-                l--;
+                this.registeredEnemyShots.splice(i, 1);
                 this.layers[layer].unregisterObject(name);
             }
         }

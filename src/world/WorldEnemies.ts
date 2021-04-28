@@ -1,7 +1,7 @@
 import {EnemyCreate} from "./events/EnemyCreate";
 import {World} from "./World";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy, TyEventType} from "../Structs";
-import {Enemy, EnemyShot, LayerCode, WorldObject} from "./Types";
+import {Enemy, EnemyRegistered, EnemyShot, LayerCode, WorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
@@ -37,14 +37,6 @@ const EventTypeToCodeMapping = {
     [TyEventType.ENEMY_CREATE_2]: EnemyCode.TOP_50,
     [TyEventType.ENEMY_CREATE_3]: EnemyCode.GND_75
 }
-
-const Enemy4x4LayerMapping: LayerCode[] = [
-    LayerCode.GND,//0
-    LayerCode.GND,//1
-    LayerCode.SKY,//2
-    LayerCode.TOP,//3
-    LayerCode.GND,//4
-];
 
 const LayerAddFixedMoveY = {
     [EnemyCode.SKY_0]: 0,
@@ -203,7 +195,6 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         this.registeredEnemies.push({code, enemy, ...this.layers[EnemyCodeToLayerMapping[code]].registerEnemy(enemy)});
     }
     else if (e.type == TyEventType.ENEMY_CREATE_4x4) {
-        let layer = Enemy4x4LayerMapping[e.data6];
         let code = EnemyCode.GND_25;
         switch (e.data6) {
             case 1: code = EnemyCode.GND_25; break;
@@ -214,8 +205,8 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
         this.registeredEnemies.push(...Enemy4x4TileOffsets.map((ep4x4, typeOffset) => {
             let enemy = fillEnemyData(e, this.items.enemies[e.data1+typeOffset], this.state.enemySmallAdjustPos);
             enemy.position.x += 30+ep4x4.x;
-            enemy.position.y += -32+ep4x4.y-this.backSpeed[layer];
-            return {code, enemy, layer, ...this.layers[layer].registerEnemy(enemy)};
+            enemy.position.y += -32+ep4x4.y-this.backSpeed[EnemyCodeToLayerMapping[code]];
+            return {code, enemy, ...this.layers[EnemyCodeToLayerMapping[code]].registerEnemy(enemy)};
         }));
     }
     else {
@@ -225,7 +216,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
 }
 
 export function updateEnemies (this: World, step: number, playerOne: Player): void {
-    for (let i = 0, l = this.registeredEnemies.length; i < l; i++) {
+    for (let i = this.registeredEnemies.length-1; i >= 0; i--) {
         let {enemy, name, position, animationStep, code} = this.registeredEnemies[i];
 
         updateSpeed(playerOne, enemy, step);
@@ -240,8 +231,7 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
             || enemy.graphic[enemy.animationCycle>>0] == 999;
 
         if (readyToGC) {
-            this.registeredEnemies.splice(i--, 1);
-            l--;
+            this.registeredEnemies.splice(i, 1);
             this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
             continue;
         }
@@ -355,7 +345,7 @@ function updateSpeed (player: Player, enemy: Enemy, step: number) {
 export function enemiesGlobalMove (this: World, e: EnemiesGlobalMove): void {
     switch (e.e.type) {
         case TyEventType.ENEMIES_GLOBAL_MOVE_0: {
-            let enemies: (WorldObject & {enemy: Enemy, code: EnemyCode})[] = [];
+            let enemies: EnemyRegistered[] = [];
 
             switch (true) {
                 case e.e.data3 > 79 && e.e.data3 < 90:
@@ -523,7 +513,7 @@ export function hasRegisteredEnemies (this: World): boolean {
 }
 
 export function updateEnemiesShots (this: World, step: number, playerOne: Player): void {
-    for (let i = 0, l = this.registeredEnemyShots.length; i < l; i++) {
+    for (let i = this.registeredEnemyShots.length-1; i >= 0; i--) {
         let {shot, name, layer, animationStep, position} = this.registeredEnemyShots[i];
         shot.sxm += step*shot.sxc;
         shot.position.x += step*shot.sxm;
@@ -548,15 +538,13 @@ export function updateEnemiesShots (this: World, step: number, playerOne: Player
         let readyToGC = shot.duration-- <= 0
             || !this.gcBox.contains(shot.position.x, shot.position.y);
         if (readyToGC) {
-            this.registeredEnemyShots.splice(i--, 1);
-            l--;
+            this.registeredEnemyShots.splice(i, 1);
             this.layers[layer].unregisterObject(name);
         }
 
         if (playerOne.hitArea.contains(shot.position.x, shot.position.y)) {
             //todo: collision
-            this.registeredEnemyShots.splice(i--, 1);
-            l--;
+            this.registeredEnemyShots.splice(i, 1);
             this.layers[layer].unregisterObject(name);
         }
 

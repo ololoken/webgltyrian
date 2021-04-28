@@ -1,4 +1,5 @@
 import {ObservablePoint, Rectangle} from "pixi.js";
+import {EnemyCode} from "./WorldEnemies";
 
 export interface IWorldLayer {
     readonly backPos: ObservablePoint;
@@ -127,3 +128,7 @@ export type PlayerShot = PlayerShotGraphic & {
     playerNumber: number, aimAtEnemy?: WorldObject,
     aimDelay: number, aimDelayMax: number
 }
+
+export type EnemyRegistered = WorldObject & {enemy: Enemy, code: EnemyCode};
+export type EnemyShotRegistered = WorldObject & {shot: EnemyShot, layer: LayerCode};
+export type PlayerShotRegistered = WorldObject & {shot: PlayerShot, id: number};
