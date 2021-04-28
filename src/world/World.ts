@@ -1,4 +1,4 @@
-import {MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap} from "../Structs";
+import {MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap, TyEventType} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {
     enemyCreate,
@@ -12,7 +12,6 @@ import {
     enemyShotsCreate,
     enemyLaunch
 } from "./WorldEnemies";
-import {TyEventType} from "./EventMappings";
 import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {BackSpeed, Enemy, EnemyShot, IPlayerLayer, LayerCode, Layers, PlayerShot, WorldObject} from "./Types";
@@ -48,7 +47,7 @@ export class World extends utils.EventEmitter {
 
     private keysPressed: {[code: string]: boolean} = {};
 
-    protected readonly registeredEnemies: (WorldObject & {enemy: Enemy, layer: LayerCode, code: EnemyCode})[] = [];
+    protected readonly registeredEnemies: (WorldObject & {enemy: Enemy, code: EnemyCode})[] = [];
     public readonly registeredPlayerShots: (WorldObject & {shot: PlayerShot, id: number})[] = [];
     public readonly registeredEnemyShots: (WorldObject & {shot: EnemyShot, layer: LayerCode})[] = [];
 
