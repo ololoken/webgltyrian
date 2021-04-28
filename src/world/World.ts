@@ -97,7 +97,7 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[169]);
+        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[166]);
         this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);
@@ -312,13 +312,9 @@ export class World extends utils.EventEmitter {
 
     private collidePlayerShots (): void {
         for (let i = this.registeredPlayerShots.length-1; i >= 0; i--) {
-            let {shot, name, id, getBoundingRect} = this.registeredPlayerShots[i];
+            let {shot, name: shotName, id, getBoundingRect} = this.registeredPlayerShots[i];
             let hitEnemies = this.registeredEnemies.filter(({getBoundingRect: enemyGetBoundingRect}) => this.intersects(getBoundingRect(), enemyGetBoundingRect()));
             if (hitEnemies.length > 0) {
-                this.playerOne.shotRemove(id);
-                this.registeredPlayerShots.splice(i, 1);
-                this.playerLayer.unregisterObject(name);
-
                 hitEnemies.forEach(({enemy}) => {
                     //todo: chain/infinite/ice shot
                     //not killed but damaged
@@ -330,7 +326,7 @@ export class World extends utils.EventEmitter {
                                         || (this.state.enemyContinualDamage && enemy.linknum-100 == e.linknum))
                                         || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum)//WTF?
                                 )
-                            ).forEach(({code, name, enemy: e}) => {
+                            ).forEach(({code, name: enemyName, enemy: e}) => {
                                 e.animationCycle = 0;
 
                                 e.damaged = !e.damaged;
@@ -350,7 +346,8 @@ export class World extends utils.EventEmitter {
                                     e.animationMin = 0;
                                 }
                                 else {
-                                    this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
+                                    this.registeredEnemies.splice(this.registeredEnemies.findIndex(({name: n}) => n === enemyName), 1)
+                                    this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(enemyName);
                                     //todo: explode
                                 }
 
@@ -375,6 +372,9 @@ export class World extends utils.EventEmitter {
                         else {
                             //todo: add "superpixels"
                         }
+                        this.playerOne.shotRemove(id);
+                        this.registeredPlayerShots.splice(i, 1);
+                        this.playerLayer.unregisterObject(shotName);
                     }
                     //killed
                     else {
@@ -406,6 +406,7 @@ export class World extends utils.EventEmitter {
                                 e.animationCycle = 0;
                             }
                             else {
+                                this.registeredEnemies.splice(this.registeredEnemies.findIndex(({name: n}) => n === name), 1)
                                 this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
                             }
                             if (e.size == EnemySize.s2x2) {
@@ -416,6 +417,7 @@ export class World extends utils.EventEmitter {
                                 //todo: explosion
                                 Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8])
                             }
+                            shot.shotDmg -= e.armor;
                         });
                     }
                 });
