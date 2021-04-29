@@ -1,6 +1,7 @@
 WebGL port of Tyrian (video game)
-------------------------------------------
-
+================================
+[Play demo](https://ololoken.github.io/webgltyrian/)
+---
 It's at early stage of development now.
 
 What's ready:
@@ -12,14 +13,19 @@ What's ready:
 4. Add World with basic game logic.
 5. Event system.
 6. Sound effects
+7. [Mission scene and first playable demo.](https://ololoken.github.io/webgltyrian/)
 
 In Progress:
-
-7. Collide and damage model.
+-----------
+Collide and damage model.
 
 The plan is:
+-----------
+xx. Enemies explosions
 
-xx. Mission scene and first playable demo.
+xx. Music
+
+xx. Campaign process scene
 
 xx. Replace original graphics with [remastered by LostGarden's Daniel Cook](https://opengameart.org/content/remastered-tyrian-graphics-0).
 
