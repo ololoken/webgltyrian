@@ -12,7 +12,7 @@ const webAppPlugins: WebpackPluginInstance[] = [
             { from: 'assets', to: 'assets' },
             { from: 'data', to: 'assets/data' }
     ]}),
-    new FaviconsWebpackPlugin('data/icon.png')
+    new FaviconsWebpackPlugin({logo: 'data/icon.png', mode: 'light', devMode: 'light'})
 ]
 
 const tsRuleBase: RuleSetRule = {
