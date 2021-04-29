@@ -310,7 +310,7 @@ const basicResources: Resource = {
     vfx: {path: 'voices.snd', init: generateSounds('vfx')}
 }
 
-const getFileDataView = async (path: string) => fetch(`/assets/data/${path}`)
+const getFileDataView = async (path: string) => fetch(`assets/data/${path}`)
     .then(r => r.arrayBuffer())
     .then(b => new DataView(b));
 
