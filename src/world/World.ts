@@ -13,7 +13,7 @@ import {
     enemySpecialAssign,
     EnemyCodeToLayerMapping
 } from "./WorldEnemies";
-import {Rectangle, utils} from "pixi.js";
+import {Container, Rectangle, utils, Texture, Sprite} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {
     BackSpeed,
@@ -61,6 +61,8 @@ export class World extends utils.EventEmitter {
     protected readonly registeredEnemies: EnemyRegistered[] = [];
     public readonly registeredPlayerShots: PlayerShotRegistered[] = [];
     public readonly registeredEnemyShots: EnemyShotRegistered[] = [];
+
+    rects = [];
 
     protected readonly state = {
         randomEnemies: false,
@@ -210,7 +212,22 @@ export class World extends utils.EventEmitter {
         this.updateEnemies(this.STEP, this.playerOne);
         this.updateEnemiesShots(this.STEP, this.playerOne);
         this.updatePlayers(this.STEP);
-
+/*
+        // @ts-ignore
+        this.rects.forEach(rect => this.playerLayer.removeChild(rect));
+        this.registeredEnemies.forEach(e => {
+            // @ts-ignore
+            let rel = this.layers[EnemyCodeToLayerMapping[e.code]].position;
+            let rect = e.getBoundingRect();
+            const rectangle = Sprite.from(Texture.WHITE);
+            rectangle.position.x = rect.x-rel.x;
+            rectangle.position.y = rect.y-rel.y;
+            rectangle.width = rect.width;
+            rectangle.height = rect.height;
+            // @ts-ignore
+            this.rects.push(this.playerLayer.addChild(rectangle));
+        });
+*/
         Audio.getInstance().play();
         Audio.getInstance().dequeue();
     }
@@ -315,16 +332,18 @@ export class World extends utils.EventEmitter {
             let {shot, name: shotName, id, getBoundingRect} = this.registeredPlayerShots[i];
             let hitEnemies = this.registeredEnemies.filter(({getBoundingRect: enemyGetBoundingRect}) => this.intersects(getBoundingRect(), enemyGetBoundingRect()));
             if (hitEnemies.length > 0) {
-                hitEnemies.forEach(({enemy}) => {
+                let shotExpired = false;
+                for (let j = 0; j < hitEnemies.length && !shotExpired; j++) {
                     //todo: chain/infinite/ice shot
                     //not killed but damaged
+                    let {enemy} = hitEnemies[j];
                     if (enemy.armor > shot.shotDmg) {
                         if (enemy.armor - shot.shotDmg <= enemy.edlevel && Number(!enemy.damaged)^Number(enemy.edani < 0)) {
                             this.registeredEnemies.filter(({enemy: e}) =>
                                 enemy === e || ((enemy.linknum !== 0)
                                     && ((e.edlevel > 0 && e.linknum == enemy.linknum)
-                                        || (this.state.enemyContinualDamage && enemy.linknum-100 == e.linknum))
-                                        || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum)//WTF?
+                                    || (this.state.enemyContinualDamage && enemy.linknum-100 == e.linknum))
+                                    || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum)//WTF?
                                 )
                             ).forEach(({code, name: enemyName, enemy: e}) => {
                                 e.animationCycle = 0;
@@ -375,15 +394,16 @@ export class World extends utils.EventEmitter {
                         this.playerOne.shotRemove(id);
                         this.registeredPlayerShots.splice(i, 1);
                         this.playerLayer.unregisterObject(shotName);
+                        shotExpired = true;
                     }
                     //killed
                     else {
                         this.registeredEnemies.filter(({enemy: e}) =>
                             e === enemy || (enemy.linknum !== 0
                                 && (e.linknum == enemy.linknum
-                                    || enemy.linknum-100 == e.linknum
-                                    || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum))
-                        )).forEach(({enemy: e, code, name}) => {
+                                || enemy.linknum-100 == e.linknum
+                                || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum))
+                            )).forEach(({enemy: e, code, name}) => {
                             if (e.special) {
                                 this.state.globalFlags[e.flagnum-1] = e.setto;
                             }
@@ -411,16 +431,16 @@ export class World extends utils.EventEmitter {
                             }
                             if (e.size == EnemySize.s2x2) {
                                 //todo: explosion
-                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9])
+                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9]);
                             }
                             else {
                                 //todo: explosion
-                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8])
+                                Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8]);
                             }
                             shot.shotDmg -= e.armor;
                         });
                     }
-                });
+                }
             }
         }
     }

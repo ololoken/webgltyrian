@@ -1,13 +1,14 @@
 import {EnemyCreate} from "./events/EnemyCreate";
 import {World} from "./World";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy, TyEventType} from "../Structs";
-import {Enemy, EnemyRegistered, EnemyShot, LayerCode, WorldObject} from "./Types";
+import {IEnemy, EnemyRegistered, EnemyShot, LayerCode, WorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
 import {Audio} from "../Audio";
 import {cache} from "../Resources";
 import {EnemySpecialAssign} from "./events/EnemySpecialAssign";
+import {Enemy} from "./Enemy";
 
 export enum EnemyCode {
     GND_25 = 25,
@@ -53,106 +54,9 @@ const Enemy4x4TileOffsets = [
     {x: COMP_TILE_WIDTH*2, y: -COMP_TILE_HEIGHT*2}
 ];
 
-function fillEnemyData (eventData: {data2: number, data3: number, data4: number, data5: number, data6: number},
-                        enemyDesc: TyEnemy, enemySmallAdjustPos: boolean): Enemy {
-    const animationTypes = [
-        {cycle: 0, state: 0, max: -1},
-        {cycle: 0, state: 1, max: -1},
-        {cycle: 0, state: 2, max: enemyDesc.shapesLength-1},
-    ];
-    const toWait = (tur: number): number => {
-        switch (true) {
-            case tur == 252: return 1;
-            case tur > 0: return 20;
-            default: return 255;
-        }
-    }
-    let enemy: Enemy = {
-        shapesLength: enemyDesc.shapesLength,
-        shapeBank: enemyDesc.shapeBank,
-        explosionType: enemyDesc.explosionType,
-        launchFreq: enemyDesc.eLaunchFreq,
-        launchWait: enemyDesc.eLaunchFreq,
-        shotWait: [toWait(enemyDesc.tur[0]), toWait(enemyDesc.tur[1]), toWait(enemyDesc.tur[2])],
-        shotMultiPos: [0, 0, 0],
-        launchType: enemyDesc.eLaunchType % 1000,
-        launchSpecial: enemyDesc.eLaunchType / 1000,
-        xAccel: enemyDesc.xAccel,
-        yAccel: enemyDesc.yAccel,
-        xMinBounce: -Number.MAX_SAFE_INTEGER,
-        yMinBounce: -Number.MAX_SAFE_INTEGER,
-        xMaxBounce: Number.MAX_SAFE_INTEGER,
-        yMaxBounce: Number.MAX_SAFE_INTEGER,
-        tur: [enemyDesc.tur[0], enemyDesc.tur[1], enemyDesc.tur[2]],
-        animationState: animationTypes[enemyDesc.animationType].state,
-        animationCycle: animationTypes[enemyDesc.animationType].cycle,
-        animationMax: animationTypes[enemyDesc.animationType].max,
-        animationMin: 0,
-        position: {
-            x: enemyDesc.xStart + (2 * Math.random() * enemyDesc.xcStart >> 0) - enemyDesc.xcStart + 1,
-            y: enemyDesc.yStart + (2 * Math.random() * enemyDesc.ycStart >> 0) - enemyDesc.ycStart + 1,
-        },
-        exc: enemyDesc.xMove,
-        eyc: enemyDesc.yMove,
-        excc: enemyDesc.xcAccel,
-        eycc: enemyDesc.ycAccel,
-        special: false,
-        iced: 0,
-        exrev: enemyDesc.xRev,
-        eyrev: enemyDesc.yRev,
-        graphic: enemyDesc.eGraphic,
-        size: enemyDesc.eSize,
-        linknum: eventData.data4,
-        damaged: enemyDesc.dAnimation < 0,
-        enemydie: enemyDesc.eEnemyDie,
-        freq: [enemyDesc.freq[0], enemyDesc.freq[1], enemyDesc.freq[2]],
-        edani: enemyDesc.dAnimation,
-        edgr: enemyDesc.dgr,
-        edlevel: enemyDesc.dLevel,
-        fixedMoveY: eventData.data6,
-        filter: 0x00,
-        evalue: enemyDesc.value,
-        armor: enemyDesc.armor,
-        isScoreItem: enemyDesc.armor <= 0,
-
-        flagnum: 0,
-        setto: false,
-
-        exccw: Math.abs(enemyDesc.xcAccel), eyccw: Math.abs(enemyDesc.ycAccel), //acceleration change wait time current value
-        exccwmax: Math.abs(enemyDesc.xcAccel), eyccwmax: Math.abs(enemyDesc.ycAccel), //wait time
-    }
-
-    if (eventData.data2 !== -99) {
-        enemy.position.x = eventData.data2;
-        enemy.position.y = -28;
-    }
-
-    if (enemy.size == 0 && enemySmallAdjustPos) {
-        enemy.position.x -= 10;
-        enemy.position.y -= 7;
-    }
-
-    enemy.position.y += eventData.data5;
-    enemy.eyc += eventData.data3;
-
-
-
-    switch (enemy.exrev) {
-        case -99: enemy.exrev = 0; break;
-        case 0: enemy.exrev = 100; break;
-    }
-
-    switch (enemy.eyrev) {
-        case -99: enemy.eyrev = 0; break;
-        case 0: enemy.eyrev = 100; break;
-    }
-
-    return enemy;
-}
-
 export function enemyCreate (this: World, {e}: EnemyCreate): void {
     if (e.type in EventTypeToCodeMapping) {
-        let enemy: Enemy = fillEnemyData(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos),
+        let enemy: IEnemy = new Enemy(e, this.items.enemies[e.data1], this.state.enemySmallAdjustPos),
             code: EnemyCode = EventTypeToCodeMapping[<keyof typeof EventTypeToCodeMapping>e.type];
         switch (e.type) {
             case TyEventType.ENEMY_CREATE_TOP_50: {
@@ -207,7 +111,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
             case 4: code = EnemyCode.GND_75; break;
         }
         this.registeredEnemies.push(...Enemy4x4TileOffsets.map((ep4x4, typeOffset) => {
-            let enemy = fillEnemyData(e, this.items.enemies[e.data1+typeOffset], this.state.enemySmallAdjustPos);
+            let enemy = new Enemy(e, this.items.enemies[e.data1+typeOffset], this.state.enemySmallAdjustPos);
             enemy.position.x += 30+ep4x4.x;
             enemy.position.y += -32+ep4x4.y-this.backSpeed[EnemyCodeToLayerMapping[code]];
             return {code, enemy, ...this.layers[EnemyCodeToLayerMapping[code]].registerEnemy(enemy)};
@@ -270,7 +174,7 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
         this.registeredEnemyShots.push(...this.enemyShotsCreate(step, enemy, playerOne).map(shot => ({
             shot, layer: EnemyCodeToLayerMapping[code], ...this.layers[EnemyCodeToLayerMapping[code]].registerShot(shot)
         })));
-        let launchedEnemy = this.enemyLaunch(step, enemy, playerOne, code);
+        let launchedEnemy = this.enemyLaunch(step, enemy, playerOne);
         if (launchedEnemy) {
             let launchedEnemyCode: EnemyCode = code == 25 ? 50 : code;
             this.registeredEnemies.push({
@@ -282,7 +186,7 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
     }
 }
 
-function updateAnimationCycle (enemy: Enemy, step: number) {
+function updateAnimationCycle (enemy: IEnemy, step: number) {
     if (enemy.animationState == 1) {
         enemy.animationCycle += step;
 
@@ -296,7 +200,7 @@ function updateAnimationCycle (enemy: Enemy, step: number) {
     }
 }
 
-function updateSpeed (player: Player, enemy: Enemy, step: number) {
+function updateSpeed (player: Player, enemy: IEnemy, step: number) {
     if (enemy.xAccel && enemy.xAccel - 89 > (11*Math.random())>>0) {
         if (player.position.x > enemy.position.x) {
             if (enemy.exc < enemy.xAccel - 89) {
@@ -577,7 +481,7 @@ export function getClosestEnemy(this: World, position: {x: number, y: number}): 
     return found;
 }
 
-export function enemyShotsCreate (this: World, step: number, enemy: Enemy, playerOne: Player): EnemyShot[] {
+export function enemyShotsCreate (this: World, step: number, enemy: IEnemy, playerOne: Player): EnemyShot[] {
     return enemy.freq.filter(by => by > 0).map((v, i) => {
         let tur = enemy.tur[i];
         enemy.shotWait[i] -= step;
@@ -691,7 +595,7 @@ export function enemyShotsCreate (this: World, step: number, enemy: Enemy, playe
     }).flat();
 }
 
-export function enemyLaunch (this: World, step: number, enemy: Enemy, playerOne: Player, code: EnemyCode): Enemy | undefined {
+export function enemyLaunch (this: World, step: number, enemy: IEnemy, playerOne: Player): IEnemy | undefined {
     if (!enemy.launchFreq || !enemy.launchType) {
         return;
     }
@@ -711,7 +615,7 @@ export function enemyLaunch (this: World, step: number, enemy: Enemy, playerOne:
     }
 
     let type = enemy.launchType;
-    let launchedEnemy: Enemy = fillEnemyData({data2: 0, data3: 0, data4: 0, data5: 0, data6: 0}, this.items.enemies[type], this.state.enemySmallAdjustPos);
+    let launchedEnemy = new Enemy({data2: 0, data3: 0, data4: 0, data5: 0, data6: 0}, this.items.enemies[type], this.state.enemySmallAdjustPos);
 
     launchedEnemy.position.x = enemy.position.x + this.items.enemies[type].xcStart;
     launchedEnemy.position.y = enemy.position.y + this.items.enemies[type].ycStart;

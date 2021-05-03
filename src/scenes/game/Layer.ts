@@ -3,7 +3,7 @@ import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
 import {MAIN_HEIGHT} from "../../Tyrian";
-import {EnemyGraphic, WorldObject, IWorldLayer, EnemyShotGraphic} from "../../world/Types";
+import {IEnemyGraphic, WorldObject, IWorldLayer, EnemyShotGraphic} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
 import {EnemyShotRender} from "./EnemyShotRender";
 
@@ -45,17 +45,16 @@ export class Layer extends Container implements IWorldLayer {
         }, this);
     }
 
-    public registerEnemy (enemy: EnemyGraphic): WorldObject {
+    public registerEnemy (enemy: IEnemyGraphic): WorldObject {
         let er = this.objectsContainer.addChild(new EnemyRender(enemy));
         return {
             name: er.name!,
             position: er.position,
             animationStep: er.cycle,
             getBoundingRect: () => {
-                let rect = er.getLocalBounds(),
-                    pos = er.getGlobalPosition!();
-                rect.x = pos.x;
-                rect.y = pos.y;
+                let rect = er.getLocalBounds();
+                rect.x = er.position.x+this.objectsContainer.position.x;
+                rect.y = er.position.y+this.objectsContainer.position.y;
                 return rect;
             }
         }
@@ -68,10 +67,9 @@ export class Layer extends Container implements IWorldLayer {
             position: sh.position,
             animationStep: sh.cycle,
             getBoundingRect: () => {
-                let rect = sh.getLocalBounds(),
-                    pos = sh.getGlobalPosition!();
-                rect.x = pos.x;
-                rect.y = pos.y;
+                let rect = sh.getLocalBounds();
+                rect.x = sh.position.x+this.objectsContainer.position.x;
+                rect.y = sh.position.y+this.objectsContainer.position.y;
                 return rect;
             }
         }

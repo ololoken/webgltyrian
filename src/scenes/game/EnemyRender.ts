@@ -1,5 +1,5 @@
 import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
-import {EnemyGraphic} from "../../world/Types";
+import {IEnemyGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
 import {Sprite2x2Offsets} from "./Types";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, EnemySize} from "../../Structs";
@@ -12,7 +12,7 @@ export class EnemyRender extends Container {
     private readonly atlas: TextureAtlas;
     private readonly graphic: number[];
 
-    public constructor (enemy: EnemyGraphic) {
+    public constructor (enemy: IEnemyGraphic) {
         super();
         this.name = `e${++EnemyRender.childId}`;
         this.atlas = cache.enemyShapeBanks[enemy.shapeBank];

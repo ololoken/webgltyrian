@@ -15,39 +15,37 @@ export class PlayerLayer extends Container implements IPlayerLayer {
         this.filters = [cache.palettes[0]];
     }
 
-    registerPlayer(player: PlayerGraphic): WorldObject {
+    registerPlayer (player: PlayerGraphic): WorldObject {
         let plr = this.addChild(new PlayerRender(player));
         return {
             name: plr.name!,
             position: plr.position,
             animationStep: plr.animationStep,
             getBoundingRect: () => {
-                let rect = plr.getLocalBounds(),
-                    pos = plr.getGlobalPosition!();
-                rect.x = pos.x;
-                rect.y = pos.y;
+                let rect = plr.getLocalBounds();
+                rect.x = plr.position.x;
+                rect.y = plr.position.y;
                 return rect;
             }
         }
     }
 
-    registerShot(shot: PlayerShotGraphic): WorldObject {
+    registerShot (shot: PlayerShotGraphic): WorldObject {
         let s = this.addChild(new PlayerShotRender(shot));
         return {
             name: s.name!,
             position: s.position,
             animationStep: s.cycle,
             getBoundingRect: () => {
-                let rect = s.getLocalBounds(),
-                    pos = s.getGlobalPosition!();
-                rect.x = pos.x;
-                rect.y = pos.y;
+                let rect = s.getLocalBounds();
+                rect.x = s.position.x;
+                rect.y = s.position.y;
                 return rect;
             }
         }
     }
 
-    unregisterObject(name: string): void {
+    unregisterObject (name: string): void {
         this.removeChild(this.getChildByName!(name));
     }
 

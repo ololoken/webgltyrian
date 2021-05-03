@@ -85,18 +85,8 @@ export class Player implements PlayerGraphic {
         this.xc = Math.sign(this.xc)*(Math.max(0, Math.abs(this.xc)-0.45*step));
         this.yc = Math.sign(this.yc)*(Math.max(0, Math.abs(this.yc)-0.45*step));
 
-        if (Player.playerBounds.x > this.position.x) {
-            this.position.x = Player.playerBounds.x;
-        }
-        if (Player.playerBounds.y > this.position.y) {
-            this.position.y = Player.playerBounds.y;
-        }
-        if (Player.playerBounds.x+Player.playerBounds.width < this.position.x) {
-            this.position.x = Player.playerBounds.x+Player.playerBounds.width;
-        }
-        if (Player.playerBounds.y+Player.playerBounds.height < this.position.y) {
-            this.position.y = Player.playerBounds.y+Player.playerBounds.height;
-        }
+        this.position.x = Math.min(Math.max(Player.playerBounds.x, this.position.x), Player.playerBounds.x+Player.playerBounds.width);
+        this.position.y = Math.min(Math.max(Player.playerBounds.y, this.position.y), Player.playerBounds.y+Player.playerBounds.height);
     }
 
     public shotUpdate (id: number, shot: PlayerShot, step: number): void {
@@ -223,11 +213,11 @@ export class Player implements PlayerGraphic {
 
             shot.shotBlastFilter = this.weapons[code].shipBlastFilter;
 
-            let tmp_by = this.weapons[code].by[this.shotMultiPos[code]];
+            let tempBY = this.weapons[code].by[this.shotMultiPos[code]];
 
             shot.position = {
                 x: this.position.x + this.weapons[code].bx[this.shotMultiPos[code]],
-                y: this.position.y + tmp_by
+                y: this.position.y + tempBY
             };
 
             shot.shotYC = -this.weapons[code].accelerationY;
@@ -276,25 +266,25 @@ export class Player implements PlayerGraphic {
             }
 
             if (delay == 99 || delay == 98) {
-                tmp_by = this.position.x - mouseX;
-                if (tmp_by < -5) {
-                    tmp_by = -5;
+                tempBY = this.position.x - mouseX;
+                if (tempBY < -5) {
+                    tempBY = -5;
                 }
-                else if (tmp_by > 5) {
-                    tmp_by = 5;
+                else if (tempBY > 5) {
+                    tempBY = 5;
                 }
-                shot.shotXM += tmp_by;
+                shot.shotXM += tempBY;
             }
 
             if (delay == 99 || delay == 100) {
-                tmp_by = this.position.y - mouseY - this.weapons[code].sy[this.shotMultiPos[code]];
-                if (tmp_by < -4) {
-                    tmp_by = -4;
+                tempBY = this.position.y - mouseY - this.weapons[code].sy[this.shotMultiPos[code]];
+                if (tempBY < -4) {
+                    tempBY = -4;
                 }
-                else if (tmp_by > 4) {
-                    tmp_by = 4;
+                else if (tempBY > 4) {
+                    tempBY = 4;
                 }
-                shot.shotYM = tmp_by;
+                shot.shotYM = tempBY;
             }
             else if (this.weapons[code].sy[this.shotMultiPos[code]] == 98) {
                 shot.shotYM = 0;

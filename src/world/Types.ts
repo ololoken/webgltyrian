@@ -10,7 +10,7 @@ export interface IWorldLayer {
 
     unregisterObject (name: string): void;
 
-    registerEnemy (enemy: EnemyGraphic): WorldObject;
+    registerEnemy (enemy: IEnemyGraphic): WorldObject;
     registerShot (shot: EnemyShotGraphic): WorldObject;
 }
 
@@ -44,7 +44,7 @@ export interface PlayerGraphic {
     position: {x: number, y: number}
 }
 
-export type EnemyGraphic = {
+export interface IEnemyGraphic {
     shapeBank: number,
     graphic: number[],
     animationCycle: number,
@@ -60,7 +60,7 @@ export type EnemyShotGraphic = {
     position: {x: number; y: number}
 }
 
-export type Enemy = EnemyGraphic & {
+export interface IEnemy extends IEnemyGraphic {
     exc: number; eyc: number;//speed
     excc: number; eycc: number; //fixed accel
     exccw: number; eyccw: number; //wait time
@@ -133,6 +133,6 @@ export type PlayerShot = PlayerShotGraphic & {
     aimDelay: number, aimDelayMax: number
 }
 
-export type EnemyRegistered = WorldObject & {enemy: Enemy, code: EnemyCode};
+export type EnemyRegistered = WorldObject & {enemy: IEnemy, code: EnemyCode};
 export type EnemyShotRegistered = WorldObject & {shot: EnemyShot, layer: LayerCode};
 export type PlayerShotRegistered = WorldObject & {shot: PlayerShot, id: number};
