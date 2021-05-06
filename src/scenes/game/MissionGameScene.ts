@@ -4,7 +4,7 @@ import {
     generateBackgroundTexturesAtlas, generateEnemyShapeBankTextureAtlas,
     getEpisodeData,
     PCX,
-    pcxSprite, SFX_CODE,
+    pcxSprite, SFX_CODE, SHAPE_FILE_CODE,
     TextureAtlas, VFX_CODE
 } from "../../Resources";
 import {Sprite} from "pixi.js";
@@ -64,7 +64,8 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
 
                 //process load content event(s) and then ignore them
                 await this.world.getRequiredShapes()
-                    .map(async id => cache.enemyShapeBanks[id] = await generateEnemyShapeBankTextureAtlas(id));
+                    .map(async id => cache.enemyShapeBanks[id] = await generateEnemyShapeBankTextureAtlas(SHAPE_FILE_CODE[id-1].toLowerCase()));
+                cache.explosionShapeBank = await generateEnemyShapeBankTextureAtlas('6');
 
                 this.world.on('MissionEnd', () => this.resolve(new MainMenuScene(0)));
 

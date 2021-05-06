@@ -10,15 +10,16 @@ export interface IWorldLayer {
 
     unregisterObject (name: string): void;
 
-    registerEnemy (enemy: IEnemyGraphic): WorldObject;
-    registerShot (shot: EnemyShotGraphic): WorldObject;
+    registerEnemy (enemy: IEnemyGraphic): IWorldObject;
+    registerShot (shot: EnemyShotGraphic): IWorldObject;
+    registerExplosion (explosion: Explosion): IWorldObject;
 }
 
 export interface IPlayerLayer {
     unregisterObject (name: string): void;
 
-    registerPlayer(player: PlayerGraphic): WorldObject;
-    registerShot(shot: PlayerShotGraphic): WorldObject;
+    registerPlayer(player: IPlayerGraphic): IWorldObject;
+    registerShot(shot: PlayerShotGraphic): IWorldObject;
 }
 
 export enum LayerCode {
@@ -31,14 +32,14 @@ export type BackSpeed = [number, number, number];
 
 export type Layers = [IWorldLayer, IWorldLayer, IWorldLayer];
 
-export type WorldObject = {
+export interface IWorldObject {
     position: ObservablePoint,
     getBoundingRect: () => Rectangle,
     animationStep: ObservablePoint,
-    name: string
+    name: string,
 }
 
-export interface PlayerGraphic {
+export interface IPlayerGraphic {
     shapeBank: number,
     shipGraphic: number,
     position: {x: number, y: number}
@@ -50,7 +51,7 @@ export interface IEnemyGraphic {
     animationCycle: number,
     position: {x: number; y: number}
     size: EnemySize,
-    filter: number,
+    filter: number
 }
 
 export type EnemyShotGraphic = {
@@ -129,10 +130,29 @@ export type PlayerShot = PlayerShotGraphic & {
     shotDmg: number,
     shotBlastFilter: number,
     chainReaction: number,
-    playerNumber: number, aimAtEnemy?: WorldObject,
+    playerNumber: number, aimAtEnemy?: IWorldObject,
     aimDelay: number, aimDelayMax: number
 }
 
-export type EnemyRegistered = WorldObject & {enemy: IEnemy, code: EnemyCode};
-export type EnemyShotRegistered = WorldObject & {shot: EnemyShot, layer: LayerCode};
-export type PlayerShotRegistered = WorldObject & {shot: PlayerShot, id: number};
+export type Explosion = {
+    ttl: number
+    position: {x: number, y: number},
+    dX: number, dY: number,
+    fixed: boolean,
+    followPlayer: boolean,
+    sprite: number,
+    animationStep: number,
+}
+
+export type ExplosionRepeat = {
+    delay: number,
+    ttl: number,
+    position: {x: number, y: number},
+    big: boolean,
+    layer: LayerCode
+}
+
+export type EnemyRegistered = IWorldObject & {enemy: IEnemy, code: EnemyCode};
+export type EnemyShotRegistered = IWorldObject & {shot: EnemyShot, layer: LayerCode};
+export type PlayerShotRegistered = IWorldObject & {shot: PlayerShot, id: number};
+export type ExplosionsRegistered = IWorldObject & {explosion: Explosion, layer: LayerCode};

@@ -44,7 +44,7 @@ export enum PCX {
     INTRO_LOGO2_ = 12,
 }
 const PCX_PAL_INDEX = [0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5];
-const SHAPE_FILE_CODE = [
+export const SHAPE_FILE_CODE = [
     '2', '4', '7', '8', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
     'O', 'P', 'Q', 'R', 'S', 'T', 'U', '5', '#', 'V', '0', '@', '3', '^', '5', '9'
 ];
@@ -119,6 +119,62 @@ export enum SpriteTableIndex {
     FONT_SMALL = 2
 }
 
+export const ExplosionData = [
+        {sprite: 144, ttl:  7},
+        {sprite: 120, ttl: 12},
+        {sprite: 190, ttl: 12},
+        {sprite: 209, ttl: 12},
+        {sprite: 152, ttl: 12},
+        {sprite: 171, ttl: 12},
+        {sprite: 133, ttl:  7},   /*White Smoke*/
+        {sprite:   1, ttl: 12},
+        {sprite:  20, ttl: 12},
+        {sprite:  39, ttl: 12},
+        {sprite:  58, ttl: 12},
+        {sprite: 110, ttl:  3},
+        {sprite:  76, ttl:  7},
+        {sprite:  91, ttl:  3},
+/*15*/  {sprite: 227, ttl:  3},
+        {sprite: 230, ttl:  3},
+        {sprite: 233, ttl:  3},
+        {sprite: 252, ttl:  3},
+        {sprite: 246, ttl:  3},
+/*20*/  {sprite: 249, ttl:  3},
+        {sprite: 265, ttl:  3},
+        {sprite: 268, ttl:  3},
+        {sprite: 271, ttl:  3},
+        {sprite: 236, ttl:  3},
+/*25*/  {sprite: 239, ttl:  3},
+        {sprite: 242, ttl:  3},
+        {sprite: 261, ttl:  3},
+        {sprite: 274, ttl:  3},
+        {sprite: 277, ttl:  3},
+/*30*/  {sprite: 280, ttl:  3},
+        {sprite: 299, ttl:  3},
+        {sprite: 284, ttl:  3},
+        {sprite: 287, ttl:  3},
+        {sprite: 290, ttl:  3},
+/*35*/  {sprite: 293, ttl:  3},
+        {sprite: 165, ttl:  8},   /*Coin Values*/
+        {sprite: 184, ttl:  8},
+        {sprite: 203, ttl:  8},
+        {sprite: 222, ttl:  8},
+        {sprite: 168, ttl:  8},
+        {sprite: 187, ttl:  8},
+        {sprite: 206, ttl:  8},
+        {sprite: 225, ttl: 10},
+        {sprite: 169, ttl: 10},
+        {sprite: 188, ttl: 10},
+        {sprite: 207, ttl: 20},
+        {sprite: 226, ttl: 14},
+        {sprite: 170, ttl: 14},
+        {sprite: 189, ttl: 14},
+        {sprite: 208, ttl: 14},
+        {sprite: 246, ttl: 14},
+        {sprite: 227, ttl: 14},
+        {sprite: 265, ttl: 14}
+];
+
 type TyEpisodeData = {
     episode: number, script: string, maps: TyEpisodeMap[], items: TyEpisodeItems
 }
@@ -127,7 +183,8 @@ export const cache : {
         pcxBaseTexture?: BaseTexture,
         palettes: PaletteFilter[],
         mainShapeBanks: TextureAtlas[],
-        enemyShapeBanks: TextureAtlas[];
+        enemyShapeBanks: TextureAtlas[],
+        explosionShapeBank?: TextureAtlas,
         episodes: TyEpisodeData[],
         songs: TySong[],
         sfx: Float32Array[],
@@ -352,8 +409,8 @@ export const generateBackgroundTexturesAtlas = async (shapesFile: number): Promi
             return s;
         })));
 
-export const generateEnemyShapeBankTextureAtlas = async (id: number): Promise<TextureAtlas> =>
-    getFileDataView(`newsh${SHAPE_FILE_CODE[id-1].toLowerCase()}.shp`)
+export const generateEnemyShapeBankTextureAtlas = async (code: string): Promise<TextureAtlas> =>
+    getFileDataView(`newsh${code}.shp`)
         .then(shapesData => {
             let shapes: TyShape[] = [];
             let compressed = TyCompressedShapesData(0, Number.MAX_SAFE_INTEGER).unpack(shapesData);

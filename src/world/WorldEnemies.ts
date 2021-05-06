@@ -1,7 +1,7 @@
 import {EnemyCreate} from "./events/EnemyCreate";
 import {World} from "./World";
 import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy, TyEventType} from "../Structs";
-import {IEnemy, EnemyRegistered, EnemyShot, LayerCode, WorldObject} from "./Types";
+import {IEnemy, EnemyRegistered, EnemyShot, LayerCode, IWorldObject} from "./Types";
 import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
 import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
 import {Player} from "./Player";
@@ -467,8 +467,8 @@ export function updateEnemiesShots (this: World, step: number, playerOne: Player
     }
 }
 
-export function getClosestEnemy(this: World, position: {x: number, y: number}): WorldObject | undefined {
-    let found: WorldObject | undefined;
+export function getClosestEnemy(this: World, position: {x: number, y: number}): IWorldObject | undefined {
+    let found: IWorldObject | undefined;
     let dist = 1<<10;
     for (let i = 0, l = this.registeredEnemies.length; i < l; i++) {
         if (!this.registeredEnemies[i].enemy.isScoreItem) {

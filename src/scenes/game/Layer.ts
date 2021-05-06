@@ -3,9 +3,10 @@ import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
 import {TextureAtlas, cache} from "../../Resources";
 import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
 import {MAIN_HEIGHT} from "../../Tyrian";
-import {IEnemyGraphic, WorldObject, IWorldLayer, EnemyShotGraphic} from "../../world/Types";
+import {IEnemyGraphic, IWorldObject, IWorldLayer, EnemyShotGraphic, Explosion} from "../../world/Types";
 import {EnemyRender} from "./EnemyRender";
 import {EnemyShotRender} from "./EnemyShotRender";
+import {ExplosionRender} from "./ExplosionRender";
 
 type LayerBackOptions = {background: number[], mapWidth: number, mapHeight: number};
 
@@ -45,7 +46,7 @@ export class Layer extends Container implements IWorldLayer {
         }, this);
     }
 
-    public registerEnemy (enemy: IEnemyGraphic): WorldObject {
+    public registerEnemy (enemy: IEnemyGraphic): IWorldObject {
         let er = this.objectsContainer.addChild(new EnemyRender(enemy));
         return {
             name: er.name!,
@@ -60,7 +61,7 @@ export class Layer extends Container implements IWorldLayer {
         }
     }
 
-    public registerShot (shot: EnemyShotGraphic): WorldObject {
+    public registerShot (shot: EnemyShotGraphic): IWorldObject {
         let sh = this.objectsContainer.addChild(new EnemyShotRender(shot));
         return {
             name: sh.name!,
@@ -70,6 +71,21 @@ export class Layer extends Container implements IWorldLayer {
                 let rect = sh.getLocalBounds();
                 rect.x = sh.position.x+this.objectsContainer.position.x;
                 rect.y = sh.position.y+this.objectsContainer.position.y;
+                return rect;
+            }
+        }
+    }
+
+    public registerExplosion (explosion: Explosion): IWorldObject {
+        let ex = this.objectsContainer.addChild(new ExplosionRender(explosion));
+        return {
+            name: ex.name!,
+            position: ex.position,
+            animationStep: ex.cycle,
+            getBoundingRect: () => {
+                let rect = ex.getLocalBounds();
+                rect.x = ex.position.x+this.objectsContainer.position.x;
+                rect.y = ex.position.y+this.objectsContainer.position.y;
                 return rect;
             }
         }

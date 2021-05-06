@@ -1,5 +1,5 @@
 import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
-import {PlayerGraphic} from "../../world/Types";
+import {IPlayerGraphic} from "../../world/Types";
 import {cache, TextureAtlas} from "../../Resources";
 import {Sprite2x2Offsets} from "./Types";
 
@@ -8,7 +8,7 @@ export class PlayerRender extends Container {
     private readonly atlas: TextureAtlas;
     private readonly ship: number;
 
-    constructor (player: PlayerGraphic) {
+    constructor (player: IPlayerGraphic) {
         super();
         this.name = 'player';
         this.ship = player.shipGraphic;

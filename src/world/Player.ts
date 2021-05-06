@@ -1,5 +1,5 @@
 import {Rectangle} from "pixi.js"
-import {PlayerGraphic, PlayerShot} from "./Types";
+import {IPlayerGraphic, PlayerShot} from "./Types";
 import {MAP_TILE_WIDTH, PORT_CHANNEL, TyShip, TyWeapon} from "../Structs";
 import {Audio} from "../Audio";
 import {cache} from "../Resources";
@@ -17,7 +17,7 @@ export enum WeaponCode {
     SHOT_SPECIAL2
 }
 
-export class Player implements PlayerGraphic {
+export class Player implements IPlayerGraphic {
     cash: number = 0;
     position: {x: number, y: number} = {x: 0, y: 0};
     xc: number = 0;
