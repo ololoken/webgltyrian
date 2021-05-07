@@ -394,8 +394,7 @@ export class World extends utils.EventEmitter {
                         Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_ENEMY_HIT]);
                         if (enemy.armor != 255) {
                             enemy.armor -= shot.shotDmg;
-                            this.createLargeExplosion(code, (enemy.explosionType & 1) === 0, enemy.explosionType >> 1,
-                                enemy.position.x, enemy.position.y);
+                            this.createExplosion(code, shot.position.x-this.layers[EnemyCodeToLayerMapping[code]].parallaxOffset.x, shot.position.y, 0, 0, false, false);
                         }
                         else {
                             //todo: add "superpixels"
@@ -484,16 +483,16 @@ export class World extends utils.EventEmitter {
 
     private createLargeExplosion (code: EnemyCode, enemyGround: boolean, explosionNum: number, x: number, y: number): void {
         if (enemyGround) {
-            this.createExplosion(code, x, y - 14, 0,  2, false, false);
-            this.createExplosion(code, x + 6, y - 14, 0,  4, false, false);
-            this.createExplosion(code, x, y,      0,  3, false, false);
-            this.createExplosion(code, x + 6, y,      0,  5, false, false);
+            this.createExplosion(code, x - 6, y - 7, 0,  2, false, false);
+            this.createExplosion(code, x + 6, y - 7, 0,  4, false, false);
+            this.createExplosion(code, x - 6, y + 7, 0,  3, false, false);
+            this.createExplosion(code, x + 6, y + 7, 0,  5, false, false);
         }
         else {
-            this.createExplosion(code, x, y - 14, 0,  7, false, false);
-            this.createExplosion(code, x + 6, y - 14, 0,  9, false, false);
-            this.createExplosion(code, x, y,      0,  8, false, false);
-            this.createExplosion(code, x + 6, y,      0, 10, false, false);
+            this.createExplosion(code, x - 6, y - 7, 0,  7, false, false);
+            this.createExplosion(code, x + 6, y - 7, 0,  9, false, false);
+            this.createExplosion(code, x - 6, y + 7, 0,  8, false, false);
+            this.createExplosion(code, x + 6, y + 7, 0, 10, false, false);
         }
         let big;
         if (explosionNum > 10) {
