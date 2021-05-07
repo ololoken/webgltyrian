@@ -40,7 +40,7 @@ const EventTypeToCodeMapping = {
     [TyEventType.ENEMY_CREATE_3]: EnemyCode.GND_75
 }
 
-const LayerAddFixedMoveY = {
+export const EnemyCodeAddFixedMoveY = {
     [EnemyCode.SKY_0]: 0,
     [EnemyCode.GND_25]: 1,
     [EnemyCode.TOP_50]: 1,
@@ -132,7 +132,7 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
 
         //position
         enemy.position.x += step*enemy.exc;
-        enemy.position.y += step*(enemy.eyc+enemy.fixedMoveY+LayerAddFixedMoveY[code]*this.backSpeed[EnemyCodeToLayerMapping[code]]);
+        enemy.position.y += step*(enemy.eyc+enemy.fixedMoveY+EnemyCodeAddFixedMoveY[code]*this.backSpeed[EnemyCodeToLayerMapping[code]]);
 
         //cleanup objects
         let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)

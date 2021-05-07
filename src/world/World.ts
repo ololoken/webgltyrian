@@ -11,7 +11,7 @@ import {
     enemyShotsCreate,
     enemyLaunch,
     enemySpecialAssign,
-    EnemyCodeToLayerMapping
+    EnemyCodeToLayerMapping, EnemyCodeAddFixedMoveY, EnemyCode
 } from "./WorldEnemies";
 import {Container, Rectangle, utils, Texture, Sprite} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
@@ -337,7 +337,7 @@ export class World extends utils.EventEmitter {
                 for (let j = 0; j < hitEnemies.length && !shotExpired; j++) {
                     //todo: chain/infinite/ice shot
                     //not killed but damaged
-                    let {enemy} = hitEnemies[j];
+                    let {enemy, code} = hitEnemies[j];
                     if (enemy.armor > shot.shotDmg) {
                         if (enemy.armor - shot.shotDmg <= enemy.edlevel && Number(!enemy.damaged)^Number(enemy.edani < 0)) {
                             this.registeredEnemies.filter(({enemy: e}) =>
@@ -387,7 +387,8 @@ export class World extends utils.EventEmitter {
                         Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_ENEMY_HIT]);
                         if (enemy.armor != 255) {
                             enemy.armor -= shot.shotDmg;
-                            //todo: add explosion
+                            this.createLargeExplosion(code, (enemy.explosionType & 1) === 0, enemy.explosionType >> 1,
+                                enemy.position.x, enemy.position.y);
                         }
                         else {
                             //todo: add "superpixels"
@@ -431,11 +432,11 @@ export class World extends utils.EventEmitter {
                                 this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
                             }
                             if (e.size == EnemySize.s2x2) {
-                                this.createLargeExplosion(EnemyCodeToLayerMapping[code], (e.explosionType & 1) === 0, e.explosionType >> 1, e.position.x, e.position.y);
+                                this.createLargeExplosion(code, (e.explosionType & 1) === 0, e.explosionType >> 1, e.position.x, e.position.y);
                                 Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9]);
                             }
                             else {
-                                this.createExplosion(EnemyCodeToLayerMapping[code], e.position.x, e.position.y, 0, 1, false, false);
+                                this.createExplosion(code, e.position.x, e.position.y, 0, 1, false, false);
                                 Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8]);
                             }
                             shot.shotDmg -= e.armor;
@@ -461,7 +462,7 @@ export class World extends utils.EventEmitter {
                Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
     }
 
-    private createExplosion (layer: LayerCode, x: number, y: number, dY: number, type: number, fixed: boolean, followPlayer: boolean) {
+    private createExplosion (code: EnemyCode, x: number, y: number, dY: number, type: number, fixed: boolean, followPlayer: boolean) {
         type = type === 98 ? 6 : type;
         let explosion: Explosion = {
             position: {x, y},
@@ -471,21 +472,21 @@ export class World extends utils.EventEmitter {
             dX: 0, dY,
             animationStep: 0,
         }
-        this.registeredExplosions.push({layer, explosion, ...this.layers[layer].registerExplosion(explosion)});
+        this.registeredExplosions.push({code, explosion, ...this.layers[EnemyCodeToLayerMapping[code]].registerExplosion(explosion)});
     }
 
-    private createLargeExplosion (layer: LayerCode, enemyGround: boolean, explosionNum: number, x: number, y: number): void {
+    private createLargeExplosion (code: EnemyCode, enemyGround: boolean, explosionNum: number, x: number, y: number): void {
         if (enemyGround) {
-            this.createExplosion(layer, x - 6, y - 14, 0,  2, false, false);
-            this.createExplosion(layer, x + 6, y - 14, 0,  4, false, false);
-            this.createExplosion(layer, x - 6, y,      0,  3, false, false);
-            this.createExplosion(layer, x + 6, y,      0,  5, false, false);
+            this.createExplosion(code, x, y - 14, 0,  2, false, false);
+            this.createExplosion(code, x + 6, y - 14, 0,  4, false, false);
+            this.createExplosion(code, x, y,      0,  3, false, false);
+            this.createExplosion(code, x + 6, y,      0,  5, false, false);
         }
         else {
-            this.createExplosion(layer, x - 6, y - 14, 0,  7, false, false);
-            this.createExplosion(layer, x + 6, y - 14, 0,  9, false, false);
-            this.createExplosion(layer, x - 6, y,      0,  8, false, false);
-            this.createExplosion(layer, x + 6, y,      0, 10, false, false);
+            this.createExplosion(code, x, y - 14, 0,  7, false, false);
+            this.createExplosion(code, x + 6, y - 14, 0,  9, false, false);
+            this.createExplosion(code, x, y,      0,  8, false, false);
+            this.createExplosion(code, x + 6, y,      0, 10, false, false);
         }
         let big;
         if (explosionNum > 10) {
@@ -498,7 +499,7 @@ export class World extends utils.EventEmitter {
 
         if (explosionNum) {
             this.repetitiveExplosions.push({
-                layer,
+                code,
                 ttl: explosionNum,
                 delay: 2,
                 position: {x, y},
@@ -516,9 +517,9 @@ export class World extends utils.EventEmitter {
                 continue;
             }
 
-            repExplosion.position.y += this.backSpeed[repExplosion.layer]+1;
-            let tempX = repExplosion.position.x + ((Math.random() * 24)>>0) - 12;
-            let tempY = repExplosion.position.y + ((Math.random() % 27)>>0) - 24;
+            repExplosion.position.y += this.backSpeed[EnemyCodeToLayerMapping[repExplosion.code]]*EnemyCodeAddFixedMoveY[repExplosion.code];
+            let tempX = repExplosion.position.x + ((Math.random() * 12 + 0.5)>>0) - 6;
+            let tempY = repExplosion.position.y + ((Math.random() * 14 + 0.5)>>0) - 7;
 
             if (repExplosion.ttl <= 0) {
                 this.repetitiveExplosions.splice(i, 1);
@@ -526,7 +527,7 @@ export class World extends utils.EventEmitter {
             }
 
             if (repExplosion.big) {
-                this.createLargeExplosion(repExplosion.layer, false, 2, tempX, tempY);
+                this.createLargeExplosion(repExplosion.code, false, 2, tempX, tempY);
 
                 if (repExplosion.ttl == 1 || ((Math.random() * 5 + 0.5)>>0) == 1) {
                     Audio.getInstance().enqueue(7, cache.sfx[SFX_CODE.S_EXPLOSION_11]);
@@ -538,7 +539,7 @@ export class World extends utils.EventEmitter {
                 repExplosion.delay = 4 + ((Math.random() * 3 + 0.5)>>0);
             }
             else {
-                this.createExplosion(repExplosion.layer, tempX, tempY, 0, 1, false, false);
+                this.createExplosion(repExplosion.code, tempX, tempY, 0, 1, false, false);
                 Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_EXPLOSION_4]);
 
                 repExplosion.delay = 3;
@@ -547,18 +548,18 @@ export class World extends utils.EventEmitter {
             repExplosion.ttl -= step;
         }
         for (let i = this.registeredExplosions.length-1; i >= 0; i--) {
-            let {explosion, layer, position, animationStep, name} = this.registeredExplosions[i];
+            let {explosion, position, animationStep, name, code} = this.registeredExplosions[i];
 
             position.copyFrom(explosion.position);
             animationStep.x = explosion.animationStep+1;
 
             if (!explosion.fixed) {
                 explosion.animationStep += step;
-                explosion.position.y += step*this.backSpeed[layer];
             }
             if (explosion.followPlayer) {
                 //todo: follow player
             }
+            explosion.position.y += step*(this.backSpeed[EnemyCodeToLayerMapping[code]]*EnemyCodeAddFixedMoveY[code]);
             explosion.position.x += step*explosion.dX;
             explosion.position.y += step*explosion.dY;
 
@@ -566,7 +567,7 @@ export class World extends utils.EventEmitter {
 
             if (explosion.ttl < 0) {
                 this.registeredExplosions.splice(i, 1);
-                this.layers[layer].unregisterObject(name);
+                this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
             }
         }
     }

@@ -149,10 +149,10 @@ export type ExplosionRepeat = {
     ttl: number,
     position: {x: number, y: number},
     big: boolean,
-    layer: LayerCode
+    code: EnemyCode
 }
 
 export type EnemyRegistered = IWorldObject & {enemy: IEnemy, code: EnemyCode};
 export type EnemyShotRegistered = IWorldObject & {shot: EnemyShot, layer: LayerCode};
 export type PlayerShotRegistered = IWorldObject & {shot: PlayerShot, id: number};
-export type ExplosionsRegistered = IWorldObject & {explosion: Explosion, layer: LayerCode};
+export type ExplosionsRegistered = IWorldObject & {explosion: Explosion, code: EnemyCode};
