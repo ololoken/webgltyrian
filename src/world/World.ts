@@ -1,29 +1,34 @@
 import {EnemySize, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap, TyEventType} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {
-    enemyCreate,
-    updateEnemies,
-    updateEnemiesShots,
-    enemiesGlobalMove,
     enemiesAnimate,
-    hasRegisteredEnemies,
-    getClosestEnemy,
-    enemyShotsCreate,
+    enemiesGlobalMove,
+    EnemyCode,
+    EnemyCodeAddFixedMoveY,
+    EnemyCodeToLayerMapping,
+    enemyCreate,
     enemyLaunch,
+    enemyShotsCreate,
     enemySpecialAssign,
-    EnemyCodeToLayerMapping, EnemyCodeAddFixedMoveY, EnemyCode
+    getClosestEnemy,
+    hasRegisteredEnemies,
+    updateEnemies,
+    updateEnemiesShots
 } from "./WorldEnemies";
-import {Container, Rectangle, utils, Texture, Sprite} from "pixi.js";
+import {Rectangle, utils} from "pixi.js";
 import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
 import {
     BackSpeed,
     EnemyRegistered,
     EnemyShotRegistered,
+    Explosion,
+    ExplosionRepeat,
+    ExplosionsRegistered,
     IPlayerLayer,
+    IWorldObject,
     LayerCode,
     Layers,
-    PlayerShotRegistered,
-    IWorldObject, ExplosionsRegistered, Explosion, ExplosionRepeat
+    PlayerShotRegistered
 } from "./Types";
 import {Player, WeaponCode} from "./Player";
 import {Audio} from "../Audio";
@@ -375,13 +380,15 @@ export class World extends utils.EventEmitter {
                                     e.armor = e.edlevel;
                                 }
 
-                                /* todo: draw explosion/"superpixels"
-                                if (enemyDat[enemy[temp3].enemytype].esize != 1)
-                                    JE_setupExplosion(tempX, tempY - 6, 0, 1, false, false);
-                                else
-                                    JE_setupExplosionLarge(enemy[temp3].enemyground, enemy[temp3].explonum / 2, tempX, tempY);
-
-                                 */
+                                switch (enemy.size) {
+                                    case EnemySize.s1x1:
+                                        this.createExplosion(code, enemy.position.x, enemy.position.y-6, 0, 1, false, false);
+                                        break;
+                                    case EnemySize.s2x2:
+                                        this.createLargeExplosion(code, (enemy.explosionType & 1) === 0, enemy.explosionType >> 1,
+                                            enemy.position.x, enemy.position.y);
+                                        break;
+                                }
                             })
                         }
                         Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_ENEMY_HIT]);
