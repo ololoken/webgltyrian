@@ -1,4 +1,12 @@
-import {EnemySize, MAP_TILE_WIDTH, TyEpisodeItems, TyEpisodeMap, TyEventType} from "../Structs";
+import {
+    COMP_TILE_HEIGHT,
+    COMP_TILE_WIDTH,
+    EnemySize,
+    MAP_TILE_WIDTH,
+    TyEpisodeItems,
+    TyEpisodeMap,
+    TyEventType
+} from "../Structs";
 import {EventSystem} from "./EventSystem";
 import {
     enemiesAnimate,
@@ -32,7 +40,7 @@ import {
 } from "./Types";
 import {Player, WeaponCode} from "./Player";
 import {Audio} from "../Audio";
-import {cache, ExplosionData, SFX_CODE} from "../Resources";
+import {cache, ExplosionData, SFX_CODE, VFX_CODE} from "../Resources";
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;
@@ -88,7 +96,9 @@ export class World extends utils.EventEmitter {
 
         cubeMax: 0,
 
-        globalFlags: [false, false, false, false, false, false, false, false, false]
+        globalFlags: [false, false, false, false, false, false, false, false, false],
+
+        damageRate: 2
     }
 
     constructor(map: TyEpisodeMap, items: TyEpisodeItems, layers: Layers, playerLayer: IPlayerLayer) {
@@ -301,6 +311,7 @@ export class World extends utils.EventEmitter {
         this.updatePlayerShots(step);
         this.collidePlayerShots();
         this.collideEnemiesShots();
+        this.collidePlayersEnemies();
 
         this.playerOne.update(this.keysPressed, step);
         this.player.animationStep.x = Math.round(this.playerOne.banking*2)+this.playerOne.shipGraphic;
@@ -406,37 +417,8 @@ export class World extends utils.EventEmitter {
                     }
                     //killed
                     else {
-                        this.registeredEnemies.filter(({enemy: e, code}) =>
-                            e === enemy || (enemy.linknum !== 0
-                                && (e.linknum == enemy.linknum
-                                || enemy.linknum-100 == e.linknum
-                                || (e.linknum > 40 && e.linknum/20 == enemy.linknum/20 && e.linknum <= enemy.linknum))
-                            )).forEach(({enemy: e, code, name}) => {
-                            if (e.special) {
-                                this.state.globalFlags[e.flagnum-1] = e.setto;
-                            }
-                            if (e.evalue > 0 && e.evalue < 10000) {
-                                if (e.evalue == 1) {
-                                    this.state.cubeMax++;
-                                }
-                                else {
-                                    this.playerOne.cash += e.evalue;
-                                }
-                            }
-                            if (e.edlevel == -1 && e.linknum == enemy.linknum) {
-                                e.edlevel = 0;
-                                e.graphic[0] = e.edgr;
-                                e.animationCycle = 0;
-                                e.animationState = 0;
-                                e.animationMax = 0;
-                                e.animationMin = 1;
-                                e.damaged = true;
-                                e.animationCycle = 0;
-                            }
-                            else {
-                                this.registeredEnemies.splice(this.registeredEnemies.findIndex(({name: n}) => n === name), 1)
-                                this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
-                            }
+                        this.killEnemy(hitEnemies[j]).forEach(({enemy: e}) => {
+                            shot.shotDmg -= e.armor;
                             if (e.size == EnemySize.s2x2) {
                                 this.createLargeExplosion(code, (e.explosionType & 1) === 0, e.explosionType >> 1, e.position.x, e.position.y);
                                 Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9]);
@@ -445,12 +427,49 @@ export class World extends utils.EventEmitter {
                                 this.createExplosion(code, e.position.x, e.position.y, 0, 1, false, false);
                                 Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_8]);
                             }
-                            shot.shotDmg -= e.armor;
                         });
                     }
                 }
             }
         }
+    }
+
+    private killEnemy (enemy: EnemyRegistered): EnemyRegistered[] {
+        let effectedEnemies = this.registeredEnemies.filter(({enemy: e, code}) =>
+            e === enemy.enemy || (enemy.enemy.linknum !== 0
+                && (e.linknum == enemy.enemy.linknum
+                || enemy.enemy.linknum-100 == e.linknum
+                || (e.linknum > 40 && e.linknum/20 == enemy.enemy.linknum/20 && e.linknum <= enemy.enemy.linknum))
+            ));
+        for (let i = 0; i < effectedEnemies.length; i++) {
+            let {enemy: e, code, name} = effectedEnemies[i];
+            if (e.special) {
+                this.state.globalFlags[e.flagnum-1] = e.setto;
+            }
+            if (e.evalue > 0 && e.evalue < 10000) {
+                if (e.evalue == 1) {
+                    this.state.cubeMax++;
+                }
+                else {
+                    this.playerOne.cash += e.evalue;
+                }
+            }
+            if (e.edlevel == -1 && e.linknum == enemy.enemy.linknum) {
+                e.edlevel = 0;
+                e.graphic[0] = e.edgr;
+                e.animationCycle = 0;
+                e.animationState = 0;
+                e.animationMax = 0;
+                e.animationMin = 1;
+                e.damaged = true;
+                e.animationCycle = 0;
+            }
+            else {
+                this.registeredEnemies.splice(this.registeredEnemies.findIndex(({name: n}) => n === name), 1)
+                this.layers[EnemyCodeToLayerMapping[code]].unregisterObject(name);
+            }
+        }
+        return effectedEnemies;
     }
 
     private collideEnemiesShots (): void {
@@ -459,6 +478,83 @@ export class World extends utils.EventEmitter {
             if (this.intersects(this.player.getBoundingRect(), getBoundingRect())) {
                 this.registeredEnemyShots.splice(i, 1);
                 this.layers[layer].unregisterObject(name);
+            }
+        }
+    }
+
+    private collidePlayersEnemies (): void {
+        let playerRect = this.player.getBoundingRect();
+        for (let i = this.registeredEnemies.length-1; i >= 0; i--) {
+            let {getBoundingRect, enemy, code} = this.registeredEnemies[i];
+            if (this.intersects(playerRect, getBoundingRect())) {
+                switch (true) {
+                    case enemy.evalue > 29999: {//powerups
+
+                    } break;
+                    case enemy.evalue > 20000: {//armor
+
+                    } break;
+                    case enemy.evalue > 10000: {//&& enemyAvail[z] == 2; bonus level
+                    } break;
+                    case enemy.isScoreItem: {
+                        Audio.getInstance().enqueue(7, cache.sfx[SFX_CODE.S_ITEM]);
+                        switch (enemy.evalue) {
+                            case 1: {
+                                Audio.getInstance().enqueue(3, cache.vfx[VFX_CODE.V_DATA_CUBE]);
+                                this.state.cubeMax++;
+                            } break;
+                            case -1: {
+                                Audio.getInstance().enqueue(7, cache.sfx[SFX_CODE.S_POWERUP]);
+                                //todo: handle front power up
+                            } break;
+                            case -2: {
+                                //todo: handle rear power up
+                                Audio.getInstance().enqueue(7, cache.sfx[SFX_CODE.S_POWERUP]);
+                            } break;
+                            case -3: {
+                                // picked up orbiting asteroid killer
+                                //todo: create shot
+                            } break;
+                            case -4: {
+                                //todo: add superbomb
+                            } break;
+                            case -5: {
+                                //todo: hotdog
+                            } break;
+                            default: {
+                                //todo: cash
+                            }
+                        }
+                        this.createExplosion(code, enemy.position.x, enemy.position.y, enemy.eyc, enemy.explosionType, true, false);
+
+                    } break;
+                    case (enemy.explosionType & 1) == 0: {
+                        let damage = enemy.armor > this.state.damageRate
+                            ? this.state.damageRate
+                            : enemy.armor;
+                        this.playerOne.takeDamage(damage);
+                        this.playerOne.xc += enemy.exc*enemy.armor/2;
+                        this.playerOne.yc += enemy.eyc*enemy.armor/2;
+                        if (enemy.armor > damage) {
+                            if (enemy.armor != 255) {
+                                enemy.armor -= damage;
+                            }
+                            Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_ENEMY_HIT]);
+                        }
+                        else {
+                            this.killEnemy(this.registeredEnemies[i]).forEach(({enemy: e}) => {
+                                if (e.size == EnemySize.s2x2) {
+                                    this.createLargeExplosion(code, (e.explosionType & 1) === 0, e.explosionType >> 1, e.position.x, e.position.y);
+                                    Audio.getInstance().enqueue(6, cache.sfx[SFX_CODE.S_EXPLOSION_9]);
+                                }
+                                else {
+                                    this.createExplosion(code, e.position.x, e.position.y, 0, 1, false, false);
+                                    Audio.getInstance().enqueue(5, cache.sfx[SFX_CODE.S_EXPLOSION_4]);
+                                }
+                            });
+                        }
+                    } break;
+                }
             }
         }
     }
@@ -483,16 +579,16 @@ export class World extends utils.EventEmitter {
 
     private createLargeExplosion (code: EnemyCode, enemyGround: boolean, explosionNum: number, x: number, y: number): void {
         if (enemyGround) {
-            this.createExplosion(code, x - 6, y - 7, 0,  2, false, false);
-            this.createExplosion(code, x + 6, y - 7, 0,  4, false, false);
-            this.createExplosion(code, x - 6, y + 7, 0,  3, false, false);
-            this.createExplosion(code, x + 6, y + 7, 0,  5, false, false);
+            this.createExplosion(code, x - COMP_TILE_WIDTH/2, y - COMP_TILE_HEIGHT/2, 0,  2, false, false);
+            this.createExplosion(code, x + COMP_TILE_WIDTH/2, y - COMP_TILE_HEIGHT/2, 0,  4, false, false);
+            this.createExplosion(code, x - COMP_TILE_WIDTH/2, y + COMP_TILE_HEIGHT/2, 0,  3, false, false);
+            this.createExplosion(code, x + COMP_TILE_WIDTH/2, y + COMP_TILE_HEIGHT/2, 0,  5, false, false);
         }
         else {
-            this.createExplosion(code, x - 6, y - 7, 0,  7, false, false);
-            this.createExplosion(code, x + 6, y - 7, 0,  9, false, false);
-            this.createExplosion(code, x - 6, y + 7, 0,  8, false, false);
-            this.createExplosion(code, x + 6, y + 7, 0, 10, false, false);
+            this.createExplosion(code, x - COMP_TILE_WIDTH/2, y - COMP_TILE_HEIGHT/2, 0,  7, false, false);
+            this.createExplosion(code, x + COMP_TILE_WIDTH/2, y - COMP_TILE_HEIGHT/2, 0,  9, false, false);
+            this.createExplosion(code, x - COMP_TILE_WIDTH/2, y + COMP_TILE_HEIGHT/2, 0,  8, false, false);
+            this.createExplosion(code, x + COMP_TILE_WIDTH/2, y + COMP_TILE_HEIGHT/2, 0, 10, false, false);
         }
         let big;
         if (explosionNum > 10) {
@@ -517,15 +613,15 @@ export class World extends utils.EventEmitter {
     private updateExplosions (step: number): void {
         for (let i = this.repetitiveExplosions.length-1; i >= 0; i--) {
             let repExplosion = this.repetitiveExplosions[i];
+            repExplosion.position.y += step*this.backSpeed[EnemyCodeToLayerMapping[repExplosion.code]]*EnemyCodeAddFixedMoveY[repExplosion.code];
 
             if (repExplosion.delay > 0) {
                 repExplosion.delay -= step;
                 continue;
             }
 
-            repExplosion.position.y += this.backSpeed[EnemyCodeToLayerMapping[repExplosion.code]]*EnemyCodeAddFixedMoveY[repExplosion.code];
-            let tempX = repExplosion.position.x + ((Math.random() * 12 + 0.5)>>0) - 6;
-            let tempY = repExplosion.position.y + ((Math.random() * 14 + 0.5)>>0) - 7;
+            let tempX = repExplosion.position.x + ((Math.random() * COMP_TILE_WIDTH*2 + 0.5)>>0) - COMP_TILE_WIDTH;
+            let tempY = repExplosion.position.y + ((Math.random() * COMP_TILE_HEIGHT*2 + 0.5)>>0) - COMP_TILE_HEIGHT;
 
             if (repExplosion.ttl <= 0) {
                 this.repetitiveExplosions.splice(i, 1);
@@ -565,7 +661,7 @@ export class World extends utils.EventEmitter {
             if (explosion.followPlayer) {
                 //todo: follow player
             }
-            explosion.position.y += step*(this.backSpeed[EnemyCodeToLayerMapping[code]]*EnemyCodeAddFixedMoveY[code]);
+            explosion.position.y += step*this.backSpeed[EnemyCodeToLayerMapping[code]]*EnemyCodeAddFixedMoveY[code];
             explosion.position.x += step*explosion.dX;
             explosion.position.y += step*explosion.dY;
 

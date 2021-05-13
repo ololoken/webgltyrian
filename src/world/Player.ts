@@ -50,7 +50,11 @@ export class Player implements IPlayerGraphic {
         this.shipGraphic = this.ship.shipGraphic-1;
     }
 
-    update(keysPressed: { [p: string]: boolean }, step: number) {
+    public takeDamage (damage: number): void {
+
+    }
+
+    public update (keysPressed: { [p: string]: boolean }, step: number): void {
         if (keysPressed['ArrowLeft']) {
             this.xAccel = Math.max(-2, this.xAccel-step);
         }
