@@ -1,9 +1,10 @@
 import {AbstractScene} from "../AbstractScene";
 import {cache, PCX, pcxSprite, SFX_CODE, SpriteTableIndex, textContainer} from "../../Resources";
-import {MainMenuScene, MenuItem} from "./MainMenuScene";
+import {MainMenuScene} from "./MainMenuScene";
 import {OutlineFilter} from "../../filters/OutlineFilter";
 import {filters} from "pixi.js";
 import {Audio} from "../../Audio";
+import {MenuItem} from "./AbstractMenuScene";
 
 
 export class HelpScene extends AbstractScene<number> {
