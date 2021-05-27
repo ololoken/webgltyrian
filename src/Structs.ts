@@ -335,13 +335,13 @@ export const TyPCXOffsetsStruct = new Struct<{imagesLength: number, offsets: num
     .single('imagesLength', UInt16)
     .array('offsets', Int32, la('imagesLength'));
 
-interface LevelScriptChunk {
+interface PascalString {
     length: number,
     data: string
 }
 
-export const TyEpisodeScriptStruct = new Struct<{strings: LevelScriptChunk[]}>()
-    .array('strings', new Struct<LevelScriptChunk>()
+export const TyStringsStruct = new Struct<{strings: PascalString[]}>()
+    .array('strings', new Struct<PascalString>()
         .single('length', Byte)
         .array('data', Char, la('length'), PascalDecryptFormatter([204, 129, 63, 255, 71, 19, 25, 62, 1, 99])), l(Number.MAX_SAFE_INTEGER))
 

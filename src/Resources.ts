@@ -10,7 +10,7 @@ import {
     TyEpisodeItemsStruct,
     TyEpisodeItems,
     TyEpisodeMapStruct,
-    TyEpisodeScriptStruct,
+    TyStringsStruct,
     TyMapBackgroundShapesStruct,
     TyShape,
     MAP_TILE_WIDTH,
@@ -189,7 +189,8 @@ export const cache : {
         songs: TySong[],
         sfx: Float32Array[],
         vfx: Float32Array[],
-    } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: [], songs: [], sfx: [], vfx: []}
+        txt: String[]
+    } = {mainShapeBanks: [], episodes: [], palettes: [], enemyShapeBanks: [], songs: [], sfx: [], vfx: [], txt: []}
 
 const generatePalettes: ResourceInit = (dt) => {
     const data = PaletteDecoder(TyPalettesStruct.unpack(dt).palettes);
@@ -357,12 +358,18 @@ export const textContainer = (text: string, font: SpriteTableIndex, palette: num
             return {container, x};
         }, {container: Object.assign(new Container(), {filters: palette >= 0 ? [cache.palettes[palette]] : []}), x: 0}).container;
 
+const getTextData: ResourceInit = (dt: DataView) => {
+    let itemsOffset = dt.getInt32(0, true);
+    cache.txt = TyStringsStruct.unpack(new DataView(dt.buffer, 4, itemsOffset-4))
+        .strings.map(s => s.data);
+}
 
 const basicResources: Resource = {
     pal: {path: 'palette.dat', init: generatePalettes},
     pcx: {path: 'tyrian.pic', init: generatePCXTexture},
     shp: {path: 'tyrian.shp', init: generateMainShapeBanks},
     mus: {path: 'music.mus', init: generateSongs},
+    txt: {path: 'tyrian.hdt', init: getTextData},
     sfx: {path: 'tyrian.snd', init: generateSounds('sfx')},
     vfx: {path: 'voices.snd', init: generateSounds('vfx')}
 }
@@ -372,7 +379,7 @@ const getFileDataView = async (path: string) => fetch(`assets/data/${path}`)
     .then(b => new DataView(b));
 
 export const initBasicResources = async () => Promise.all(Object.values(basicResources)
-    .map((res) => getFileDataView(res.path).then(dt => res.init(dt))));
+    .map((res) => getFileDataView(res.path).then(dt => res.init(dt))))
 
 export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> => {
     if (episode in cache.episodes) return cache.episodes[episode];
@@ -394,7 +401,7 @@ export const getEpisodeData = async (episode: number): Promise<TyEpisodeData> =>
         .map(offset => TyEpisodeMapStruct.unpack(levelData, offset));
 
     let script = await getFileDataView(`levels${episode}.dat`).then(scriptData =>
-        TyEpisodeScriptStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
+        TyStringsStruct.unpack(scriptData).strings.map(s => s.data).join('\n'));
     return cache.episodes[episode] = {episode, script, maps, items}
 }
 
