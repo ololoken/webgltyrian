@@ -40,7 +40,6 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
             getEpisodeData(this.state.episodeNumber).then(async ({maps, items}) => {
                 let map = maps[this.state.mapIndex];
                 let backAtlas = await generateBackgroundTexturesAtlas(map.shapesFile);
-                console.log(map);
                 this.layers = [
                     this.addChild(new Layer(backAtlas, {
                         background: map.background.background1.map(shapeId => map.background.shapesMapping1[shapeId]),

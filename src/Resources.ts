@@ -29,15 +29,15 @@ type ResourceInit = (dt: DataView) => void;
 type Resource = {[code: string]: {path: string, init: ResourceInit}};
 
 export enum PCX {
-    NAME_1 = 0,
+    MISSION_SETUP = 0,
     SUB_SELECT = 1,
     HUD_ONE = 2,
     MENU_BG = 3,
     NAME_5 = 4,
     HUD_TWO = 5,
-    NAME_7 = 6,
-    NAME_8 = 7,
-    NAME_9 = 8,
+    DEAD_REPTILIAN = 6,
+    HEAD_ON_SPIKE_1 = 7,
+    HEAD_ON_SPIKE_2 = 8,
     INTRO_LOGO1 = 9,
     NOME_ = 10,
     INTRO_LOGO2 = 11,

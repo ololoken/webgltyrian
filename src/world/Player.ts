@@ -46,7 +46,6 @@ export class Player implements IPlayerGraphic {
 
         this.ship = ship;
         this.weapons[WeaponCode.SHOT_FRONT] = weaponMain;
-        console.log(this.weapons);
         this.shipGraphic = this.ship.shipGraphic-1;
     }
 
