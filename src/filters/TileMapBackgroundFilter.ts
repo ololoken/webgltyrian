@@ -55,14 +55,14 @@ void main () {
     vec2 screenTile = (uv*uOutSize+uBackgroundOffset)/uTileSize;
 
     vec2 tileCoord = floor(screenTile);
-    vec2 tileInnerCoord = (floor(fract(screenTile)*uTileSize)+0.5)/uTileSize*tileAtlas;
+    vec2 tileInnerCoord = fract(screenTile)*uTileSize/uTileSize*tileAtlas;
 
     float mappingIndex = tileCoord.y*uBackgroundSize.x+tileCoord.x;
     float mappingY = floor(mappingIndex/uMappingSize.x);
     float mappingX = mappingIndex-mappingY*uMappingSize.x;
     vec2 shapeCoord = vec2(mappingX, mappingY)/uMappingSize;
     
-    vec2 tileAtlasCoord = 255.0*texture2D(uMapping, shapeCoord).zw*tileAtlas;
+    vec2 tileAtlasCoord = 255.0*texture2D(uMapping, shapeCoord).xy*tileAtlas;
 
     vec4 tileColor = texture2D(uAtlas, tileAtlasCoord+tileInnerCoord);
     gl_FragColor = tileColor;
@@ -93,9 +93,9 @@ void main () {
 
     private toTexture (background: number[], frames: Rectangle[]): Texture {
         return new Texture(BaseTexture.fromBuffer(background.reduce((buffer, shapeId, idx) => {
-                let rect = frames[shapeId];
-                buffer[4 * idx + 0] = 0;
-                buffer[4 * idx + 1] = 0;
+                const rect = frames[shapeId];
+                buffer[4 * idx + 0] = rect.x/MAP_TILE_WIDTH;
+                buffer[4 * idx + 1] = rect.y/MAP_TILE_HEIGHT;
                 buffer[4 * idx + 2] = rect.x/MAP_TILE_WIDTH;
                 buffer[4 * idx + 3] = rect.y/MAP_TILE_HEIGHT;
                 return buffer

@@ -92,7 +92,7 @@ export class Layer extends Container implements IWorldLayer {
     }
 
     public unregisterObject (name: string): void {
-        this.objectsContainer.removeChild(this.objectsContainer.getChildByName!(name, false));
+        this.objectsContainer.removeChild(this.objectsContainer.getChildByName!(name, false)!);
     }
 
     public backSpriteOnTop (state: boolean): void {

@@ -321,13 +321,15 @@ const shapesToTexture = (shapes: TyShape[], tSize = 512): TextureAtlas => {
         console.warn(`shapes doesn't fit texture size`);
     }
 
-    return {frames, texture: BaseTexture.fromBuffer(textureData, tSize, tSize, {
-            width: tSize,
-            height: tSize,
-            format: FORMATS.ALPHA,
-            type: TYPES.UNSIGNED_BYTE,
-            target: TARGETS.TEXTURE_2D
-        })}
+    const texture = BaseTexture.fromBuffer(textureData, tSize, tSize, {
+      width: tSize,
+      height: tSize,
+      format: FORMATS.ALPHA,
+      type: TYPES.UNSIGNED_BYTE,
+      target: TARGETS.TEXTURE_2D
+    });
+
+    return {frames, texture}
 }
 
 export const pcxSprite = (pcx: PCX): Sprite => Object.assign(

@@ -78,7 +78,6 @@ export const TyEventKindMap = {
     [TyEventType.ENEMIES_TOP_OVER_OFF]: EnemiesOverSwitch,
     [TyEventType.BACK_SPEED_SET_2]: BackSpeedSet,
     [TyEventType.ENEMIES_FIRE_OVERRIDE]: EnemiesFireOverride,
-    [TyEventType.ENEMY_CREATE_TOP_BOTTOM_50_1]: EnemyCreate,
     [TyEventType.ENEMY_SPAWN]: EnemySpawn,
     [TyEventType.LEVEL_READY_TO_END]: LevelEnd,
     [TyEventType.LEVEL_ENEMIES_FREQUENCY]: LevelEnemiesFrequency,

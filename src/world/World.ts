@@ -108,8 +108,6 @@ export class World extends utils.EventEmitter {
         this.layers = layers;
         this.playerLayer = playerLayer;
 
-        console.log(this.items);
-
         this.layers[LayerCode.GND].backPos.set((map.backX[LayerCode.GND]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);

@@ -35,7 +35,7 @@ export class HelpScene extends AbstractScene<number> {
                 btn: textContainer('Return to main menu', SpriteTableIndex.FONT_REGULAR, 0),
             }
             this.menu.push(m);
-            m.btn!.filters.push(m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter());
+            m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
             m.btn!.interactive = true;
             m.btn!.on('click', () => {
                 Audio.getInstance().playSample(cache.sfx[SFX_CODE.S_SELECT]);

@@ -39,7 +39,7 @@ export abstract class AbstractMenuScene extends AbstractScene<number> {
             text: '',
             btn: textContainer('Return to main menu', SpriteTableIndex.FONT_REGULAR, 0),
         }
-        m.btn!.filters.push(m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter());
+        m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
         m.btn!.interactive = true;
         m.btn!.on('click', () => {
             this.active = 0;
@@ -59,7 +59,7 @@ export abstract class AbstractMenuScene extends AbstractScene<number> {
                     ? btns[idx-1].btn!.position.y+btns[idx-1].btn!.height+4
                     : topOffset
             )
-            m.btn.filters.push(m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter());
+            m.btn.filters = [...(m.btn.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
             m.btn.interactive = true;
             m.btn.on('click', () => {
                 this.state = idx;

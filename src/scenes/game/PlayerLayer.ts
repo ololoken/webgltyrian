@@ -46,7 +46,7 @@ export class PlayerLayer extends Container implements IPlayerLayer {
     }
 
     unregisterObject (name: string): void {
-        this.removeChild(this.getChildByName!(name));
+        this.removeChild(this.getChildByName!(name)!);
     }
 
 }
