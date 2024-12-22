@@ -1,9 +1,9 @@
-import {Container} from "pixi.js";
-import {IPlayerGraphic, IWorldObject, IPlayerLayer, PlayerShotGraphic} from "../../world/Types";
-import {PlayerRender} from "./PlayerRender";
-import {cache} from "../../Resources";
-import {PlayerShotRender} from "./PlayerShotRender";
-import {PLAYER_CONTAINER_HEIGHT, PLAYER_CONTAINER_WIDTH} from "../../Structs";
+import { Container } from 'pixi.js';
+import { IPlayerGraphic, IWorldObject, IPlayerLayer, PlayerShotGraphic } from '../../world/Types';
+import { PLAYER_CONTAINER_HEIGHT, PLAYER_CONTAINER_WIDTH } from '../../Const';
+import { PlayerRender } from './PlayerRender';
+import { PlayerShotRender } from './PlayerShotRender';
+import { cache } from '../../Resources';
 
 export class PlayerLayer extends Container implements IPlayerLayer {
 

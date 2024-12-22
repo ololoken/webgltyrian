@@ -1,5 +1,5 @@
-import {Filter, Texture} from "pixi.js";
-import {fragment} from "./ShaderDecorators";
+import { Filter, Texture } from 'pixi.js';
+import { fragment } from './ShaderDecorators';
 
 export class PaletteFilter extends Filter {
     @fragment(`

@@ -1,19 +1,16 @@
 import {
-    COMP_TILE_HEIGHT,
-    COMP_TILE_WIDTH,
     EnemySize,
-    MAP_TILE_WIDTH,
     TyEpisodeItems,
     TyEpisodeMap,
     TyEventType
-} from "../Structs";
-import {EventSystem} from "./EventSystem";
+} from '../Structs';
+import { EventSystem } from './EventSystem';
 import {
-    enemiesAnimate,
-    enemiesGlobalMove,
     EnemyCode,
     EnemyCodeAddFixedMoveY,
     EnemyCodeToLayerMapping,
+    enemiesAnimate,
+    enemiesGlobalMove,
     enemyCreate,
     enemyLaunch,
     enemyShotsCreate,
@@ -21,10 +18,9 @@ import {
     getClosestEnemy,
     hasRegisteredEnemies,
     updateEnemies,
-    updateEnemiesShots
-} from "./WorldEnemies";
-import {Rectangle, utils} from "pixi.js";
-import {MAIN_HEIGHT, MAIN_WIDTH, SCALE} from "../Tyrian";
+    updateEnemiesShots,
+} from './WorldEnemies';
+import { Rectangle, utils } from 'pixi.js';
 import {
     BackSpeed,
     EnemyRegistered,
@@ -37,10 +33,11 @@ import {
     LayerCode,
     Layers,
     PlayerShotRegistered
-} from "./Types";
-import {Player, WeaponCode} from "./Player";
-import {Audio} from "../Audio";
-import {cache, ExplosionData, SFX_CODE, VFX_CODE} from "../Resources";
+} from './Types';
+import { Player, WeaponCode } from "./Player";
+import { Audio } from '../Audio';
+import { cache } from '../Resources';
+import { COMP_TILE_HEIGHT, COMP_TILE_WIDTH, ExplosionData, MAP_TILE_WIDTH, SFX_CODE, VFX_CODE, MAIN_HEIGHT, MAIN_WIDTH, SCALE } from '../Const';
 
 export class World extends utils.EventEmitter {
     private readonly map: TyEpisodeMap;

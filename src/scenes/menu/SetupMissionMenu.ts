@@ -1,10 +1,7 @@
-import {AbstractScene} from "../AbstractScene";
-import {
-    getEpisodeData,
-    PCX,
-    pcxSprite
-} from "../../Resources";
-import {Episode} from "../../world/Episode";
+import { AbstractScene } from '../AbstractScene';
+import { Episode } from '../../world/Episode';
+import { PCX } from '../../Const';
+import { getEpisodeData, pcxSprite } from '../../Resources';
 
 export class SetupMissionMenu extends AbstractScene<{episode: number}> {
     load (): Promise<boolean> {

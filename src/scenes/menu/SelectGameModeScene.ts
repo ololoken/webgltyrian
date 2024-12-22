@@ -1,6 +1,7 @@
-import {SelectEpisodeScene} from "./SelectEpisodeScene";
-import {AbstractMenuScene} from "./AbstractMenuScene";
-import {PCX, pcxSprite} from "../../Resources";
+import { AbstractMenuScene } from './AbstractMenuScene';
+import { PCX } from '../../Const';
+import { SelectEpisodeScene } from './SelectEpisodeScene';
+import { pcxSprite } from '../../Resources';
 
 
 export class SelectGameModeScene extends AbstractMenuScene {

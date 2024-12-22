@@ -1,6 +1,6 @@
-import {Sprite, Texture, ObservablePoint} from "pixi.js"
-import {Explosion} from "../../world/Types";
-import {cache, TextureAtlas} from "../../Resources";
+import { Sprite, Texture, ObservablePoint } from 'pixi.js'
+import { Explosion } from '../../world/Types';
+import { cache, TextureAtlas } from '../../Resources';
 
 export class ExplosionRender extends Sprite {
 

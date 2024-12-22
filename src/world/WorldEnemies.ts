@@ -1,14 +1,15 @@
-import {EnemyCreate} from "./events/EnemyCreate";
-import {World} from "./World";
-import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyEnemy, TyEventType} from "../Structs";
-import {IEnemy, EnemyRegistered, EnemyShot, LayerCode, IWorldObject} from "./Types";
-import {EnemiesGlobalMove} from "./events/EnemiesGlobalMove";
-import {EnemiesGlobalAnimate} from "./events/EnemiesGlobalAnimate";
-import {Player} from "./Player";
-import {Audio} from "../Audio";
-import {cache} from "../Resources";
-import {EnemySpecialAssign} from "./events/EnemySpecialAssign";
-import {Enemy} from "./Enemy";
+import { Audio } from '../Audio';
+import { COMP_TILE_HEIGHT, COMP_TILE_WIDTH } from '../Const';
+import { EnemiesGlobalAnimate } from './events/EnemiesGlobalAnimate';
+import { EnemiesGlobalMove } from './events/EnemiesGlobalMove';
+import { Enemy } from './Enemy';
+import { EnemyCreate } from './events/EnemyCreate';
+import { EnemySpecialAssign } from './events/EnemySpecialAssign';
+import { IEnemy, EnemyRegistered, EnemyShot, LayerCode, IWorldObject } from './Types';
+import { Player } from './Player';
+import { TyEventType } from '../Structs';
+import { World } from './World';
+import { cache } from '../Resources';
 
 export enum EnemyCode {
     GND_25 = 25,

@@ -1,4 +1,4 @@
-import {Layer} from "./Layer";
+import { Layer } from './Layer';
 
 export type SceneLayers = [Layer, Layer, Layer];
 export enum Sprite2x2Offsets {

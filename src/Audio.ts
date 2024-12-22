@@ -1,4 +1,4 @@
-import {SAMPLE_RATE, SFX_CHANNELS} from "./Structs";
+import { SAMPLE_RATE, SFX_CHANNELS } from './Const';
 
 export class Audio {
     private static inst: Audio;

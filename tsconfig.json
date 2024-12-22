@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["vite/client"],
     "target": "es2020",
     "module": "commonjs",
     "lib": ["es2020", "dom"],

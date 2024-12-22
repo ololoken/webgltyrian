@@ -1,7 +1,7 @@
-import {BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES, Rectangle, Point} from "pixi.js";
-import {fragment, vertex} from "./ShaderDecorators";
-import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../Structs";
-import {TextureAtlas} from "../Resources";
+import { BaseTexture, Filter, FORMATS, TARGETS, Texture, TYPES, Rectangle, Point } from 'pixi.js';
+import { fragment, vertex} from './ShaderDecorators';
+import { TextureAtlas} from '../Resources';
+import { MAP_TILE_HEIGHT, MAP_TILE_WIDTH } from '../Const';
 
 export class TileMapBackgroundFilter extends Filter {
     @vertex(`

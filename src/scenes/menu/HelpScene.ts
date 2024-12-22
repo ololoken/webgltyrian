@@ -1,10 +1,11 @@
-import {AbstractScene} from "../AbstractScene";
-import {cache, PCX, pcxSprite, SFX_CODE, SpriteTableIndex, textContainer} from "../../Resources";
-import {MainMenuScene} from "./MainMenuScene";
-import {OutlineFilter} from "../../filters/OutlineFilter";
-import {filters} from "pixi.js";
-import {Audio} from "../../Audio";
-import {MenuItem} from "./AbstractMenuScene";
+import { AbstractScene } from '../AbstractScene';
+import { Audio } from '../../Audio';
+import { MainMenuScene } from './MainMenuScene';
+import { MenuItem } from './AbstractMenuScene';
+import { OutlineFilter} from '../../filters/OutlineFilter';
+import { PCX, SFX_CODE, SpriteTableIndex } from '../../Const';
+import { cache, pcxSprite, textContainer } from '../../Resources';
+import { filters } from 'pixi.js';
 
 
 export class HelpScene extends AbstractScene<number> {

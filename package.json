@@ -2,33 +2,23 @@
   "name": "webglturian",
   "version": "0.0.1",
   "description": "no-description",
-  "main": "index.js",
+  "main": "src/index.html",
   "scripts": {
-    "run": "webpack serve --port 8085",
+    "dev": "vite --mode development --port 8085",
     "conv": "ts-node tools/convert.ts",
     "test": "echo 'not implemented'",
-    "build": "webpack"
+    "build": "vite build --mode production --emptyOutDir"
   },
   "author": "roman@turch.in",
   "license": "Zlib",
   "devDependencies": {
+    "@import-meta-env/typescript": "0.4.0",
     "@ololoken/struct": "^0.0.4",
-    "@types/copy-webpack-plugin": "^6.4.0",
-    "@types/node": "^18.17.11",
-    "@types/stats": "^0.16.30",
-    "@types/webpack": "^5.28.2",
-    "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^11.0.0",
-    "favicons": "^7.1.4",
-    "favicons-webpack-plugin": "^6.0.1",
-    "html-webpack-plugin": "^5.5.3",
-    "pixi.js": "^7.2.4",
+    "@types/node": "22.10.2",
+    "@types/stats": "0.16.30",
+    "pixi.js": "7.4.2",
     "stats.js": "^0.17.0",
-    "ts-loader": "^9.4.4",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "typescript": "5.7.2",
+    "vite": "6.0.5"
   }
 }

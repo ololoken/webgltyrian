@@ -1,14 +1,10 @@
-import {Container, filters} from 'pixi.js'
-import {AbstractScene, IScene} from "../AbstractScene";
-import {
-    cache, PCX, pcxSprite,
-    SFX_CODE,
-    SpriteTableIndex,
-    textContainer
-} from "../../Resources";
-import {OutlineFilter} from "../../filters/OutlineFilter";
-import {Audio} from "../../Audio";
-import {MainMenuScene} from "./MainMenuScene";
+import { AbstractScene, IScene } from '../AbstractScene';
+import { Audio } from '../../Audio';
+import { Container, filters } from 'pixi.js'
+import { MainMenuScene } from './MainMenuScene';
+import { OutlineFilter} from '../../filters/OutlineFilter';
+import { SFX_CODE, SpriteTableIndex } from '../../Const';
+import { cache, textContainer } from '../../Resources';
 
 export type MenuItem = {
     text: string,

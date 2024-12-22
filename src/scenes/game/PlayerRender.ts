@@ -1,7 +1,7 @@
-import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
-import {IPlayerGraphic} from "../../world/Types";
-import {cache, TextureAtlas} from "../../Resources";
-import {Sprite2x2Offsets} from "./Types";
+import { Container, ObservablePoint, Sprite, Texture } from 'pixi.js';
+import { IPlayerGraphic } from '../../world/Types';
+import { Sprite2x2Offsets } from './Types';
+import { cache, TextureAtlas } from '../../Resources';
 
 export class PlayerRender extends Container {
     public readonly animationStep: ObservablePoint;

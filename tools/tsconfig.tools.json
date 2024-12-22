@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "es6",
-    "module": "commonjs",
+    "module": "NodeNext",
     "lib": ["es2015"],
     "allowJs": false,
     "outDir": "./build",

@@ -1,8 +1,9 @@
-import {Container, Sprite, Texture, ObservablePoint} from "pixi.js"
-import {IEnemyGraphic} from "../../world/Types";
-import {cache, TextureAtlas} from "../../Resources";
-import {Sprite2x2Offsets} from "./Types";
-import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, EnemySize} from "../../Structs";
+import { Container, Sprite, Texture, ObservablePoint } from 'pixi.js'
+import { COMP_TILE_HEIGHT, COMP_TILE_WIDTH } from '../../Const';
+import { EnemySize } from '../../Structs';
+import { IEnemyGraphic } from '../../world/Types';
+import { Sprite2x2Offsets } from './Types';
+import { cache, TextureAtlas } from '../../Resources';
 
 export class EnemyRender extends Container {
 

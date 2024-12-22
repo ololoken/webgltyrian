@@ -1,12 +1,11 @@
-import {Container, ObservablePoint, Sprite, Texture} from "pixi.js";
-import {TileMapBackgroundFilter} from "../../filters/TileMapBackgroundFilter";
-import {TextureAtlas, cache} from "../../Resources";
-import {MAP_TILE_HEIGHT, MAP_TILE_WIDTH} from "../../Structs";
-import {MAIN_HEIGHT} from "../../Tyrian";
-import {IEnemyGraphic, IWorldObject, IWorldLayer, EnemyShotGraphic, Explosion} from "../../world/Types";
-import {EnemyRender} from "./EnemyRender";
-import {EnemyShotRender} from "./EnemyShotRender";
-import {ExplosionRender} from "./ExplosionRender";
+import { Container, ObservablePoint, Sprite, Texture } from 'pixi.js';
+import { EnemyRender } from './EnemyRender';
+import { EnemyShotRender } from './EnemyShotRender';
+import { ExplosionRender } from './ExplosionRender';
+import { IEnemyGraphic, IWorldObject, IWorldLayer, EnemyShotGraphic, Explosion} from '../../world/Types';
+import { MAP_TILE_HEIGHT, MAP_TILE_WIDTH, MAIN_HEIGHT } from '../../Const';
+import { TextureAtlas, cache } from '../../Resources';
+import { TileMapBackgroundFilter } from '../../filters/TileMapBackgroundFilter';
 
 type LayerBackOptions = {background: number[], mapWidth: number, mapHeight: number};
 

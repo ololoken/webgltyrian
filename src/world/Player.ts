@@ -1,8 +1,9 @@
-import {Rectangle} from "pixi.js"
-import {IPlayerGraphic, PlayerShot} from "./Types";
-import {MAP_TILE_WIDTH, PORT_CHANNEL, TyShip, TyWeapon} from "../Structs";
-import {Audio} from "../Audio";
-import {cache} from "../Resources";
+import { Audio } from '../Audio';
+import { IPlayerGraphic, PlayerShot } from './Types';
+import { MAP_TILE_WIDTH, PORT_CHANNEL } from '../Const';
+import { Rectangle } from 'pixi.js'
+import { TyShip, TyWeapon } from '../Structs';
+import { cache } from '../Resources';
 
 export enum WeaponCode {
     SHOT_FRONT,

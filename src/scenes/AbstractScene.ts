@@ -1,4 +1,4 @@
-import {Container} from "pixi.js";
+import { Container } from 'pixi.js';
 
 export interface IScene extends Container {
     readonly resolve: (next: IScene) => void;

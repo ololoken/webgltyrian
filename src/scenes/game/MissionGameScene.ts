@@ -1,24 +1,24 @@
-import {AbstractScene} from "../AbstractScene";
+import { AbstractScene } from '../AbstractScene';
 import {
     cache,
-    generateBackgroundTexturesAtlas, generateEnemyShapeBankTextureAtlas,
+    generateBackgroundTexturesAtlas,
+    generateEnemyShapeBankTextureAtlas,
     getEpisodeData,
-    PCX,
-    pcxSprite, SFX_CODE, SHAPE_FILE_CODE,
-    TextureAtlas, VFX_CODE
-} from "../../Resources";
-import {Sprite} from "pixi.js";
+    pcxSprite,
+} from '../../Resources';
+import { Sprite } from 'pixi.js';
 import {
     BACK_1_HEIGHT, BACK_1_WIDTH,
     BACK_2_HEIGHT, BACK_2_WIDTH,
     BACK_3_HEIGHT, BACK_3_WIDTH,
-} from "../../Structs";
-import {Layer} from "./Layer";
-import {World} from "../../world/World";
-import {MainMenuScene} from "../menu/MainMenuScene";
-import {PlayerLayer} from "./PlayerLayer";
-import {IPlayerLayer, Layers} from "../../world/Types";
-import {Audio} from "../../Audio";
+    PCX, SHAPE_FILE_CODE, VFX_CODE,
+} from '../../Const';
+import { Layer } from './Layer';
+import { World } from '../../world/World';
+import { MainMenuScene } from '../menu/MainMenuScene';
+import { PlayerLayer } from './PlayerLayer';
+import { IPlayerLayer, Layers } from '../../world/Types';
+import { Audio } from '../../Audio';
 
 type DemoParams = {episodeNumber: number, mapIndex: number};
 
@@ -62,7 +62,7 @@ export class MissionGameScene extends AbstractScene<DemoParams> {
                 this.world = new World(map, items, this.layers, this.playerLayer);
 
                 //process load content event(s) and then ignore them
-                await this.world.getRequiredShapes()
+                this.world.getRequiredShapes()
                     .map(async id => cache.enemyShapeBanks[id] = await generateEnemyShapeBankTextureAtlas(SHAPE_FILE_CODE[id-1].toLowerCase()));
                 cache.explosionShapeBank = await generateEnemyShapeBankTextureAtlas('6');
 

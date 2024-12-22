@@ -1,5 +1,5 @@
-import {Application} from "pixi.js";
-import {IScene} from "./AbstractScene";
+import { Application } from 'pixi.js';
+import { IScene } from './AbstractScene';
 
 export class SceneManager {
     private readonly app: Application;

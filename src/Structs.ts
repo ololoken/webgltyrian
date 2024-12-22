@@ -7,20 +7,20 @@ import {
     Struct,
     USwap16Formatter
 } from "@ololoken/struct";
-import {PascalDecryptFormatter} from "./Decoders";
-
-export const PALETTE_SIZE = 256,
-             MAP_TILES_MAX_INDEX = 600,
-             MAP_TILE_WIDTH = 24, MAP_TILE_HEIGHT = 28,
-             COMP_TILE_WIDTH = 12, COMP_TILE_HEIGHT = 14,
-             BACK_TO_SHAPE_MAX_INDEX = 128,
-             BACK_1_WIDTH = 14, BACK_1_HEIGHT = 300,
-             BACK_2_WIDTH = 14, BACK_2_HEIGHT = 600,
-             BACK_3_WIDTH = 15, BACK_3_HEIGHT = 600,
-             SFX_CHANNELS = 8,
-             PCM_RESAMPLE_RATE = 4, SAMPLE_RATE = 44100,
-             PORT_CHANNEL = [0, 2, 4, 4, 2, 2, 5, 5, 1, 4, 1],
-             PLAYER_CONTAINER_WIDTH = 260, PLAYER_CONTAINER_HEIGHT = 190;
+import { PascalDecryptFormatter } from './Decoders';
+import {
+    BACK_1_HEIGHT,
+    BACK_1_WIDTH,
+    BACK_2_HEIGHT,
+    BACK_2_WIDTH,
+    BACK_3_HEIGHT,
+    BACK_3_WIDTH,
+    BACK_TO_SHAPE_MAX_INDEX,
+    MAP_TILES_MAX_INDEX,
+    MAP_TILE_HEIGHT,
+    MAP_TILE_WIDTH,
+    PALETTE_SIZE,
+} from './Const';
 
 const [UInt16, Int16] = [Primitive.UInt16LE(), Primitive.Int16LE()],
       [Byte, Char] = [Primitive.UInt8(), Primitive.Int8()],

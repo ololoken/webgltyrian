@@ -1,5 +1,6 @@
-import {ItemsFormatter, StringFormatter} from "@ololoken/struct";
-import {COMP_TILE_HEIGHT, COMP_TILE_WIDTH, TyPalette, TyShape} from "./Structs";
+import { COMP_TILE_HEIGHT, COMP_TILE_WIDTH } from './Const';
+import { ItemsFormatter, StringFormatter } from '@ololoken/struct';
+import { TyPalette, TyShape } from './Structs';
 
 export const PascalDecryptFormatter = (key: number[]) : ItemsFormatter<number, string> => (data) => {
     for (let i = data.length-1, l = key.length; i >= 0; --i) {

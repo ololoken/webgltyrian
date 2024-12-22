@@ -1,12 +1,10 @@
-import {Sprite} from 'pixi.js'
-import {
-    getSprite,
-    PCX,
-    pcxSprite
-} from "../../Resources";
-import {HelpScene} from "./HelpScene";
-import {SelectGameModeScene} from "./SelectGameModeScene";
-import {AbstractMenuScene} from "./AbstractMenuScene";
+import { AbstractMenuScene } from './AbstractMenuScene';
+import { HelpScene } from './HelpScene';
+import { PCX } from '../../Const';
+import { SelectGameModeScene } from './SelectGameModeScene';
+import { Sprite } from 'pixi.js'
+import { getSprite, pcxSprite } from '../../Resources';
+
 
 export class MainMenuScene extends AbstractMenuScene {
 

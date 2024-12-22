@@ -1,6 +1,7 @@
-import {AbstractScene} from "../AbstractScene";
-import {PCX, pcxSprite} from "../../Resources";
-import {MainMenuScene} from "./MainMenuScene";
+import { AbstractScene } from '../AbstractScene';
+import { pcxSprite } from '../../Resources';
+import { MainMenuScene } from './MainMenuScene';
+import { PCX } from '../../Const';
 
 export class IntroScene extends AbstractScene<number> {
     private readonly duration = 50;

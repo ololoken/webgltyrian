@@ -1,6 +1,6 @@
-import {Sprite, Texture, ObservablePoint} from "pixi.js"
-import {EnemyShotGraphic} from "../../world/Types";
-import {cache, TextureAtlas} from "../../Resources";
+import { Sprite, Texture, ObservablePoint } from 'pixi.js'
+import { EnemyShotGraphic } from '../../world/Types';
+import { cache, TextureAtlas } from '../../Resources';
 
 export class EnemyShotRender extends Sprite {
 
