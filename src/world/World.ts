@@ -109,7 +109,7 @@ export class World extends utils.EventEmitter {
         this.layers[LayerCode.SKY].backPos.set((map.backX[LayerCode.SKY]-1)*MAP_TILE_WIDTH, 0);
         this.layers[LayerCode.TOP].backPos.set((map.backX[LayerCode.TOP]-1)*MAP_TILE_WIDTH, 0);
 
-        this.playerOne = new Player(130, 155, this.items.ships[1], this.items.weapons[166]);
+        this.playerOne = new Player(130, 155, this.items.ships[13], this.items.weapons[1]);
         this.player = this.playerLayer.registerPlayer(this.playerOne);
 
         this.eventSystem = new EventSystem(this.map.events);

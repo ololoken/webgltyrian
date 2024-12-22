@@ -63,7 +63,7 @@ export class Episode {
             switch (true) {
                 case lines[i].length === 0: break;//skip empty lines
                 case /\*\*(?<index>\d+)(?<name>[^\*]+)/.test(lines[i]): {//new section start
-                    let header = lines[i].match(/\*\*(?<index>\d+)(?<name>[^\*]+)/)!.groups!;
+                    const header = lines[i].match(/\*\*(?<index>\d+)(?<name>[^\*]+)/)!.groups!;
                     sectionIndex = parseInt(header['index'], 10);
                     this.sections[sectionIndex] = {
                         index: sectionIndex,
@@ -76,39 +76,52 @@ export class Episode {
                         case 'A': //todo: animation
                             break;
                         case 'G': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                let mapData = command.split(/\s+/).splice(1).map(d => parseInt(d, 10));
-                                this.mapOrigin = mapData[0];
-                                this.maps = [];
-                                for (let j = 0; j < mapData[1]; j++) {
-                                    this.maps[j].planet = mapData[2 + j * 2];
-                                    this.maps[j].section = mapData[3 + j * 2];
-                                }
-                            }, command: lines[i]});
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => {
+                                    const mapData = command.split(/\s+/).splice(1).map(d => parseInt(d, 10));
+                                    this.mapOrigin = mapData[0];
+                                    this.maps = [];
+                                    for (let j = 0; j < mapData[1]; j++) {
+                                        this.maps[j].planet = mapData[2 + j * 2];
+                                        this.maps[j].section = mapData[3 + j * 2];
+                                    }
+                                },
+                                command: lines[i]
+                            });
                         } break;
                         case '?': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                this.cubeList = command.match(/\d+/g)!.map(d => parseInt(d, 10)).splice(1);
-                            }, command: lines[i]})
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => {
+                                    this.cubeList = command.match(/\d+/g)!.map(d => parseInt(d, 10)).splice(1);
+                                },
+                                command: lines[i]
+                            })
                         } break;
                         case '!': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                this.cubeList = command.match(/\d+/g)!.map(d => parseInt(d, 10)).splice(1);
-                            }, command: lines[i]});
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => {
+                                    this.cubeList = command.match(/\d+/g)!.map(d => parseInt(d, 10)).splice(1);
+                                },
+                                command: lines[i]
+                            });
                         } break;
                         case '+': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                let addCubes: number = command.match(/\d+/g)!.map(d => parseInt(d, 10)).pop()!;
-                                this.cubeMax += addCubes;
-                                this.cubeMax = Math.max(4, this.cubeMax);
-                            }, command: lines[i]});
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => {
+                                    const addCubes: number = command.match(/\d+/g)!.map(d => parseInt(d, 10)).pop()!;
+                                    this.cubeMax += addCubes;
+                                    this.cubeMax = Math.min(4, this.cubeMax);
+                                },
+                                command: lines[i]
+                            });
                         } break;
                         case 'g': {//todo: galaga mode
                         } break;
                         case 'x': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                this.extraGame = true;
-                            }, command: lines[i]});
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => { this.extraGame = true },
+                                command: lines[i]
+                            });
                         } break;
                         case 'e': {//todo: engage mode
                         } break;
@@ -146,8 +159,8 @@ export class Episode {
                         } break;
                         case 'I': {//Load Items Available Information
                             let command: string[] = [];
-                            do {command.push(lines[++i])} while (lines[i+1].length > 0)
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
+                            do { command.push(lines[++i]) } while (lines[i+1].length > 0)
+                            this.sections[sectionIndex].commands.push({handler: (command) => {
                                 for (let c = command.split('\n'), j = 0; j < c.length; j++) {
                                     let item = c[j].match(/(?<name>\w+)[^\d]+(?<d>[\d\s]+)/)!.groups! as {name: string, d: string};
                                     let items = item.d.split(/\s/).map(d => parseInt(d, 10));

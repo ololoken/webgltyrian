@@ -1,3 +1,4 @@
+import Stats from 'stats.js'
 import { Application } from 'pixi.js';
 import { IScene } from './AbstractScene';
 

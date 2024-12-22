@@ -26,3 +26,4 @@ TYRIAN.stage.scale.set(SCALE, SCALE);
 initBasicResources()
   .then(() => new SceneManager(TYRIAN, stats))
   .then(scene => scene.play(new IntroScene(0)));
+

@@ -50,6 +50,7 @@ type TyEpisodeData = {
   episode: number, script: string, maps: TyEpisodeMap[], items: TyEpisodeItems
 }
 
+//@ts-ignore
 const resources = import.meta.glob('../data/*.*', { eager: true, as: 'url' });
 
 export const cache : {
