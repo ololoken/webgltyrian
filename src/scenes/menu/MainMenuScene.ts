@@ -4,6 +4,7 @@ import { PCX } from '../../Const';
 import { SelectGameModeScene } from './SelectGameModeScene';
 import { Sprite } from 'pixi.js'
 import { getSprite, pcxSprite } from '../../Resources';
+import { MissionGameScene } from "../game/MissionGameScene";
 
 
 export class MainMenuScene extends AbstractMenuScene {
@@ -12,7 +13,7 @@ export class MainMenuScene extends AbstractMenuScene {
 
     public constructor(active: number = -1) {
         super(active, [
-            {text: 'Start New Game', target: () => new SelectGameModeScene()},
+            {text: 'Start New Game', target: () => new MissionGameScene({episodeNumber: 1, mapIndex: 8})},
             {text: 'Load Game',},
             {text: 'Demo'},
             {text: 'Instructions', target: () => new HelpScene()},

@@ -1,6 +1,6 @@
 import { AbstractScene, IScene } from '../AbstractScene';
 import { Audio } from '../../Audio';
-import { Container, filters } from 'pixi.js'
+import { Container, ColorMatrixFilter } from 'pixi.js'
 import { MainMenuScene } from './MainMenuScene';
 import { OutlineFilter} from '../../filters/OutlineFilter';
 import { SFX_CODE, SpriteTableIndex } from '../../Const';
@@ -18,7 +18,7 @@ export abstract class AbstractMenuScene extends AbstractScene<number> {
     protected readonly menu: MenuItem[];
     protected active = -1;
 
-    public constructor(active: number = -1, menu: MenuItem[]) {
+    constructor(active: number = -1, menu: MenuItem[]) {
         super(active);
         this.menu = menu;
     }
@@ -35,7 +35,7 @@ export abstract class AbstractMenuScene extends AbstractScene<number> {
             text: '',
             btn: textContainer('Return to main menu', SpriteTableIndex.FONT_REGULAR, 0),
         }
-        m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
+        m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new ColorMatrixFilter()];
         m.btn!.interactive = true;
         m.btn!.on('click', () => {
             this.active = 0;
@@ -55,7 +55,7 @@ export abstract class AbstractMenuScene extends AbstractScene<number> {
                     ? btns[idx-1].btn!.position.y+btns[idx-1].btn!.height+4
                     : topOffset
             )
-            m.btn.filters = [...(m.btn.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
+            m.btn.filters = [...(m.btn.filters || []), m.outline = new OutlineFilter(), m.cm = new ColorMatrixFilter()];
             m.btn.interactive = true;
             m.btn.on('click', () => {
                 this.state = idx;

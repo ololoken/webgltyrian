@@ -430,7 +430,7 @@ export class World extends utils.EventEmitter {
     }
 
     private killEnemy (enemy: EnemyRegistered): EnemyRegistered[] {
-        let effectedEnemies = this.registeredEnemies.filter(({enemy: e, code}) =>
+        const effectedEnemies = this.registeredEnemies.filter(({ enemy: e }) =>
             e === enemy.enemy || (enemy.enemy.linknum !== 0
                 && (e.linknum == enemy.enemy.linknum
                 || enemy.enemy.linknum-100 == e.linknum
@@ -452,7 +452,6 @@ export class World extends utils.EventEmitter {
             if (e.edlevel == -1 && e.linknum == enemy.enemy.linknum) {
                 e.edlevel = 0;
                 e.graphic[0] = e.edgr;
-                e.animationCycle = 0;
                 e.animationState = 0;
                 e.animationMax = 0;
                 e.animationMin = 1;

@@ -25,6 +25,8 @@ export class PlayerLayer extends Container implements IPlayerLayer {
                 let rect = plr.getLocalBounds();
                 rect.x = plr.position.x;
                 rect.y = plr.position.y;
+                rect.width = rect.width/2;
+                rect.height = rect.height/2
                 return rect;
             }
         }

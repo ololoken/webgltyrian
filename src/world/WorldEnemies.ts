@@ -483,7 +483,7 @@ export function getClosestEnemy(this: World, position: {x: number, y: number}): 
 }
 
 export function enemyShotsCreate (this: World, step: number, enemy: IEnemy, playerOne: Player): EnemyShot[] {
-    return enemy.freq.filter(by => by > 0).map((v, i) => {
+    return enemy.freq.filter(by => by > 0).flatMap((v, i) => {
         let tur = enemy.tur[i];
         enemy.shotWait[i] -= step;
         if (enemy.shotWait[i] > 0 || tur == 0) {
@@ -593,7 +593,7 @@ export function enemyShotsCreate (this: World, step: number, enemy: IEnemy, play
                 break;
         }
         return shots;
-    }).flat();
+    });
 }
 
 export function enemyLaunch (this: World, step: number, enemy: IEnemy, playerOne: Player): IEnemy | undefined {

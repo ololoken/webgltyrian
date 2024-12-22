@@ -1,11 +1,11 @@
 import { AbstractScene } from '../AbstractScene';
 import { Audio } from '../../Audio';
+import { ColorMatrixFilter } from 'pixi.js';
 import { MainMenuScene } from './MainMenuScene';
 import { MenuItem } from './AbstractMenuScene';
 import { OutlineFilter} from '../../filters/OutlineFilter';
 import { PCX, SFX_CODE, SpriteTableIndex } from '../../Const';
 import { cache, pcxSprite, textContainer } from '../../Resources';
-import { filters } from 'pixi.js';
 
 
 export class HelpScene extends AbstractScene<number> {
@@ -36,7 +36,7 @@ export class HelpScene extends AbstractScene<number> {
                 btn: textContainer('Return to main menu', SpriteTableIndex.FONT_REGULAR, 0),
             }
             this.menu.push(m);
-            m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new filters.ColorMatrixFilter()];
+            m.btn!.filters = [...(m.btn!.filters || []), m.outline = new OutlineFilter(), m.cm = new ColorMatrixFilter()];
             m.btn!.interactive = true;
             m.btn!.on('click', () => {
                 Audio.getInstance().playSample(cache.sfx[SFX_CODE.S_SELECT]);

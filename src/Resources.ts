@@ -242,7 +242,7 @@ const getTextData: ResourceInit = (dt: DataView) => {
 const getFileDataView = async (path: string) => fetch(resources[`../data/${path}`])
   .then(r => r.arrayBuffer())
   .then(b => new DataView(b));
-console.log(resources, resources[`../data/palette.dat`])
+
 export const initBasicResources = () => Promise.all([
   {path: 'palette.dat', init: generatePalettes},
   {path: 'tyrian.pic', init: generatePCXTexture},

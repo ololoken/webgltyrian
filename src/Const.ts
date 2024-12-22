@@ -161,4 +161,4 @@ export const PALETTE_SIZE = 256,
 
 
 export const MAIN_WIDTH = 320, MAIN_HEIGHT = 200,
-  SCALE = 4;
+  SCALE = 2;
