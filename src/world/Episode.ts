@@ -162,8 +162,8 @@ export class Episode {
                             do { command.push(lines[++i]) } while (lines[i+1].length > 0)
                             this.sections[sectionIndex].commands.push({handler: (command) => {
                                 for (let c = command.split('\n'), j = 0; j < c.length; j++) {
-                                    let item = c[j].match(/(?<name>\w+)[^\d]+(?<d>[\d\s]+)/)!.groups! as {name: string, d: string};
-                                    let items = item.d.split(/\s/).map(d => parseInt(d, 10));
+                                    const item = c[j].match(/(?<name>\w+)[^\d]+(?<d>[\d\s]+)/)!.groups! as {name: string, d: string};
+                                    const items = item.d.split(/\s/).map(d => parseInt(d, 10));
                                     switch (item.name) {
                                         case 'Ship': this.itemsAvailable.ship = items; break;
                                         case 'WeapF': this.itemsAvailable.weaponFront = items; break;
@@ -179,21 +179,24 @@ export class Episode {
                             }, command: command.join('\n')})
                         } break;
                         case 'L': {
-                            this.sections[sectionIndex].commands.push({handler: (command: string): void => {
-                                let parts = command.split(/\s+/);
-                                this.levelNext = parseInt(parts[2], 10);
-                                this.levelName = parts[3];
-                                if (this.levelNext == 0) {
-                                    this.levelNext = this.levelMain + 1;
-                                }
-                                this.levelSong = parseInt(parts[4], 10);
-                                this.levelFileNum = parseInt(parts[5], 10);
+                            this.sections[sectionIndex].commands.push({
+                                handler: (command: string): void => {
+                                    let parts = command.split(/\s+/);
+                                    this.levelNext = parseInt(parts[2], 10);
+                                    this.levelName = parts[3];
+                                    if (this.levelNext == 0) {
+                                        this.levelNext = this.levelMain + 1;
+                                    }
+                                    this.levelSong = parseInt(parts[4], 10);
+                                    this.levelFileNum = parseInt(parts[5], 10);
 
-                                this.levelLoadOk = true;
-                                this.bonusLevelCurrent = command.length > 28 && command[28] == '$';
-                                this.normalBonusLevelCurrent = command.length > 27 && command[27] == '$';
-                                this.gameJustLoaded = false;
-                            }, command: lines[i]});
+                                    this.levelLoadOk = true;
+                                    this.bonusLevelCurrent = command.length > 28 && command[28] == '$';
+                                    this.normalBonusLevelCurrent = command.length > 27 && command[27] == '$';
+                                    this.gameJustLoaded = false;
+                                },
+                                command: lines[i]
+                            });
                         } break;
                         case '@': {
                             this.sections[sectionIndex].commands.push({handler: (command: string): void => {

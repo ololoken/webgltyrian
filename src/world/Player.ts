@@ -2,7 +2,7 @@ import { Audio } from '../Audio';
 import { IPlayerGraphic, PlayerShot } from './Types';
 import { MAP_TILE_WIDTH, PORT_CHANNEL } from '../Const';
 import { Rectangle } from 'pixi.js'
-import { TyShip, TyWeapon } from '../Structs';
+import { TyShield, TyShip, TyWeapon } from '../Structs';
 import { cache } from '../Resources';
 
 export enum WeaponCode {
@@ -49,6 +49,7 @@ export class Player implements IPlayerGraphic {
         this.weapons[WeaponCode.SHOT_FRONT] = weaponMain;
         this.shipGraphic = this.ship.shipGraphic-1;
     }
+
 
     public takeDamage (damage: number): void {
 

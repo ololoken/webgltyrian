@@ -223,22 +223,7 @@ export class World extends utils.EventEmitter {
         this.updateEnemiesShots(this.STEP, this.playerOne);
         this.updatePlayers(this.STEP);
         this.updateExplosions(this.STEP);
-/*
-        // @ts-ignore
-        this.rects.forEach(rect => this.playerLayer.removeChild(rect));
-        this.registeredEnemies.forEach(e => {
-            // @ts-ignore
-            let rel = this.layers[EnemyCodeToLayerMapping[e.code]].position;
-            let rect = e.getBoundingRect();
-            const rectangle = Sprite.from(Texture.WHITE);
-            rectangle.position.x = rect.x-rel.x;
-            rectangle.position.y = rect.y-rel.y;
-            rectangle.width = rect.width;
-            rectangle.height = rect.height;
-            // @ts-ignore
-            this.rects.push(this.playerLayer.addChild(rectangle));
-        });
-*/
+
         Audio.getInstance().play();
         Audio.getInstance().dequeue();
     }
@@ -606,7 +591,7 @@ export class World extends utils.EventEmitter {
 
     private updateExplosions (step: number): void {
         for (let i = this.repetitiveExplosions.length-1; i >= 0; i--) {
-            let repExplosion = this.repetitiveExplosions[i];
+            const repExplosion = this.repetitiveExplosions[i];
             repExplosion.position.y += step*this.backSpeed[EnemyCodeToLayerMapping[repExplosion.code]]*EnemyCodeAddFixedMoveY[repExplosion.code];
 
             if (repExplosion.delay > 0) {

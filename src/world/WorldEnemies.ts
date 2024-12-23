@@ -126,7 +126,7 @@ export function enemyCreate (this: World, {e}: EnemyCreate): void {
 
 export function updateEnemies (this: World, step: number, playerOne: Player): void {
     for (let i = this.registeredEnemies.length-1; i >= 0; i--) {
-        let {enemy, name, position, animationStep, code} = this.registeredEnemies[i];
+        const { enemy, name, position, animationStep, code } = this.registeredEnemies[i];
 
         updateSpeed(playerOne, enemy, step);
         updateAnimationCycle(enemy, step);
@@ -136,7 +136,7 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
         enemy.position.y += step*(enemy.eyc+enemy.fixedMoveY+EnemyCodeAddFixedMoveY[code]*this.backSpeed[EnemyCodeToLayerMapping[code]]);
 
         //cleanup objects
-        let readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
+        const readyToGC = !this.gcBox.contains(enemy.position.x, enemy.position.y)
             || enemy.graphic[enemy.animationCycle>>0] == 999;
 
         if (readyToGC) {
@@ -175,9 +175,9 @@ export function updateEnemies (this: World, step: number, playerOne: Player): vo
         this.registeredEnemyShots.push(...this.enemyShotsCreate(step, enemy, playerOne).map(shot => ({
             shot, layer: EnemyCodeToLayerMapping[code], ...this.layers[EnemyCodeToLayerMapping[code]].registerShot(shot)
         })));
-        let launchedEnemy = this.enemyLaunch(step, enemy, playerOne);
+        const launchedEnemy = this.enemyLaunch(step, enemy, playerOne);
         if (launchedEnemy) {
-            let launchedEnemyCode: EnemyCode = code == 25 ? 50 : code;
+            const launchedEnemyCode: EnemyCode = code == 25 ? 50 : code;
             this.registeredEnemies.push({
                 code: launchedEnemyCode,
                 enemy: launchedEnemy,
@@ -615,8 +615,8 @@ export function enemyLaunch (this: World, step: number, enemy: IEnemy, playerOne
         enemy.animationState = 1;
     }
 
-    let type = enemy.launchType;
-    let launchedEnemy = new Enemy({data2: 0, data3: 0, data4: 0, data5: 0, data6: 0}, this.items.enemies[type], this.state.enemySmallAdjustPos);
+    const type = enemy.launchType;
+    const launchedEnemy = new Enemy({data2: 0, data3: 0, data4: 0, data5: 0, data6: 0}, this.items.enemies[type], this.state.enemySmallAdjustPos);
 
     launchedEnemy.position.x = enemy.position.x + this.items.enemies[type].xcStart;
     launchedEnemy.position.y = enemy.position.y + this.items.enemies[type].ycStart;
@@ -629,8 +629,8 @@ export function enemyLaunch (this: World, step: number, enemy: IEnemy, playerOne
             launchedEnemy.position.x += (Math.random()*(launchedEnemy.launchType - 90)*2)>>0;
         }
         else {
-            let target_x = playerOne.position.x - launchedEnemy.position.x;
-            let target_y = playerOne.position.y - launchedEnemy.position.y;
+            const target_x = playerOne.position.x - launchedEnemy.position.x;
+            const target_y = playerOne.position.y - launchedEnemy.position.y;
             const longest_side = Math.max(Math.abs(target_x), Math.abs(target_y));
             launchedEnemy.exc = Math.round(target_x/longest_side*launchedEnemy.launchType);
             launchedEnemy.eyc = Math.round(target_y/longest_side*launchedEnemy.launchType);

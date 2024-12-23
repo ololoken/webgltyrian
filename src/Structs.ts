@@ -107,7 +107,7 @@ type TyOption = Readonly<{
     iconGraphic: number
 }>
 
-type TyShield = Readonly<{
+export type TyShield = Readonly<{
     nameLength: number,
     name: string,
     tPower: number,
